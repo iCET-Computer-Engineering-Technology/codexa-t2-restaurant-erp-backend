@@ -1,11 +1,10 @@
 package edu.icet.ecom.controller;
 
+import edu.icet.ecom.dto.AssignWaiterRequest;
 import edu.icet.ecom.entity.Order;
 import edu.icet.ecom.entity.Waiter;
 import edu.icet.ecom.service.KitchenService;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
@@ -29,5 +28,12 @@ public class KitchenController {
 
         return kitchenService.getActiveWaiters();
 
+    }
+
+    @PostMapping("/assign-waiter")
+    public void assignWaiter(@RequestBody AssignWaiterRequest request) {
+        kitchenService.assignWaiter(
+                request.getOrderId(),
+                request.getWaiterId());
     }
 }

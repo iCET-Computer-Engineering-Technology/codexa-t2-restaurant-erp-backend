@@ -11,4 +11,6 @@ public interface KitchenService {
 
     List<Waiter> getActiveWaiters();
 
+    void assignWaiter(Long orderId,Long waiterId);
+
 }

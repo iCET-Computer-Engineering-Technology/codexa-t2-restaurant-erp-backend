@@ -8,4 +8,5 @@ public interface OrderRepository {
 
     List<Order> findReceivedOrders();
 
+    void updateStatus(Long orderId,String status);
 }

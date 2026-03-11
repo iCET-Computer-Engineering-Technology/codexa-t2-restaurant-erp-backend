@@ -30,4 +30,10 @@ public class OrderRepositoryImpl implements OrderRepository {
             return order;
         });
     }
+
+    @Override
+    public void updateStatus(Long orderId, String status) {
+        String sql = "UPDATE orders SET status=? WHERE id=?";
+        jdbcTemplate.update(sql, status, orderId);
+    }
 }
