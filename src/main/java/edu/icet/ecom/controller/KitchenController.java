@@ -1,6 +1,7 @@
 package edu.icet.ecom.controller;
 
 import edu.icet.ecom.entity.Order;
+import edu.icet.ecom.entity.Waiter;
 import edu.icet.ecom.service.KitchenService;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -21,5 +22,12 @@ public class KitchenController {
     @GetMapping("/orders")
     public List<Order> getOrders() {
         return kitchenService.getKitchenOrders();
+    }
+
+    @GetMapping("/waiters")
+    public List<Waiter> getWaiters(){
+
+        return kitchenService.getActiveWaiters();
+
     }
 }
