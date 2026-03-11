@@ -8,6 +8,7 @@ public interface CustomerService {
     List<CustomerDto> getAllCustomer();
     boolean addCustomer(CustomerDto customerDto);
     CustomerDto searchCustomerByPhone(String phone);
+    CustomerDto searchCustomerById(Integer id);
     boolean deleteCustomerByPhone(String phone);
     boolean updateCustomer(CustomerDto customerDTO);
 }

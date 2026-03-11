@@ -29,6 +29,11 @@ public class CustomerServiceImpl implements CustomerService {
     }
 
     @Override
+    public CustomerDto searchCustomerById(Integer id) {
+        return customerRepository.searchCustomerById(id);
+    }
+
+    @Override
     public boolean deleteCustomerByPhone(String phone) {
         return customerRepository.deleteCustomerByPhone(phone);
     }

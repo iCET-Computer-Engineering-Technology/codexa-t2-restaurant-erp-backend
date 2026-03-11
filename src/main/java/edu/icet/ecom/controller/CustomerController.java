@@ -30,6 +30,11 @@ public class CustomerController {
         return customerService.searchCustomerByPhone(phone);
     }
 
+    @GetMapping("/search/{id}")
+    public CustomerDto searchCustomerById(@PathVariable String id){
+        return customerService.searchCustomerByPhone(id);
+    }
+
     @DeleteMapping("/delete/{phone}")
     public boolean deleteCustomerByPhone(@PathVariable String phone){
         return customerService.deleteCustomerByPhone(phone);
