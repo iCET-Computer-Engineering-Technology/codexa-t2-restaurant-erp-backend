@@ -37,4 +37,7 @@ build/
 ### Mac OS ###
 .DS_Store
 
+src/main/resources/db/migration/V1__init.sql
+src/main/resources/db/migration/V2__menu_item_potions.sql
+src/main/resources/db/migration/V3__fix_role_column_size.sql
 src/main/resources/application.yml
