@@ -31,7 +31,7 @@ public class MenuItemVariantServiceImpl implements MenuItemVariantService {
 
     @Override
     public MenuItemVariant searchById(Integer id) {
-        return null;
+        return repositery.searchById(id);
     }
 
     @Override

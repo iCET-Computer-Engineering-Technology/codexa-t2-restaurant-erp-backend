@@ -49,7 +49,16 @@ public class MenuItemVariantRepositeryImpl implements MenuItemVariantRepositery 
 
     @Override
     public MenuItemVariant searchById(Integer id) {
-        return null;
+        return template.queryForObject("SELECT * FROM menu_item_variants WHERE variant_id = ? " , (rs, rowNum) -> new MenuItemVariant(
+                rs.getInt(1),
+                rs.getInt(2),
+                rs.getInt(3),
+                rs.getDouble(4),
+                rs.getInt(5),
+                rs.getBoolean(6),
+                rs.getTimestamp(7),
+                rs.getTimestamp(8)
+        ), id);
     }
 
     @Override
