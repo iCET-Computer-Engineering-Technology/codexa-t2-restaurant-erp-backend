@@ -1,3 +1,0 @@
--- V3 migration intentionally left blank.
--- The 'role' column remains defined as an ENUM in V1__init.sql,
--- which is the source of truth for its type and allowed values.
