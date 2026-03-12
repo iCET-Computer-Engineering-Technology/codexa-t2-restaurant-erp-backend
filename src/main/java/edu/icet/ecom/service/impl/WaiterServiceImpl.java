@@ -17,4 +17,10 @@ public class WaiterServiceImpl implements WaiterService {
     public List<OrderAssigment> getUnservedOrders() {
         return waiterRepository.getUnservedOrders();
     }
+
+    @Override
+    public void serveOrder(Long orderId) {
+        waiterRepository.markOrderServed(orderId);
+
+    }
 }

@@ -11,7 +11,9 @@ public interface WaiterRepository {
     List<OrderAssigment> getAssignments();
 
     List<OrderAssigment> getUnservedOrders();
+    
 
     List<Waiter> findActiveWaiters();
 
+    void markOrderServed(Long orderId);
 }
