@@ -1,6 +1,7 @@
 package edu.icet.ecom.repository.impl;
 
 import edu.icet.ecom.dto.MenuItemVariant;
+import edu.icet.ecom.dto.VariantDTO;
 import edu.icet.ecom.repository.MenuItemVariantRepositery;
 import lombok.RequiredArgsConstructor;
 import org.springframework.jdbc.core.JdbcTemplate;
@@ -62,7 +63,21 @@ public class MenuItemVariantRepositeryImpl implements MenuItemVariantRepositery 
     }
 
     @Override
-    public List<MenuItemVariant> getAll() {
-        return List.of();
+    public List<VariantDTO> getAll() {
+        String sql = "SELECT v.variant_id , i.item_name , p.size_name , v.price , v.is_available " +
+                "FROM menu_item_variants v " +
+                "JOIN menu_items i ON v.menu_item_id = i.menu_item_id   " +
+                "JOIN portion_sizes p ON v.portion_size_id = p.portion_size_id ";
+
+        return template.query(sql, (rs, rowNum) ->
+                new VariantDTO(
+                        rs.getInt("variant_id"),
+                        rs.getString("item_name"),
+                        rs.getString("size_name"),
+                        rs.getDouble("price"),
+                        rs.getBoolean("is_available")
+                )
+        );
     }
+
 }

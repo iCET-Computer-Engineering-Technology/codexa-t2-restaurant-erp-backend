@@ -1,6 +1,7 @@
 package edu.icet.ecom.service.impl;
 
 import edu.icet.ecom.dto.MenuItemVariant;
+import edu.icet.ecom.dto.VariantDTO;
 import edu.icet.ecom.repository.MenuItemVariantRepositery;
 import edu.icet.ecom.service.MenuItemVariantService;
 import lombok.RequiredArgsConstructor;
@@ -35,7 +36,7 @@ public class MenuItemVariantServiceImpl implements MenuItemVariantService {
     }
 
     @Override
-    public List<MenuItemVariant> getAll() {
-        return List.of();
+    public List<VariantDTO> getAll() {
+        return repositery.getAll();
     }
 }

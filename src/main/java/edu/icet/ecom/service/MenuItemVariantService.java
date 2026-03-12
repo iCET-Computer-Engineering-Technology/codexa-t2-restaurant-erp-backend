@@ -1,6 +1,7 @@
 package edu.icet.ecom.service;
 
 import edu.icet.ecom.dto.MenuItemVariant;
+import edu.icet.ecom.dto.VariantDTO;
 
 import java.util.List;
 
@@ -9,5 +10,5 @@ public interface MenuItemVariantService {
     boolean updateItemVariant(MenuItemVariant menuItemVariant);
     boolean deleteById(Integer id);
     MenuItemVariant searchById(Integer id);
-    List<MenuItemVariant> getAll();
+    List<VariantDTO> getAll();
 }
