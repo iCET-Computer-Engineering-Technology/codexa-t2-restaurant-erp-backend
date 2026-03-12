@@ -1,6 +1,6 @@
 spring:
   datasource:
-    url: jdbc:mysql://localhost:3306/spring_security_db?createDatabaseIfNotExist=true
+    url: jdbc:mysql://localhost:3306/restaurant_erp?createDatabaseIfNotExist=true
     username: root
     password: 1234
 
@@ -9,7 +9,5 @@ spring:
 
 app:
   jwt:
-    # Base64-encoded default is for local development only.
     secret: 92da2bdb9d08a28eaafd4d43b55db3e823362611c326ce2dd183d55e1820ce2f
     expiration: 86400000
-
