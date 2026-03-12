@@ -16,17 +16,35 @@ public class MenuItemVariantRepositeryImpl implements MenuItemVariantRepositery 
 
     @Override
     public boolean addItemVariant(MenuItemVariant menuItemVariant) {
-        return false;
+        String sql = "INSERT INTO menu_item_variants (menu_item_id , portion_size_id , price , prep_time_minutes , is_available , created_at , updated_at)"+"VALUES(?,?,?,?,?,?,?)";
+        return template.update(sql ,
+                menuItemVariant.getMenuItemId(),
+                menuItemVariant.getPortionSizeId(),
+                menuItemVariant.getPrice(),
+                menuItemVariant.getPrepTimeMinutes(),
+                menuItemVariant.getIsAvailable(),
+                menuItemVariant.getCreatedAt(),
+                menuItemVariant.getUpdatedAt()
+        )>0;
     }
 
     @Override
     public boolean updateItemVariant(MenuItemVariant menuItemVariant) {
-        return false;
+        return template.update("UPDATE menu_item_variants SET menu_item_id = ?, portion_size_id = ? , price = ? , prep_time_minutes = ? , is_available = ? , created_at = ? , updated_at = ? WHERE variant_id = ?" ,
+                menuItemVariant.getMenuItemId(),
+                menuItemVariant.getPortionSizeId(),
+                menuItemVariant.getPrice(),
+                menuItemVariant.getPrepTimeMinutes(),
+                menuItemVariant.getIsAvailable(),
+                menuItemVariant.getCreatedAt(),
+                menuItemVariant.getUpdatedAt(),
+                menuItemVariant.getVariantId()
+        )>0;
     }
 
     @Override
     public boolean deleteById(Integer id) {
-        return false;
+        return template.update("DELETE FROM menu_item_variants WHERE variant_id = ?", id)>1;
     }
 
     @Override

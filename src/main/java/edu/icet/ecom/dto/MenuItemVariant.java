@@ -5,7 +5,7 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 import lombok.ToString;
 
-import java.security.Timestamp;
+import java.sql.Timestamp;
 
 @Data
 @AllArgsConstructor
@@ -17,7 +17,7 @@ public class MenuItemVariant {
     private Integer portionSizeId;
     private Double price;
     private Integer prepTimeMinutes;
-    private Integer isAvailable;
+    private Boolean isAvailable;
     private Timestamp createdAt;
     private Timestamp updatedAt;
 }
