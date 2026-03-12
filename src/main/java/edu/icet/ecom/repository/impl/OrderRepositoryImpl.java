@@ -1,0 +1,59 @@
+package edu.icet.ecom.repository.impl;
+
+import edu.icet.ecom.entity.Order;
+import edu.icet.ecom.repository.OrderRepository;
+import lombok.RequiredArgsConstructor;
+import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.jdbc.support.GeneratedKeyHolder;
+import org.springframework.jdbc.support.KeyHolder;
+import org.springframework.stereotype.Repository;
+
+import java.sql.PreparedStatement;
+import java.sql.Statement;
+import java.time.LocalDate;
+import java.util.Optional;
+
+@Repository
+@RequiredArgsConstructor
+public class OrderRepositoryImpl implements OrderRepository {
+
+    private final JdbcTemplate jdbcTemplate;
+
+    @Override
+    public Long saveAndGetId(Order order) {
+        String sql = "INSERT INTO orders (table_id, customer_id, order_number, status, total_amount, tax, payment_status, created_at, updated_at)"+
+                "VALUES (?, ?, ?, ?, ?, ?, ?, NOW(), NOW())";
+        KeyHolder keyHolder =  new GeneratedKeyHolder();
+
+        jdbcTemplate.update(connection -> {
+            PreparedStatement ps = connection.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS);
+            ps.setLong(1, order.getTableId());
+            ps.setLong(2, order.getCustomerId());
+            ps.setString(3, order.getOrderNumber());
+            ps.setString(4, order.getStatus());
+            ps.setBigDecimal(5, order.getTotalAmount());
+            ps.setBigDecimal(6, order.getTax());
+            ps.setString(7, order.getPaymentStatus());
+            return ps;
+        }, keyHolder);
+
+        return Optional.ofNullable(keyHolder.getKey())
+                .map(Number::longValue)
+                .orElseThrow(() -> new RuntimeException("Order insert failed: no generated key returned"));
+    }
+
+    @Override
+    public int upsertSequence(LocalDate date) {
+        String sql = "INSERT INTO order_sequence (sequence_date, last_sequence) VALUES (?, 1) " +
+                "ON DUPLICATE KEY UPDATE last_sequence = last_sequence + 1";
+        return jdbcTemplate.update(sql, date);
+    }
+
+    @Override
+    public int getLastSequence(LocalDate date) {
+        String sql = "SELECT last_sequence FROM order_sequence WHERE sequence_date = ?";
+        return Optional.ofNullable(
+                jdbcTemplate.queryForObject(sql, Integer.class, date)
+        ).orElse(0);
+    }
+}
