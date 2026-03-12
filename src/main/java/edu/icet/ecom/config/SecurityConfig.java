@@ -48,6 +48,7 @@ public class SecurityConfig {
                             .requestMatchers("/items/**").permitAll()
                             .requestMatchers("/portion-size/**").permitAll()
                             .requestMatchers("/menuItemVariant/**").permitAll()
+                            .requestMatchers("/api/kitchen/**").permitAll()
                             .requestMatchers("/admin/**").hasAuthority("ROLE_ADMIN")
                             .requestMatchers("/user/**").hasAuthority("ROLE_USER")
                             .anyRequest().authenticated()
