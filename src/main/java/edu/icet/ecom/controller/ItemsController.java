@@ -3,7 +3,6 @@ package edu.icet.ecom.controller;
 import edu.icet.ecom.dto.ItemsDto;
 import edu.icet.ecom.service.ItemsService;
 import lombok.RequiredArgsConstructor;
-import org.springframework.security.core.parameters.P;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;

@@ -34,11 +34,11 @@ public class ItemsRepositeryImpl implements ItemsRepositery {
 
     @Override
     public boolean updateItem(ItemsDto itemsDto) {
-        return template.update("UPDATE menu_items SET item_name = ? , description = ? , category = ? , created_at = ? , updated_at = ? WHERE menu_item_id = ?" ,
+        return template.update("UPDATE menu_items SET item_name = ? , description = ? , category = ? , is_active = ? , created_at = ? , updated_at = ? WHERE menu_item_id = ?" ,
                 itemsDto.getName(),
                 itemsDto.getDescription(),
                 itemsDto.getCategory(),
-                itemsDto.getIsActive(),
+                itemsDto.getIsActive().booleanValue(),
                 itemsDto.getCreatedAt(),
                 itemsDto.getUpdatedAt(),
                 itemsDto.getId()
