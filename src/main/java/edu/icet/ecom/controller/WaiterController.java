@@ -8,7 +8,7 @@ import com.codexa.retauranterp.service.WaiterService;
 import java.util.List;
 
 @RestController
-@RequestMapping("/orders")
+@RequestMapping("/api/orders")
 @RequiredArgsConstructor
 @CrossOrigin
 public class WaiterController {

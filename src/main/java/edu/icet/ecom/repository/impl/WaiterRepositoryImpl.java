@@ -1,5 +1,6 @@
 package edu.icet.ecom.repository.impl;
 
+import edu.icet.ecom.entity.OrderAssigment;
 import edu.icet.ecom.entity.Waiter;
 import edu.icet.ecom.repository.WaiterRepository;
 import org.springframework.jdbc.core.JdbcTemplate;
@@ -17,6 +18,48 @@ public class WaiterRepositoryImpl implements WaiterRepository {
     }
 
     @Override
+    public void assignWaiter(Long orderId, Long waiterId) {
+            String sql = "INSERT INTO order_assignments (order_id, waiter_id) VALUES (?, ?)";
+            jdbcTemplate.update(sql, orderId, waiterId);
+    }
+
+    @Override
+    public List<OrderAssigment> getAssignments() {
+        String sql = "SELECT * FROM order_assignments";
+
+        return jdbcTemplate.query(sql, (rs, rowNum) -> {
+
+            OrderAssigment assignment = new OrderAssigment();
+
+            assignment.setId(rs.getLong("id"));
+            assignment.setOrderId(rs.getLong("order_id"));
+            assignment.setWaiterId(rs.getLong("waiter_id"));
+
+            return assignment;
+
+        });
+    }
+
+    @Override
+    public List<OrderAssigment> getUnservedOrders() {
+        String sql = "SELECT * FROM order_assignments oa " +
+                     "JOIN orders o ON oa.order_id = o.id " +
+                     "WHERE o.status != 'SERVED'";
+
+        return jdbcTemplate.query(sql, (rs, rowNum) -> {
+
+            OrderAssigment assignment = new OrderAssigment();
+
+            assignment.setId(rs.getLong("id"));
+            assignment.setOrderId(rs.getLong("order_id"));
+            assignment.setWaiterId(rs.getLong("waiter_id"));
+            assignment.setStatus(rs.getString("status"));
+            return assignment;
+
+        });
+    }
+
+    @Override
     public List<Waiter> findActiveWaiters() {
         String sql = "SELECT * FROM waiters WHERE status='ACTIVE'";
 
@@ -31,5 +74,11 @@ public class WaiterRepositoryImpl implements WaiterRepository {
             return waiter;
 
         });
+    }
+
+    @Override
+    public void markOrderServed(Long orderId) {
+        String sql = "UPDATE order SET status='SERVED' WHERE id=?";
+        jdbcTemplate.update(sql, orderId);
     }
 }
