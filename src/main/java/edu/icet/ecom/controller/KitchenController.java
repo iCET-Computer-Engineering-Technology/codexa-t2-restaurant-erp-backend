@@ -31,7 +31,7 @@ public class KitchenController {
 
     }
 
-    @PostMapping("/assignWaiter")
+    @PostMapping("/assign")
     public void assignWaiter(@RequestBody AssignWaiterRequest request) {
         kitchenService.assignWaiter(
                 request.getOrderId(),
