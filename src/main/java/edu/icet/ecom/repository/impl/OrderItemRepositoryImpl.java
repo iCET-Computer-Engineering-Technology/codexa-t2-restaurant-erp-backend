@@ -20,7 +20,7 @@ public class OrderItemRepositoryImpl implements OrderItemRepository {
 
     @Override
     public Long saveAndGetId(OrderItem orderItem) {
-        String sql = "INSERT INTO order_items (order_id, menu_item_id, quantity, unit_price, total_price, created_at)"+
+        String sql = "INSERT INTO order_items (order_id, menu_item_id, quantity, unit_price, total_price, created_at) "+
                 "VALUES (?, ?, ?, ?, ?, NOW())";
         KeyHolder keyHolder = new GeneratedKeyHolder();
 

@@ -14,7 +14,7 @@ public class OrderItemModifierRepositoryImpl implements OrderItemModifierReposit
 
     @Override
     public int save(OrderItemModifier orderItemModifier) {
-        String sql = "INSERT INTO order_item_modifiers (order_item_id, modifier_id, modifier_name, price_adjustment, quantity, created_at)+" +
+        String sql = "INSERT INTO order_item_modifiers (order_item_id, modifier_id, modifier_name, price_adjustment, quantity, created_at) " +
                 "VALUES (?, ?, ?, ?, ?, NOW())";
 
         return jdbcTemplate.update(sql,

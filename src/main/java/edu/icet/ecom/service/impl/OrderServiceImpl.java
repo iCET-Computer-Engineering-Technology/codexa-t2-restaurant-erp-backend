@@ -11,6 +11,7 @@ import edu.icet.ecom.service.OrderService;
 import edu.icet.ecom.repository.*;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
@@ -27,6 +28,7 @@ public class OrderServiceImpl implements OrderService {
     private final OrderItemModifierRepository orderItemModifierRepository;
 
     @Override
+    @Transactional
     public OrderResponseDto createOrder(OrderRequestDto orderRequestDto) {
         //Calculate total amount(items + modifiers)
         BigDecimal subTotal = orderRequestDto.getItems().stream()
@@ -55,7 +57,7 @@ public class OrderServiceImpl implements OrderService {
         order.setTableId(orderRequestDto.getTableId());
         order.setCustomerId(orderRequestDto.getCustomerId());
         order.setOrderNumber(generateOrderNumber());
-        order.setStatus("RECIVED");
+        order.setStatus("RECEIVED");
         order.setTotalAmount(totalAmount);
         order.setTax(tax);
         order.setPaymentStatus("PENDING");
@@ -63,7 +65,6 @@ public class OrderServiceImpl implements OrderService {
         Long orderId = orderRepository.saveAndGetId(order);
 
         //save oder items
-
         List<OrderItem> orderItemsArray = new ArrayList<>();
 
         for(OrderItemRequestDto itemDto: orderRequestDto.getItems()){
@@ -72,7 +73,19 @@ public class OrderServiceImpl implements OrderService {
             orderItem.setMenuItemId(itemDto.getMenuItemId());
             orderItem.setQuantity(itemDto.getQuantity());
             orderItem.setUnitPrice(itemDto.getUnitPrice());
-            orderItem.setTotalPrice(itemDto.getUnitPrice().multiply(BigDecimal.valueOf(itemDto.getQuantity())));
+            //orderItem.setTotalPrice(itemDto.getUnitPrice().multiply(BigDecimal.valueOf(itemDto.getQuantity()))); //duplication erro fix
+            BigDecimal modifierTotal = BigDecimal.ZERO;
+            if (itemDto.getModifiers() != null) {
+                modifierTotal = itemDto.getModifiers().stream()
+                        .map(m -> m.getPriceAdjustment()
+                                .multiply(BigDecimal.valueOf(m.getQuantity())))
+                        .reduce(BigDecimal.ZERO, BigDecimal::add);
+            }
+            orderItem.setTotalPrice(
+                    itemDto.getUnitPrice()
+                            .multiply(BigDecimal.valueOf(itemDto.getQuantity()))
+                            .add(modifierTotal)
+            );
 
             Long orderItemId = orderItemRepository.saveAndGetId(orderItem); //get order item id
             orderItem.setId(orderItemId);
@@ -108,15 +121,12 @@ public class OrderServiceImpl implements OrderService {
         return response;
     }
 
+    //Generate order num
     private String generateOrderNumber() {
         LocalDate today = LocalDate.now();
-        // Increment first
-        orderRepository.upsertSequence(today);
-        int sequence = orderRepository.getLastSequence(today);
+        int sequence = orderRepository.upsertAndGetSequence(today);
 
         String date = today.format(DateTimeFormatter.ofPattern("yyyyMMdd"));
-        String sequenceStr = String.format("%04d", sequence); // pads: 1 → "0001"
-
-        return "ORD-" + date + "-" + sequenceStr;
+        return "ORD-" + date + "-" + String.format("%04d", sequence);
     }
 }

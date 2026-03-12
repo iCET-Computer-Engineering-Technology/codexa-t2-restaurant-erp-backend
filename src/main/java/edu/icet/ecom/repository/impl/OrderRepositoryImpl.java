@@ -21,14 +21,18 @@ public class OrderRepositoryImpl implements OrderRepository {
 
     @Override
     public Long saveAndGetId(Order order) {
-        String sql = "INSERT INTO orders (table_id, customer_id, order_number, status, total_amount, tax, payment_status, created_at, updated_at)"+
+        String sql = "INSERT INTO orders (table_id, customer_id, order_number, status, total_amount, tax, payment_status, created_at, updated_at) "+
                 "VALUES (?, ?, ?, ?, ?, ?, ?, NOW(), NOW())";
         KeyHolder keyHolder =  new GeneratedKeyHolder();
 
         jdbcTemplate.update(connection -> {
             PreparedStatement ps = connection.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS);
             ps.setLong(1, order.getTableId());
-            ps.setLong(2, order.getCustomerId());
+            if(order.getCustomerId() != null) {
+                ps.setLong(2, order.getCustomerId());
+            }else {
+                ps.setNull(2, java.sql.Types.BIGINT);
+            }
             ps.setString(3, order.getOrderNumber());
             ps.setString(4, order.getStatus());
             ps.setBigDecimal(5, order.getTotalAmount());
@@ -43,17 +47,14 @@ public class OrderRepositoryImpl implements OrderRepository {
     }
 
     @Override
-    public int upsertSequence(LocalDate date) {
-        String sql = "INSERT INTO order_sequence (sequence_date, last_sequence) VALUES (?, 1) " +
-                "ON DUPLICATE KEY UPDATE last_sequence = last_sequence + 1";
-        return jdbcTemplate.update(sql, date);
-    }
-
-    @Override
-    public int getLastSequence(LocalDate date) {
-        String sql = "SELECT last_sequence FROM order_sequence WHERE sequence_date = ?";
-        return Optional.ofNullable(
-                jdbcTemplate.queryForObject(sql, Integer.class, date)
-        ).orElse(0);
+    public int upsertAndGetSequence(LocalDate date) {
+        jdbcTemplate.update(
+                "INSERT INTO order_sequence (sequence_date, last_sequence) VALUES (?, 1) " +
+                        "ON DUPLICATE KEY UPDATE last_sequence = LAST_INSERT_ID(last_sequence + 1)", date);
+        Integer sequence = jdbcTemplate.queryForObject("SELECT LAST_INSERT_ID()", Integer.class);
+        if (sequence == null) {
+            throw new RuntimeException("Failed to get sequence: LAST_INSERT_ID() returned null");
+        }
+        return sequence;
     }
 }
