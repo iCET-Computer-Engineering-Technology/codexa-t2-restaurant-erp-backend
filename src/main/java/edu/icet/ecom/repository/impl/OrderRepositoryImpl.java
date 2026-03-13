@@ -18,14 +18,14 @@ public class OrderRepositoryImpl implements OrderRepository {
 
     @Override
     public List<Order> findReceivedOrders() {
-        String sql = "SELECT * FROM orders WHERE status='RECEIVED'";
+        String sql = "SELECT id,table_id,order_number,status FROM orders WHERE status='RECEIVED'";
 
         return jdbcTemplate.query(sql, (rs, rowNum) -> {
             Order order = new Order();
             order.setId(rs.getLong("id"));
+            order.setTableId(rs.getLong("table_id"));
             order.setOrderNumber(rs.getString("order_number"));
             order.setStatus(rs.getString("status"));
-            order.setTableId(rs.getLong("table_id"));
 
             return order;
         });
