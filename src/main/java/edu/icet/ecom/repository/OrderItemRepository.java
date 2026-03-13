@@ -8,4 +8,5 @@ public interface OrderItemRepository {
 
     List<OrderItem> findByOrderId(Long orderId);
 
+    Long saveAndGetId(OrderItem orderItem);
 }
