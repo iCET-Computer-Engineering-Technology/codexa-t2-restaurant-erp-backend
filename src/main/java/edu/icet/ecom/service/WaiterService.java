@@ -1,4 +1,4 @@
-package com.codexa.retauranterp.service;
+package edu.icet.ecom.service;
 
 import edu.icet.ecom.entity.OrderAssigment;
 
@@ -6,7 +6,7 @@ import java.util.List;
 
 public interface WaiterService {
     List<OrderAssigment> getUnservedOrders();
-    void serveOrder(Long orderId);
+    boolean serveOrder(Long orderId);
 
 
 }

@@ -1,16 +1,16 @@
 package edu.icet.ecom.controller;
 
 import edu.icet.ecom.entity.OrderAssigment;
+import edu.icet.ecom.service.WaiterService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
-import com.codexa.retauranterp.service.WaiterService;
 
 import java.util.List;
 
 @RestController
-@RequestMapping("/api/orders")
+@RequestMapping("/waiter")
 @RequiredArgsConstructor
-@CrossOrigin
+@CrossOrigin(origins = "http://localhost:4200")
 public class WaiterController {
 
     private final WaiterService waiterService;
@@ -21,7 +21,7 @@ public class WaiterController {
     }
 
     @PutMapping("/serve/{orderId}")
-    public void serveOrder(@PathVariable Long orderId){
-        waiterService.serveOrder(orderId);
+    public boolean serveOrder(@PathVariable Long orderId){
+        return waiterService.serveOrder(orderId);
     }
 }

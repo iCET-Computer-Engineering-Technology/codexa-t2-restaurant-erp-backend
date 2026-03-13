@@ -3,24 +3,22 @@ package edu.icet.ecom.repository.impl;
 import edu.icet.ecom.entity.OrderAssigment;
 import edu.icet.ecom.entity.Waiter;
 import edu.icet.ecom.repository.WaiterRepository;
+import lombok.RequiredArgsConstructor;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
 
 @Repository
+@RequiredArgsConstructor
 public class WaiterRepositoryImpl implements WaiterRepository {
 
     private final JdbcTemplate jdbcTemplate;
 
-    public WaiterRepositoryImpl(JdbcTemplate jdbcTemplate) {
-        this.jdbcTemplate = jdbcTemplate;
-    }
-
     @Override
     public void assignWaiter(Long orderId, Long waiterId) {
-            String sql = "INSERT INTO order_assignments (order_id, waiter_id) VALUES (?, ?)";
-            jdbcTemplate.update(sql, orderId, waiterId);
+            String sql = "INSERT INTO order_assignments (order_id, waiter_id, status) VALUES (?, ?, ?)";
+            jdbcTemplate.update(sql, orderId, waiterId, "UNSERVED");
     }
 
     @Override
@@ -77,8 +75,8 @@ public class WaiterRepositoryImpl implements WaiterRepository {
     }
 
     @Override
-    public void markOrderServed(Long orderId) {
-        String sql = "UPDATE order SET status='SERVED' WHERE id=?";
-        jdbcTemplate.update(sql, orderId);
+    public boolean markOrderServed(Long orderId) {
+        String sql = "UPDATE order_assignments SET status='SERVED' WHERE id=?";
+        return jdbcTemplate.update(sql, orderId) > 0;
     }
 }

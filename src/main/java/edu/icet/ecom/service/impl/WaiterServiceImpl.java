@@ -1,15 +1,15 @@
 package edu.icet.ecom.service.impl;
 
-import com.codexa.retauranterp.service.WaiterService;
 import edu.icet.ecom.entity.OrderAssigment;
 import edu.icet.ecom.repository.WaiterRepository;
+import edu.icet.ecom.service.WaiterService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
 @Service
 @RequiredArgsConstructor
-public class WaiterServiceImpl implements WaiterService {
+public class WaiterServiceImpl implements edu.icet.ecom.service.WaiterService {
 
     private final WaiterRepository waiterRepository;
 
@@ -19,8 +19,7 @@ public class WaiterServiceImpl implements WaiterService {
     }
 
     @Override
-    public void serveOrder(Long orderId) {
-        waiterRepository.markOrderServed(orderId);
-
+    public boolean serveOrder(Long orderId) {
+        return waiterRepository.markOrderServed(orderId);
     }
 }

@@ -15,5 +15,5 @@ public interface WaiterRepository {
 
     List<Waiter> findActiveWaiters();
 
-    void markOrderServed(Long orderId);
+    boolean markOrderServed(Long orderId);
 }
