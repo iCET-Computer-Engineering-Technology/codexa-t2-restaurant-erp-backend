@@ -9,6 +9,6 @@ public interface OrderRepository {
     Long saveAndGetId(Order order);
     int upsertAndGetSequence(LocalDate date); //for generate order num
     List<Order> findReceivedOrders();
-    void updateStatus(Long orderId,String status);
+    boolean updateStatus(Long orderId,String status);
 }
 

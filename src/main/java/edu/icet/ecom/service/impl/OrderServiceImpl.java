@@ -136,6 +136,21 @@ public class OrderServiceImpl implements OrderService {
         }).toList();
     }
 
+    @Override
+    public Boolean updateStatus(Long orderId, String status) {
+        //validate status
+        List<String> validStatus = List.of("RECEIVED", "PREPARING", "READY", "COMPLETED", "CANCELLED");
+        if (!validStatus.contains(status)){
+            throw new RuntimeException("Invalid status: " + status);
+        }
+        //update
+        Boolean updated = orderRepository.updateStatus(orderId, status);
+        //order not found
+        if (!updated) {
+            throw new RuntimeException("Order not found: " + orderId);
+        }
+        return true;
+    }
 
     //Generate order num
     private String generateOrderNumber() {

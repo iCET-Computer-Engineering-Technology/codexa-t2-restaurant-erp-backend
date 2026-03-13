@@ -48,9 +48,9 @@ public class OrderRepositoryImpl implements OrderRepository {
 
     //Geeth
     @Override
-    public void updateStatus(Long orderId, String status) {
-        String sql = "UPDATE orders SET status=? WHERE id=?";
-        jdbcTemplate.update(sql, status, orderId);
+    public boolean updateStatus(Long orderId, String status) {
+        String sql = "UPDATE orders SET status = ?, updated_at = NOW() WHERE id = ?";
+        return jdbcTemplate.update(sql, status, orderId)>0;
     }
 
     //Amila
