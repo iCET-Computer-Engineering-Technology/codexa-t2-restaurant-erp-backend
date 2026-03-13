@@ -121,6 +121,22 @@ public class OrderServiceImpl implements OrderService {
         return response;
     }
 
+    @Override
+    public List<OrderResponseDto> findReceivedOrders() {
+        List<Order> orderList = orderRepository.findReceivedOrders();
+        return orderList.stream().map(order -> {
+            OrderResponseDto dto = new OrderResponseDto();
+            dto.setId(order.getId());
+            dto.setOrderNumber(order.getOrderNumber());
+            dto.setStatus(order.getStatus());
+            dto.setTotalAmount(order.getTotalAmount());
+            dto.setPaymentStatus(order.getPaymentStatus());
+            dto.setItems(order.getItems());
+            return dto;
+        }).toList();
+    }
+
+
     //Generate order num
     private String generateOrderNumber() {
         LocalDate today = LocalDate.now();
