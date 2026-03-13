@@ -22,7 +22,7 @@ import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 
-import java.util.Arrays;
+
 import java.util.List;
 
 @Configuration
@@ -45,6 +45,7 @@ public class SecurityConfig {
                             .requestMatchers("/v3/api-docs/**").permitAll()
                             .requestMatchers("/swagger-ui/**").permitAll()
                             .requestMatchers("/swagger-ui.html").permitAll()
+                            .requestMatchers("/customers/**").permitAll()
                             .requestMatchers("/api/kitchen/**").permitAll()
                             .requestMatchers("/admin/**").hasAuthority("ROLE_ADMIN")
                             .requestMatchers("/user/**").hasAuthority("ROLE_USER")
