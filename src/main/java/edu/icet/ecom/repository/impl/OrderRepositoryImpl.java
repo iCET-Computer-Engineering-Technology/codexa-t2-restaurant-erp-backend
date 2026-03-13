@@ -3,6 +3,7 @@ package edu.icet.ecom.repository.impl;
 import edu.icet.ecom.entity.Order;
 import edu.icet.ecom.repository.OrderRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.dao.DataRetrievalFailureException;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.support.GeneratedKeyHolder;
 import org.springframework.jdbc.support.KeyHolder;
@@ -61,7 +62,7 @@ public class OrderRepositoryImpl implements OrderRepository {
                         "ON DUPLICATE KEY UPDATE last_sequence = LAST_INSERT_ID(last_sequence + 1)", date);
         Integer sequence = jdbcTemplate.queryForObject("SELECT LAST_INSERT_ID()", Integer.class);
         if (sequence == null) {
-            throw new RuntimeException("Failed to get sequence: LAST_INSERT_ID() returned null");
+            throw new DataRetrievalFailureException("Failed to get sequence: LAST_INSERT_ID() returned null");
         }
         return sequence;
     }
@@ -89,6 +90,6 @@ public class OrderRepositoryImpl implements OrderRepository {
             }, keyHolder);
         return Optional.ofNullable(keyHolder.getKey())
                     .map(Number::longValue)
-                    .orElseThrow(() -> new RuntimeException("Order insert failed: no generated key returned"));
+                    .orElseThrow(() -> new DataRetrievalFailureException("Order insert failed: no generated key returned"));
     }
 }
