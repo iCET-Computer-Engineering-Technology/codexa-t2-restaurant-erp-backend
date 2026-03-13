@@ -144,7 +144,7 @@ public class OrderServiceImpl implements OrderService {
             throw new RuntimeException("Invalid status: " + status);
         }
         //update
-        Boolean updated = orderRepository.updateStatus(orderId, status);
+        boolean updated = orderRepository.updateStatus(orderId, status);
         //order not found
         if (!updated) {
             throw new RuntimeException("Order not found: " + orderId);
