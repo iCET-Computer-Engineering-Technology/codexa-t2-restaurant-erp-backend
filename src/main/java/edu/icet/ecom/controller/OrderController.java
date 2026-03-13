@@ -26,4 +26,14 @@ public class OrderController {
     public ResponseEntity<List<OrderResponseDto>> findReceivedOrders(){
         return  ResponseEntity.ok(orderService.findReceivedOrders());
     }
+
+    @PutMapping("/update/{orderId}/status")
+    ResponseEntity<String> updateStatus(@PathVariable Long orderId, @RequestParam String status){
+        boolean updated = orderService.updateStatus(orderId, status);
+        if(updated){
+            return ResponseEntity.ok("Order status updated success");
+        }else{
+            return ResponseEntity.badRequest().body("Update failed");
+        }
+    }
 }
