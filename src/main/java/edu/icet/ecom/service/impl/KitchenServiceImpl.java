@@ -7,7 +7,6 @@ import edu.icet.ecom.repository.OrderAssignmentRepository;
 import edu.icet.ecom.repository.OrderRepository;
 import edu.icet.ecom.repository.WaiterRepository;
 import edu.icet.ecom.service.KitchenService;
-import org.springframework.stereotype.Repository;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
