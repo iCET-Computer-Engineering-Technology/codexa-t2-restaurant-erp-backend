@@ -50,7 +50,7 @@ public class SecurityConfig {
                             .requestMatchers("/api/waiter/**").permitAll()
                             .requestMatchers("/admin/**").hasAuthority("ROLE_ADMIN")
                             .requestMatchers("/user/**").hasAuthority("ROLE_USER")
-                            .requestMatchers("/waiter/**").hasAuthority("ROLE_WAITER")
+                            .requestMatchers("/waiter/**").permitAll()
                             .anyRequest().authenticated()
                     )
                     .authenticationProvider(authenticationProvider())

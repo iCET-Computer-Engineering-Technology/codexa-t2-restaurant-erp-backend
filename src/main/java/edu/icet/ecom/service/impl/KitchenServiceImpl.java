@@ -38,7 +38,7 @@ public class KitchenServiceImpl implements KitchenService {
     @Override
     public void assignWaiter(Long orderId, Long waiterId) {
 
-        orderAssignmentRepository.assignWaiter(orderId, waiterId);
+        waiterRepository.assignWaiter(orderId, waiterId);
 
         orderRepository.updateStatus(orderId, "READY");
 
