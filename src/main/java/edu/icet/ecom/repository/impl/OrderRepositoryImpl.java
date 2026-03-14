@@ -20,7 +20,7 @@ public class OrderRepositoryImpl implements OrderRepository {
 
     private final JdbcTemplate jdbcTemplate;
 
-    //Geeth
+    //search "RECEIVED" orders and return as list
     @Override
     public List<Order> findReceivedOrders() {
         String sql = "SELECT id, table_id, customer_id, order_number, status, total_amount, tax, payment_status, created_at, updated_at " +
@@ -30,6 +30,7 @@ public class OrderRepositoryImpl implements OrderRepository {
             Order order = new Order();
             order.setId(rs.getLong(1));
             order.setTableId(rs.getLong(2));
+            //check if customer_id is null
             if (!rs.wasNull()) {
                 order.setCustomerId(rs.getLong(3));
             } else {
@@ -46,27 +47,14 @@ public class OrderRepositoryImpl implements OrderRepository {
         });
     }
 
-    //Geeth
+    //update order status
     @Override
     public boolean updateStatus(Long orderId, String status) {
         String sql = "UPDATE orders SET status = ?, updated_at = NOW() WHERE id = ?";
         return jdbcTemplate.update(sql, status, orderId)>0;
     }
 
-    //Amila
-    @Override
-    public int upsertAndGetSequence(LocalDate date) {
-        jdbcTemplate.update(
-                "INSERT INTO order_sequence (sequence_date, last_sequence) VALUES (?, 1) " +
-                        "ON DUPLICATE KEY UPDATE last_sequence = LAST_INSERT_ID(last_sequence + 1)", date);
-        Integer sequence = jdbcTemplate.queryForObject("SELECT LAST_INSERT_ID()", Integer.class);
-        if (sequence == null) {
-            throw new RuntimeException("Failed to get sequence: LAST_INSERT_ID() returned null");
-        }
-        return sequence;
-    }
-
-    //Amila
+    //create order - need to get order id to insert order items
     @Override
     public Long saveAndGetId(Order order) {
         String sql = "INSERT INTO orders (table_id, customer_id, order_number, status, total_amount, tax, payment_status, created_at, updated_at) "+
@@ -90,5 +78,18 @@ public class OrderRepositoryImpl implements OrderRepository {
         return Optional.ofNullable(keyHolder.getKey())
                     .map(Number::longValue)
                     .orElseThrow(() -> new RuntimeException("Order insert failed: no generated key returned"));
+    }
+
+   //order number sequence
+    @Override
+    public int upsertAndGetSequence(LocalDate date) {
+        jdbcTemplate.update(
+                "INSERT INTO order_sequence (sequence_date, last_sequence) VALUES (?, 1) " +
+                        "ON DUPLICATE KEY UPDATE last_sequence = LAST_INSERT_ID(last_sequence + 1)", date);
+        Integer sequence = jdbcTemplate.queryForObject("SELECT LAST_INSERT_ID()", Integer.class);
+        if (sequence == null) {
+            throw new RuntimeException("Failed to get sequence: LAST_INSERT_ID() returned null");
+        }
+        return sequence;
     }
 }
