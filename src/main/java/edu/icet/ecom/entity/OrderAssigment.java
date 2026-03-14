@@ -13,4 +13,5 @@ public class OrderAssigment {
     private Long orderId;
     private String status;
     private Long tableId;
+    private String orderNumber;
 }

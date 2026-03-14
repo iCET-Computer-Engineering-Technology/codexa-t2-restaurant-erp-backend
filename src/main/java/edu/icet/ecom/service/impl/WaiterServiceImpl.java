@@ -14,12 +14,12 @@ public class WaiterServiceImpl implements edu.icet.ecom.service.WaiterService {
     private final WaiterRepository waiterRepository;
 
     @Override
-    public List<OrderAssigment> getUnservedOrders() {
-        return waiterRepository.getUnservedOrders();
+    public boolean serveOrder(Long assignmentId) {
+        return waiterRepository.markOrderServed(assignmentId);
     }
 
     @Override
-    public boolean serveOrder(Long orderId) {
-        return waiterRepository.markOrderServed(orderId);
+    public List<OrderAssigment> getUnservedOrders(Long waiterId) {
+        return waiterRepository.getUnservedOrders();
     }
 }

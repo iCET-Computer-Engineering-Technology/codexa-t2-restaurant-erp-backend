@@ -10,18 +10,17 @@ import java.util.List;
 @RestController
 @RequestMapping("/waiter")
 @RequiredArgsConstructor
-@CrossOrigin(origins = "http://localhost:4200")
 public class WaiterController {
 
     private final WaiterService waiterService;
 
     @GetMapping("/unserved")
-    public List<OrderAssigment> getUnservedOrders(){
-        return waiterService.getUnservedOrders();
+    public List<OrderAssigment> getUnservedOrders(@PathVariable Long waiterId){
+        return waiterService.getUnservedOrders(waiterId);
     }
 
-    @PutMapping("/serve/{orderId}")
-    public boolean serveOrder(@PathVariable Long orderId){
-        return waiterService.serveOrder(orderId);
+    @PutMapping("/{orderId}")
+    public boolean serveOrder(@PathVariable Long assignmentId){
+        return waiterService.serveOrder(assignmentId);
     }
 }
