@@ -8,12 +8,11 @@ import java.util.List;
 public interface WaiterRepository {
     void assignWaiter(Long orderId, Long waiterId);
 
-    List<OrderAssigment> getAssignments();
+    List<OrderAssigment> getUnservedOrders(Long waiterId);
 
-    List<OrderAssigment> getUnservedOrders();
-    
+    List<OrderAssigment> getAssignments();
 
     List<Waiter> findActiveWaiters();
 
-    boolean markOrderServed(Long orderId);
+    boolean markOrderServed(Long assignmentId);
 }

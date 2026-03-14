@@ -20,6 +20,6 @@ public class WaiterServiceImpl implements edu.icet.ecom.service.WaiterService {
 
     @Override
     public List<OrderAssigment> getUnservedOrders(Long waiterId) {
-        return waiterRepository.getUnservedOrders();
+        return waiterRepository.getUnservedOrders(waiterId);
     }
 }

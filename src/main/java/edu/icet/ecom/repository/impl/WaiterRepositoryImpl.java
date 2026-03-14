@@ -32,6 +32,7 @@ public class WaiterRepositoryImpl implements WaiterRepository {
             assignment.setId(rs.getLong("id"));
             assignment.setOrderId(rs.getLong("order_id"));
             assignment.setWaiterId(rs.getLong("waiter_id"));
+            assignment.setStatus(rs.getString("status"));
 
             return assignment;
 
@@ -39,10 +40,12 @@ public class WaiterRepositoryImpl implements WaiterRepository {
     }
 
     @Override
-    public List<OrderAssigment> getUnservedOrders() {
-        String sql = "SELECT * FROM order_assignments oa " +
-                     "JOIN orders o ON oa.order_id = o.id " +
-                     "WHERE o.status != 'SERVED'";
+    public List<OrderAssigment> getUnservedOrders(Long waiterId) {
+        String sql =  "SELECT oa.id, oa.order_id, oa.waiter_id, oa.status, " +
+                "o.table_id, o.order_number " +
+                "FROM order_assignments oa " +
+                "JOIN orders o ON oa.order_id = o.id " +
+                "WHERE oa.status = 'UNSERVED' AND oa.waiter_id = ?";
 
         return jdbcTemplate.query(sql, (rs, rowNum) -> {
 
@@ -52,9 +55,10 @@ public class WaiterRepositoryImpl implements WaiterRepository {
             assignment.setOrderId(rs.getLong("order_id"));
             assignment.setWaiterId(rs.getLong("waiter_id"));
             assignment.setStatus(rs.getString("status"));
+            assignment.setTableId(rs.getLong("table_id"));
+            assignment.setOrderNumber(rs.getString("order_number"));
             return assignment;
-
-        });
+        }, waiterId);
     }
 
     @Override
@@ -75,8 +79,8 @@ public class WaiterRepositoryImpl implements WaiterRepository {
     }
 
     @Override
-    public boolean markOrderServed(Long orderId) {
+    public boolean markOrderServed(Long assigmentId) {
         String sql = "UPDATE order_assignments SET status='SERVED' WHERE id=?";
-        return jdbcTemplate.update(sql, orderId) > 0;
+        return jdbcTemplate.update(sql,assigmentId ) > 0;
     }
 }
