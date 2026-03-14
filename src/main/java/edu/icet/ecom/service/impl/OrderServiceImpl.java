@@ -7,6 +7,8 @@ import edu.icet.ecom.dto.OrderResponseDto;
 import edu.icet.ecom.entity.Order;
 import edu.icet.ecom.entity.OrderItem;
 import edu.icet.ecom.entity.OrderItemModifier;
+import edu.icet.ecom.exception.OrderPersistenceException;
+import edu.icet.ecom.exception.ResourceNotFoundException;
 import edu.icet.ecom.service.OrderService;
 import edu.icet.ecom.repository.*;
 import lombok.RequiredArgsConstructor;
@@ -102,7 +104,7 @@ public class OrderServiceImpl implements OrderService {
 
                     int rows =  orderItemModifierRepository.save(modifier); //save to db
                     if(rows == 0){
-                        throw new RuntimeException("Failed to save modifier: "+ modifier.getModifierName());
+                        throw new OrderPersistenceException("Failed to save modifier: " + modifier.getModifierName());
                     }
                 }
             }
@@ -141,13 +143,13 @@ public class OrderServiceImpl implements OrderService {
         //validate status
         List<String> validStatus = List.of("RECEIVED", "PREPARING", "READY", "COMPLETED", "CANCELLED");
         if (!validStatus.contains(status)){
-            throw new RuntimeException("Invalid status: " + status);
+            throw new IllegalArgumentException("Invalid status: " + status);
         }
         //update
         boolean updated = orderRepository.updateStatus(orderId, status);
         //order not found
         if (!updated) {
-            throw new RuntimeException("Order not found: " + orderId);
+            throw new ResourceNotFoundException("Order not found: " + orderId);
         }
         return true;
     }

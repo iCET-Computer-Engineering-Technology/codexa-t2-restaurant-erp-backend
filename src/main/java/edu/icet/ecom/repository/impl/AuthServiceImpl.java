@@ -4,6 +4,7 @@ import edu.icet.ecom.dto.AuthResponse;
 import edu.icet.ecom.dto.LoginRequestDto;
 import edu.icet.ecom.dto.RegisterRequestDto;
 import edu.icet.ecom.entity.UserEntity;
+import edu.icet.ecom.exception.AuthenticationException;
 import edu.icet.ecom.repository.UserRepository;
 import edu.icet.ecom.service.AuthService;
 import edu.icet.ecom.service.CustomUserDetailsService;
@@ -11,6 +12,7 @@ import edu.icet.ecom.service.JwtService;
 import edu.icet.ecom.util.Role;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -55,12 +57,16 @@ public class AuthServiceImpl implements AuthService {
 
     @Override
     public AuthResponse login(LoginRequestDto request) {
-        authenticationManager.authenticate(
-                new UsernamePasswordAuthenticationToken(
-                        request.getUsername(),
-                        request.getPassword()
-                )
-        );
+        try {
+            authenticationManager.authenticate(
+                    new UsernamePasswordAuthenticationToken(
+                            request.getUsername(),
+                            request.getPassword()
+                    )
+            );
+        } catch (BadCredentialsException e) {
+            throw new AuthenticationException("Username or password is wrong");
+        }
         UserDetails details = userDetailsService.loadUserByUsername(request.getUsername());
         String token = jwtService.generateToken(details);
         Role role = getRoleFromAuthorities(details.getAuthorities());
