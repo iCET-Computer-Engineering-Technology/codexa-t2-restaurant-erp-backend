@@ -37,6 +37,7 @@ build/
 ### Mac OS ###
 .DS_Store
 
-src/main/resources/application.yml
-.idea/
+application.yml
 
+.idea/
+src/main/resources/application.yml
