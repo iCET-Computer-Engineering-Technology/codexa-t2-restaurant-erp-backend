@@ -2,6 +2,7 @@ package edu.icet.ecom.controller;
 
 import edu.icet.ecom.dto.CustomerDto;
 import edu.icet.ecom.service.CustomerService;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
 
@@ -21,7 +22,7 @@ public class CustomerController {
     }
 
     @PostMapping("/add")
-    public boolean addCustomer(@RequestBody CustomerDto customerDto){
+    public boolean addCustomer(@Valid @RequestBody CustomerDto customerDto){
         return customerService.addCustomer(customerDto);
     }
 
@@ -41,7 +42,7 @@ public class CustomerController {
     }
 
     @PutMapping("/update")
-    public boolean updateCustomer(@RequestBody CustomerDto customerDto){
+    public boolean updateCustomer(@Valid @RequestBody CustomerDto customerDto){
         return customerService.updateCustomer(customerDto);
     }
 }
