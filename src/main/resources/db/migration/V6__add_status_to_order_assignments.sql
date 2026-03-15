@@ -1,0 +1,2 @@
+ALTER TABLE order_assignments ADD COLUMN status VARCHAR(255) NOT NULL DEFAULT 'PENDING';
+
