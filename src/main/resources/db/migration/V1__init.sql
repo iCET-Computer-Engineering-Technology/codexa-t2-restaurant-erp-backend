@@ -12,7 +12,7 @@ CREATE TABLE customers(
     id INT AUTO_INCREMENT PRIMARY KEY,
     name VARCHAR(100) NOT NULL,
     email VARCHAR(100),
-    phone VARCHAR(20) UNIQUE,
+    phone VARCHAR(10) UNIQUE,
     address VARCHAR(255)
 );
 

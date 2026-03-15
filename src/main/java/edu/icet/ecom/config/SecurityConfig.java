@@ -3,6 +3,7 @@ package edu.icet.ecom.config;
 import edu.icet.ecom.filter.JwtAuthFilter;
 import edu.icet.ecom.service.CustomUserDetailsService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.BeanCreationException;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -33,7 +34,7 @@ public class SecurityConfig {
     private final CustomUserDetailsService service;
 
     @Bean
-    public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
+    public SecurityFilterChain securityFilterChain(HttpSecurity http) {
         try {
             http.csrf(AbstractHttpConfigurer::disable)
                     .cors(Customizer.withDefaults())
@@ -47,6 +48,7 @@ public class SecurityConfig {
                             .requestMatchers("/order/**").permitAll()
                             .requestMatchers("/customers/**").permitAll()
                             .requestMatchers("/api/kitchen/**").permitAll()
+                            .requestMatchers("/ingredient/**").hasAuthority("ROLE_ADMIN")
                             .requestMatchers("/admin/**").hasAuthority("ROLE_ADMIN")
                             .requestMatchers("/user/**").hasAuthority("ROLE_USER")
                             .anyRequest().authenticated()
@@ -54,10 +56,8 @@ public class SecurityConfig {
                     .authenticationProvider(authenticationProvider())
                     .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class);
             return http.build();
-        } catch (RuntimeException e) {
-            throw e;
         } catch (Exception e) {
-            throw new IllegalStateException("Failed to configure security filter chain", e);
+            throw new BeanCreationException("securityFilterChain", "Failed to configure security filter chain", e);
         }
     }
     @Bean
@@ -85,10 +85,8 @@ public class SecurityConfig {
     public AuthenticationManager authenticationManager(AuthenticationConfiguration config) {
         try {
             return config.getAuthenticationManager();
-        } catch (RuntimeException e) {
-            throw e;
         } catch (Exception e) {
-            throw new IllegalStateException("Failed to get AuthenticationManager", e);
+            throw new BeanCreationException("authenticationManager", "Failed to get AuthenticationManager", e);
         }
     }
 

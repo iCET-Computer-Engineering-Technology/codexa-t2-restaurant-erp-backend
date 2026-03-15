@@ -4,6 +4,7 @@ import edu.icet.ecom.entity.Order;
 import edu.icet.ecom.entity.OrderAssignment;
 import edu.icet.ecom.entity.Waiter;
 import edu.icet.ecom.repository.OrderAssignmentRepository;
+import edu.icet.ecom.repository.OrderItemRepository;
 import edu.icet.ecom.repository.OrderRepository;
 import edu.icet.ecom.repository.WaiterRepository;
 import edu.icet.ecom.service.KitchenService;
@@ -17,16 +18,24 @@ public class KitchenServiceImpl implements KitchenService {
     private final OrderRepository orderRepository;
     private final WaiterRepository waiterRepository;
     private final OrderAssignmentRepository orderAssignmentRepository;
+    private final OrderItemRepository orderItemRepository;
 
-    public KitchenServiceImpl(OrderRepository orderRepository, WaiterRepository waiterRepository, OrderAssignmentRepository orderAssignmentRepository) {
+    public KitchenServiceImpl(OrderRepository orderRepository, WaiterRepository waiterRepository, OrderAssignmentRepository orderAssignmentRepository, OrderItemRepository orderItemRepository) {
         this.orderRepository = orderRepository;
         this.waiterRepository = waiterRepository;
         this.orderAssignmentRepository = orderAssignmentRepository;
+        this.orderItemRepository = orderItemRepository;
     }
 
     @Override
     public List<Order> getKitchenOrders() {
-        return orderRepository.findReceivedOrders();
+        List<Order> orders = orderRepository.findReceivedOrders();
+
+        orders.forEach(order -> order.setItems(
+                orderItemRepository.findByOrderId(order.getId())
+        ));
+
+        return orders;
     }
 
     @Override

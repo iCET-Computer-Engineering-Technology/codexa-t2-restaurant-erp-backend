@@ -10,6 +10,7 @@ import org.springframework.stereotype.Repository;
 
 import java.sql.PreparedStatement;
 import java.sql.Statement;
+import java.util.List;
 import java.util.Optional;
 
 @Repository
@@ -17,6 +18,11 @@ import java.util.Optional;
 public class OrderItemRepositoryImpl implements OrderItemRepository {
 
     private final JdbcTemplate jdbcTemplate;
+
+    @Override
+    public List<OrderItem> findByOrderId(Long orderId) {
+        return List.of();
+    }
 
     @Override
     public Long saveAndGetId(OrderItem orderItem) {
