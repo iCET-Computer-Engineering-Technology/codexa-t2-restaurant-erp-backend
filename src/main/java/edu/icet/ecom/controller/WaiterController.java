@@ -14,13 +14,13 @@ public class WaiterController {
 
     private final WaiterService waiterService;
 
-    @GetMapping("/unserved")
-    public List<OrderAssigment> getUnservedOrders(@PathVariable Long waiterId){
+    @GetMapping("/{waiterId}/unserved")
+    public List<OrderAssigment> getUnservedOrders(@PathVariable Long waiterId) {
         return waiterService.getUnservedOrders(waiterId);
     }
 
-    @PutMapping("/{orderId}")
-    public boolean serveOrder(@PathVariable Long assignmentId){
+    @PutMapping("/serve/{assignmentId}")
+    public boolean serveOrder(@PathVariable Long assignmentId) {
         return waiterService.serveOrder(assignmentId);
     }
 }
