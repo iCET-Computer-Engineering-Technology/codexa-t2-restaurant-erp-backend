@@ -1,7 +1,6 @@
 package edu.icet.ecom.entity;
 
 import lombok.*;
-
 @Getter
 @Setter
 @AllArgsConstructor
