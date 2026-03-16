@@ -23,7 +23,8 @@ public class UserRepositoryImpl implements UserRepository {
                             rs.getString("email"),
                             rs.getString("password"),
                             Role.valueOf(rs.getString("role")),
-                            rs.getBoolean("enabled")
+                            rs.getBoolean("enabled"),
+                            rs.getTimestamp("created_at") != null ? rs.getTimestamp("created_at").toLocalDateTime() : null
                     ), username);
         } catch (EmptyResultDataAccessException e) {
             return null;
@@ -40,7 +41,8 @@ public class UserRepositoryImpl implements UserRepository {
                             rs.getString("email"),
                             rs.getString("password"),
                             Role.valueOf(rs.getString("role")),
-                            rs.getBoolean("enabled")
+                            rs.getBoolean("enabled"),
+                            rs.getTimestamp("created_at") != null ? rs.getTimestamp("created_at").toLocalDateTime() : null
                     ), email);
         } catch (EmptyResultDataAccessException e) {
             return null;
@@ -59,12 +61,13 @@ public class UserRepositoryImpl implements UserRepository {
 
     @Override
     public UserEntity save(UserEntity userEntity) {
-        template.update("INSERT INTO users (username, email, password, role, enabled) VALUES (?,?,?,?,?)",
+        template.update("INSERT INTO users (username, email, password, role, enabled, created_at) VALUES (?,?,?,?,?,?)",
                 userEntity.getUsername(),
                 userEntity.getEmail(),
                 userEntity.getPassword(),
                 userEntity.getRole().name(),
-                userEntity.getEnabled());
+                userEntity.getEnabled(),
+                userEntity.getCreatedAt());
         return findByUsername(userEntity.getUsername());
     }
 }
