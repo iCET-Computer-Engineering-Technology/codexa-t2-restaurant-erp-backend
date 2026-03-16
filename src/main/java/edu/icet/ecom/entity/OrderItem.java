@@ -1,16 +1,14 @@
 package edu.icet.ecom.entity;
 
-import lombok.AllArgsConstructor;
-import lombok.Data;
-import lombok.NoArgsConstructor;
-import lombok.ToString;
+import lombok.*;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.List;
 
-@Data
-@ToString
+@Getter
+@Setter
+@ToString(exclude = {"modifiers"}) //prevent recursion
 @AllArgsConstructor
 @NoArgsConstructor
 public class OrderItem {
