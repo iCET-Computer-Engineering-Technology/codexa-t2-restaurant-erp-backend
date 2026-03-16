@@ -3,6 +3,7 @@ package edu.icet.ecom.config;
 import edu.icet.ecom.filter.JwtAuthFilter;
 import edu.icet.ecom.service.CustomUserDetailsService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.BeanCreationException;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -22,7 +23,6 @@ import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 
-import java.util.Arrays;
 import java.util.List;
 
 @Configuration
@@ -34,19 +34,27 @@ public class SecurityConfig {
     private final CustomUserDetailsService service;
 
     @Bean
-    public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
+    public SecurityFilterChain securityFilterChain(HttpSecurity http) {
         try {
             http.csrf(AbstractHttpConfigurer::disable)
                     .cors(Customizer.withDefaults())
                     .sessionManagement(sessionConfig ->
                             sessionConfig.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                     .authorizeHttpRequests(authConfig -> authConfig
-                            .requestMatchers("/api/auth/**").permitAll()
+                            .requestMatchers("/api/auth/login").permitAll()
+                            .requestMatchers("/api/auth/register").hasAuthority("ROLE_ADMIN")
                             .requestMatchers("/v3/api-docs/**").permitAll()
                             .requestMatchers("/swagger-ui/**").permitAll()
                             .requestMatchers("/swagger-ui.html").permitAll()
+<<<<<<< HEAD
                             .requestMatchers("/api/kitchen/**", "/orders/**", "/waiter/**")
                             .hasAnyAuthority("ROLE_ADMIN", "ROLE_WAITER")
+=======
+                            .requestMatchers("/order/**").permitAll()
+                            .requestMatchers("/customers/**").permitAll()
+                            .requestMatchers("/api/kitchen/**").permitAll()
+                            .requestMatchers("/ingredient/**").hasAuthority("ROLE_ADMIN")
+>>>>>>> origin/dev
                             .requestMatchers("/admin/**").hasAuthority("ROLE_ADMIN")
                             .requestMatchers("/user/**").hasAuthority("ROLE_USER")
                             .anyRequest().authenticated()
@@ -54,12 +62,11 @@ public class SecurityConfig {
                     .authenticationProvider(authenticationProvider())
                     .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class);
             return http.build();
-        } catch (RuntimeException e) {
-            throw e;
         } catch (Exception e) {
-            throw new IllegalStateException("Failed to configure security filter chain", e);
+            throw new BeanCreationException("securityFilterChain", "Failed to configure security filter chain", e);
         }
     }
+
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration configuration = new CorsConfiguration();
@@ -85,10 +92,8 @@ public class SecurityConfig {
     public AuthenticationManager authenticationManager(AuthenticationConfiguration config) {
         try {
             return config.getAuthenticationManager();
-        } catch (RuntimeException e) {
-            throw e;
         } catch (Exception e) {
-            throw new IllegalStateException("Failed to get AuthenticationManager", e);
+            throw new BeanCreationException("authenticationManager", "Failed to get AuthenticationManager", e);
         }
     }
 

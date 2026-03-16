@@ -1,9 +1,10 @@
-package edu.icet.ecom.repository.impl;
+package edu.icet.ecom.service.impl;
 
 import edu.icet.ecom.dto.AuthResponse;
 import edu.icet.ecom.dto.LoginRequestDto;
 import edu.icet.ecom.dto.RegisterRequestDto;
 import edu.icet.ecom.entity.UserEntity;
+import edu.icet.ecom.exception.AuthenticationException;
 import edu.icet.ecom.repository.UserRepository;
 import edu.icet.ecom.service.AuthService;
 import edu.icet.ecom.service.CustomUserDetailsService;
@@ -11,12 +12,14 @@ import edu.icet.ecom.service.JwtService;
 import edu.icet.ecom.util.Role;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDateTime;
 import java.util.Collection;
 
 @Service
@@ -46,6 +49,7 @@ public class AuthServiceImpl implements AuthService {
         entity.setPassword(passwordEncoder.encode(request.getPassword()));
         entity.setRole(role);
         entity.setEnabled(true);
+        entity.setCreatedAt(LocalDateTime.now());
         userRepository.save(entity);
 
         UserDetails details = userDetailsService.loadUserByUsername(entity.getUsername());
@@ -55,12 +59,16 @@ public class AuthServiceImpl implements AuthService {
 
     @Override
     public AuthResponse login(LoginRequestDto request) {
-        authenticationManager.authenticate(
-                new UsernamePasswordAuthenticationToken(
-                        request.getUsername(),
-                        request.getPassword()
-                )
-        );
+        try {
+            authenticationManager.authenticate(
+                    new UsernamePasswordAuthenticationToken(
+                            request.getUsername(),
+                            request.getPassword()
+                    )
+            );
+        } catch (BadCredentialsException e) {
+            throw new AuthenticationException("Username or password is incorrect");
+        }
         UserDetails details = userDetailsService.loadUserByUsername(request.getUsername());
         String token = jwtService.generateToken(details);
         Role role = getRoleFromAuthorities(details.getAuthorities());
@@ -75,3 +83,5 @@ public class AuthServiceImpl implements AuthService {
                 .orElse(Role.ROLE_USER);
     }
 }
+
+

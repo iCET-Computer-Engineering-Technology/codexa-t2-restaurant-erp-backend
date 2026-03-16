@@ -7,6 +7,7 @@ import jakarta.validation.constraints.Size;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+import java.time.LocalTime;
 
 @Getter
 @Setter
@@ -24,4 +25,6 @@ public class RegisterRequestDto {
     @Size(min = 6, max = 100)
     private String password;
     private Role role;
+
+    private LocalTime time;
 }
