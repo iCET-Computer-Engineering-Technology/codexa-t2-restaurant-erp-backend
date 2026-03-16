@@ -1,8 +1,11 @@
 package edu.icet.ecom.dto;
 
-import lombok.Data;
 
-@Data
+import lombok.Getter;
+import lombok.Setter;
+
+@Getter
+@Setter
 public class AssignWaiterRequest {
     private Long orderId;
     private Long waiterId;
