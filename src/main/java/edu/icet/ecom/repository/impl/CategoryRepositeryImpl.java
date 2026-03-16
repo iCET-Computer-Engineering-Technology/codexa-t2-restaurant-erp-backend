@@ -16,7 +16,7 @@ public class CategoryRepositeryImpl implements CategoryRepositery {
 
     @Override
     public boolean addCategory(CategoryDto categoryDto) {
-        return template.update("INSERT INTO category VALUES (?)",
+        return template.update("INSERT INTO category (name)" + " VALUES (?)",
                 categoryDto.getName()
         )>0;
     }
