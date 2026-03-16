@@ -8,7 +8,7 @@ import java.util.List;
 
 @Getter
 @Setter
-@ToString
+@ToString(exclude = {"modifiers"}) //prevent recursion
 @AllArgsConstructor
 @NoArgsConstructor
 public class OrderItem {

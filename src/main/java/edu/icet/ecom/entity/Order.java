@@ -8,9 +8,9 @@ import java.util.List;
 
 @Getter
 @Setter
-@ToString
 @AllArgsConstructor
 @NoArgsConstructor
+@ToString(exclude = {"items"}) //to prevent deep recursion
 public class Order {
     private Long id;
     private Long tableId;

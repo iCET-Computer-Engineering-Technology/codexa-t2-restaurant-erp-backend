@@ -3,10 +3,7 @@ package edu.icet.ecom.controller;
 import edu.icet.ecom.dto.MenuItemVariant;
 import edu.icet.ecom.dto.VariantDTO;
 import edu.icet.ecom.service.MenuItemVariantService;
-import io.swagger.v3.oas.models.security.SecurityScheme;
-import lombok.Getter;
 import lombok.RequiredArgsConstructor;
-import org.springframework.security.core.parameters.P;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
