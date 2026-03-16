@@ -22,7 +22,7 @@ public class GlobalExceptionHandler {
         ErrorResponse response = ErrorResponse.builder()
                 .status(HttpStatus.UNAUTHORIZED.value())
                 .message(ex.getMessage())
-                .error("AUTHENTICATION_FAILED")
+                .error("Username or password is incorrect")
                 .timestamp(LocalDateTime.now())
                 .path(request.getDescription(false).replace("uri=", ""))
                 .build();
