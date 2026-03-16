@@ -48,6 +48,7 @@ public class SecurityConfig {
                             .requestMatchers("/customers/**").permitAll()
                             .requestMatchers("/api/kitchen/**").permitAll()
                             .requestMatchers("/admin/**").hasAuthority("ROLE_ADMIN")
+                            .requestMatchers("api/auth/register").hasAuthority("ROLE_ADMIN")
                             .requestMatchers("/user/**").hasAuthority("ROLE_USER")
                             .anyRequest().authenticated()
                     )
@@ -60,6 +61,7 @@ public class SecurityConfig {
             throw new IllegalStateException("Failed to configure security filter chain", e);
         }
     }
+
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration configuration = new CorsConfiguration();
