@@ -35,6 +35,6 @@ public class CategoryServiceImpl implements CategoryService {
 
     @Override
     public List<CategoryDto> getAll() {
-        return List.of();
+        return repositery.getAll();
     }
 }

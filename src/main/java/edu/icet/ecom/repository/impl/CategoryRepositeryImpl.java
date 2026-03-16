@@ -44,6 +44,9 @@ public class CategoryRepositeryImpl implements CategoryRepositery {
 
     @Override
     public List<CategoryDto> getAll() {
-        return List.of();
+        return template.query("SELECT * FROM category", (rs, rowNum) -> new CategoryDto(
+                rs.getLong(1),
+                rs.getString(2)
+        ) );
     }
 }

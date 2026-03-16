@@ -6,6 +6,8 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.parameters.P;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
+
 @RestController
 @RequestMapping("/category")
 @RequiredArgsConstructor
@@ -31,5 +33,10 @@ public class CategoryController {
     @GetMapping("/{id}")
     public CategoryDto searchById(@PathVariable Long id){
         return service.searchById(id);
+    }
+
+    @GetMapping
+    public List<CategoryDto> getAll(){
+        return service.getAll();
     }
 }
