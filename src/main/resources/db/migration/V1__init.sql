@@ -13,7 +13,9 @@ CREATE TABLE customers(
     name VARCHAR(100) NOT NULL,
     email VARCHAR(100),
     phone VARCHAR(10) UNIQUE,
-    address VARCHAR(255)
+    address VARCHAR(255),
+    gdpr_deleted TINYINT DEFAULT 0,
+    updated_at DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
 );
 
 
