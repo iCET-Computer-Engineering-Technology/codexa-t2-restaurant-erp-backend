@@ -36,7 +36,10 @@ public class CategoryRepositeryImpl implements CategoryRepositery {
 
     @Override
     public CategoryDto searchById(Long id) {
-        return null;
+        return template.queryForObject("SELECT * FROM category WHERE id = ?" , (rs, rowNum) -> new CategoryDto(
+                rs.getLong(1),
+                rs.getString(2)
+                ), id);
     }
 
     @Override

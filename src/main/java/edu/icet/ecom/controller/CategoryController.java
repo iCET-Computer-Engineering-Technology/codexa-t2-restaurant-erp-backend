@@ -27,4 +27,9 @@ public class CategoryController {
     public boolean deleteById(@PathVariable Long id){
         return service.deleteById(id);
     }
+
+    @GetMapping("/{id}")
+    public CategoryDto searchById(@PathVariable Long id){
+        return service.searchById(id);
+    }
 }

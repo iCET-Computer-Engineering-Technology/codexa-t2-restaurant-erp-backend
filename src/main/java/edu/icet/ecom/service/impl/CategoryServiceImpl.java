@@ -30,7 +30,7 @@ public class CategoryServiceImpl implements CategoryService {
 
     @Override
     public CategoryDto searchById(Long id) {
-        return null;
+        return repositery.searchById(id);
     }
 
     @Override
