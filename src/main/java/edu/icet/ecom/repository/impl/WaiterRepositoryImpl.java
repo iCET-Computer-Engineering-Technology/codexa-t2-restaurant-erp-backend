@@ -1,4 +1,4 @@
-package edu.icet.ecom.repository.impl;
+package edu.icet.ecom.repository.Impl;
 
 import edu.icet.ecom.entity.OrderAssign;
 import edu.icet.ecom.entity.Waiter;
