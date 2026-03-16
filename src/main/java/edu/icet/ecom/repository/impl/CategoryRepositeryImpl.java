@@ -31,7 +31,7 @@ public class CategoryRepositeryImpl implements CategoryRepositery {
 
     @Override
     public boolean deleteById(Long id) {
-        return false;
+        return template.update("DELETE FROM category WHERE id = ?" , id)>1;
     }
 
     @Override

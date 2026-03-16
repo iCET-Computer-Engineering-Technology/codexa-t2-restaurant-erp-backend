@@ -25,7 +25,7 @@ public class CategoryServiceImpl implements CategoryService {
 
     @Override
     public boolean deleteById(Long id) {
-        return false;
+        return repositery.deleteById(id);
     }
 
     @Override
