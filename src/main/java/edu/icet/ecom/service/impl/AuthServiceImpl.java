@@ -19,6 +19,7 @@ import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDateTime;
 import java.util.Collection;
 
 @Service
@@ -48,6 +49,7 @@ public class AuthServiceImpl implements AuthService {
         entity.setPassword(passwordEncoder.encode(request.getPassword()));
         entity.setRole(role);
         entity.setEnabled(true);
+        entity.setCreatedAt(LocalDateTime.now());
         userRepository.save(entity);
 
         UserDetails details = userDetailsService.loadUserByUsername(entity.getUsername());
@@ -65,7 +67,7 @@ public class AuthServiceImpl implements AuthService {
                     )
             );
         } catch (BadCredentialsException e) {
-            throw new AuthenticationException("Username or password is wrong");
+            throw new AuthenticationException("Username or password is incorrect");
         }
         UserDetails details = userDetailsService.loadUserByUsername(request.getUsername());
         String token = jwtService.generateToken(details);
@@ -81,3 +83,5 @@ public class AuthServiceImpl implements AuthService {
                 .orElse(Role.ROLE_USER);
     }
 }
+
+

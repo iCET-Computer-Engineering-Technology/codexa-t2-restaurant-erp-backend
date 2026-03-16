@@ -40,7 +40,8 @@ public class SecurityConfig {
                     .sessionManagement(sessionConfig ->
                             sessionConfig.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                     .authorizeHttpRequests(authConfig -> authConfig
-                            .requestMatchers("/api/auth/**").permitAll()
+                            .requestMatchers("/api/auth/login").permitAll()
+                            .requestMatchers("/api/auth/register").hasAuthority("ROLE_ADMIN")
                             .requestMatchers("/v3/api-docs/**").permitAll()
                             .requestMatchers("/swagger-ui/**").permitAll()
                             .requestMatchers("/swagger-ui.html").permitAll()
@@ -48,7 +49,6 @@ public class SecurityConfig {
                             .requestMatchers("/customers/**").permitAll()
                             .requestMatchers("/api/kitchen/**").permitAll()
                             .requestMatchers("/admin/**").hasAuthority("ROLE_ADMIN")
-                            .requestMatchers("api/auth/register").hasAuthority("ROLE_ADMIN")
                             .requestMatchers("/user/**").hasAuthority("ROLE_USER")
                             .anyRequest().authenticated()
                     )
