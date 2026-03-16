@@ -1,6 +1,6 @@
 package edu.icet.ecom.repository;
 
-import edu.icet.ecom.entity.OrderAssigment;
+import edu.icet.ecom.entity.OrderAssign;
 import edu.icet.ecom.entity.Waiter;
 
 import java.util.List;
@@ -8,9 +8,9 @@ import java.util.List;
 public interface WaiterRepository {
     void assignWaiter(Long orderId, Long waiterId);
 
-    List<OrderAssigment> getUnservedOrders(Long waiterId);
+    List<OrderAssign> getUnservedOrders(Long waiterId);
 
-    List<OrderAssigment> getAssignments();
+    List<OrderAssign> getAssignments();
 
     List<Waiter> findActiveWaiters();
 

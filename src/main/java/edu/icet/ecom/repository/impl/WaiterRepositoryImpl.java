@@ -1,6 +1,6 @@
 package edu.icet.ecom.repository.impl;
 
-import edu.icet.ecom.entity.OrderAssigment;
+import edu.icet.ecom.entity.OrderAssign;
 import edu.icet.ecom.entity.Waiter;
 import edu.icet.ecom.repository.WaiterRepository;
 import lombok.RequiredArgsConstructor;
@@ -22,12 +22,12 @@ public class WaiterRepositoryImpl implements WaiterRepository {
     }
 
     @Override
-    public List<OrderAssigment> getAssignments() {
+    public List<OrderAssign> getAssignments() {
         String sql = "SELECT * FROM order_assignments";
 
         return jdbcTemplate.query(sql, (rs, rowNum) -> {
 
-            OrderAssigment assignment = new OrderAssigment();
+            OrderAssign assignment = new OrderAssign();
 
             assignment.setId(rs.getLong("id"));
             assignment.setOrderId(rs.getLong("order_id"));
@@ -40,7 +40,7 @@ public class WaiterRepositoryImpl implements WaiterRepository {
     }
 
     @Override
-    public List<OrderAssigment> getUnservedOrders(Long waiterId) {
+    public List<OrderAssign> getUnservedOrders(Long waiterId) {
         String sql =  "SELECT oa.id, oa.order_id, oa.waiter_id, oa.status, " +
                 "o.table_id, o.order_number " +
                 "FROM order_assignments oa " +
@@ -49,7 +49,7 @@ public class WaiterRepositoryImpl implements WaiterRepository {
 
         return jdbcTemplate.query(sql, (rs, rowNum) -> {
 
-            OrderAssigment assignment = new OrderAssigment();
+            OrderAssign assignment = new OrderAssign();
 
             assignment.setId(rs.getLong("id"));
             assignment.setOrderId(rs.getLong("order_id"));

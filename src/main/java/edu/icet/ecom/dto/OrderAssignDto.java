@@ -1,4 +1,4 @@
-package com.codexa.retauranterp.Dto;
+package edu.icet.ecom.dto;
 
 import lombok.*;
 
@@ -7,11 +7,10 @@ import lombok.*;
 @AllArgsConstructor
 @NoArgsConstructor
 @ToString
-public class OrderAssigmnetDTO {
+public class OrderAssignDto {
     private Long id;
     private Long waiterId;
     private Long orderId;
     private String status;
     private Long tableId;
-
 }

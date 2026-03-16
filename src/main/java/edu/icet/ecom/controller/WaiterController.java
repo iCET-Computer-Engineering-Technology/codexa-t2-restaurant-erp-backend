@@ -1,6 +1,6 @@
 package edu.icet.ecom.controller;
 
-import edu.icet.ecom.entity.OrderAssigment;
+import edu.icet.ecom.entity.OrderAssign;
 import edu.icet.ecom.service.WaiterService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
@@ -15,7 +15,7 @@ public class WaiterController {
     private final WaiterService waiterService;
 
     @GetMapping("/{waiterId}/unserved")
-    public List<OrderAssigment> getUnservedOrders(@PathVariable Long waiterId) {
+    public List<OrderAssign> getUnservedOrders(@PathVariable Long waiterId) {
         return waiterService.getUnservedOrders(waiterId);
     }
 
