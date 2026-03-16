@@ -14,27 +14,27 @@ public class ItemsController {
 
     private final ItemsService service;
 
-    @PostMapping("/add")
+    @PostMapping
     public boolean addItem(@RequestBody ItemsDto itemsDto){
         return service.addItem(itemsDto);
     }
 
-    @PutMapping("/update")
+    @PutMapping
     public boolean updateItem(@RequestBody ItemsDto itemsDto){
         return service.updateItem(itemsDto);
     }
 
-    @DeleteMapping("/delete-by-id/{id}")
+    @DeleteMapping("/{id}")
     public boolean deleteById(@PathVariable Integer id){
         return service.deleteById(id);
     }
 
-    @GetMapping("/search-by-id/{id}")
+    @GetMapping("/{id}")
     public ItemsDto searchById(@PathVariable Integer id){
         return service.searchById(id);
     }
 
-    @GetMapping("/getAll")
+    @GetMapping
     public List<ItemsDto> getAll(){
         return service.getAll();
     }

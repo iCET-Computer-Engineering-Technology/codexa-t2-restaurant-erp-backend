@@ -15,27 +15,27 @@ public class MenuItemVariantController {
 
     private final MenuItemVariantService service;
 
-    @PostMapping("/add")
+    @PostMapping
     public boolean addItemVariant(@RequestBody MenuItemVariant menuItemVariant){
         return service.addItemVariant(menuItemVariant);
     }
 
-    @PutMapping("/update")
+    @PutMapping
     public boolean updateItemVariant(@RequestBody MenuItemVariant menuItemVariant){
         return service.updateItemVariant(menuItemVariant);
     }
 
-    @DeleteMapping("delete-by-id/{id}")
+    @DeleteMapping("/{id}")
     public boolean deleteById(@PathVariable Integer id){
         return service.deleteById(id);
     }
 
-    @GetMapping("/search-by-id/{id}")
+    @GetMapping("/{id}")
     public MenuItemVariant searchById(@PathVariable Integer id){
         return service.searchById(id);
     }
 
-    @GetMapping("/getAll")
+    @GetMapping
     public List<VariantDTO> getAll(){
         return service.getAll();
     }

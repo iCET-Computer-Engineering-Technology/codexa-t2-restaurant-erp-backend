@@ -22,6 +22,7 @@ CREATE TABLE portion_sizes (
                         INDEX idx_portion_sizes_name (size_name)
 );
 
+
 CREATE TABLE menu_item_variants (
                                     variant_id INT AUTO_INCREMENT PRIMARY KEY,
                                     menu_item_id INT NOT NULL,
