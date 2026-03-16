@@ -20,7 +20,7 @@ public class CategoryServiceImpl implements CategoryService {
 
     @Override
     public boolean updateCategory(CategoryDto categoryDto) {
-        return false;
+        return repositery.updateCategory(categoryDto);
     }
 
     @Override

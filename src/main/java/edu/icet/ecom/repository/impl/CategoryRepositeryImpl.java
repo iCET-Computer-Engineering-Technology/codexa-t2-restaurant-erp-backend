@@ -23,7 +23,10 @@ public class CategoryRepositeryImpl implements CategoryRepositery {
 
     @Override
     public boolean updateCategory(CategoryDto categoryDto) {
-        return false;
+        return template.update("UPDATE category SET name = ? WHERE id = ?",
+                categoryDto.getName(),
+                categoryDto.getId()
+        )>0;
     }
 
     @Override

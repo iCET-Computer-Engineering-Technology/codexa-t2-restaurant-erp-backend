@@ -16,4 +16,8 @@ public class CategoryController {
     public boolean addCategory(@RequestBody CategoryDto categoryDto){
         return service.addCategory(categoryDto);
     }
+    @PutMapping
+    public boolean updateCategory(@RequestBody CategoryDto categoryDto){
+        return service.updateCategory(categoryDto);
+    }
 }
