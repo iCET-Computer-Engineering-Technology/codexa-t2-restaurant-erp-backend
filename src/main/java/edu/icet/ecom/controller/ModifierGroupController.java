@@ -2,6 +2,7 @@ package edu.icet.ecom.controller;
 
 import edu.icet.ecom.dto.ModifierGroupDto;
 import edu.icet.ecom.service.ModifierGroupService;
+import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
 
@@ -37,5 +38,10 @@ public class ModifierGroupController {
     @GetMapping
     public List<ModifierGroupDto> getAll(){
         return service.getAll();
+    }
+
+    @GetMapping("/by-item/{menuItemId}")
+    public List<ModifierGroupDto> getByMenuItemId(@PathVariable Integer menuItemId) {
+        return service.getByMenuItemId(menuItemId);
     }
 }

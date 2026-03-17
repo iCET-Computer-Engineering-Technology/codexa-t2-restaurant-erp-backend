@@ -57,4 +57,18 @@ public class ModifierGroupsRepositeryImpl implements ModifierGroupsRepositery {
                 rs.getBoolean(4)
         ));
     }
+
+    @Override
+    public List<ModifierGroupDto> getByMenuItemId(Integer menuItemId) {
+        return template.query(
+                "SELECT mg.* FROM modifier_groups mg " +
+                        "JOIN menu_item_modifier_groups mimg ON mg.id = mimg.modifier_group_id " +
+                        "WHERE mimg.menu_item_id = ?",
+                (rs, rowNum) -> new ModifierGroupDto(
+                        rs.getInt(1),
+                        rs.getString(2),
+                        rs.getString(3),
+                        rs.getBoolean(4)
+                ), menuItemId);
+    }
 }

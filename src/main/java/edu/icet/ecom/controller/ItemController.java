@@ -6,6 +6,8 @@ import edu.icet.ecom.service.ItemService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
+
 @RestController
 @RequestMapping("/item")
 @RequiredArgsConstructor
@@ -31,6 +33,11 @@ public class ItemController {
     @GetMapping("/{id}")
     public ItemDto searchById(@PathVariable Integer id){
         return service.searchById(id);
+    }
+
+    @GetMapping
+    public List<ItemDto> getAll(){
+        return service.getAll();
     }
 
 }

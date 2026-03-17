@@ -10,4 +10,6 @@ public interface ModifierGroupsRepositery {
     boolean deleteById(Integer id);
     ModifierGroupDto searchById(Integer id);
     List<ModifierGroupDto> getAll();
+
+    List<ModifierGroupDto> getByMenuItemId(Integer menuItemId);
 }

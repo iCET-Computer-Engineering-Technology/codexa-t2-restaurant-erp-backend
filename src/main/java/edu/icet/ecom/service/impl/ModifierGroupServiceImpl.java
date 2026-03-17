@@ -37,4 +37,9 @@ public class ModifierGroupServiceImpl implements ModifierGroupService {
     public List<ModifierGroupDto> getAll() {
         return repositery.getAll();
     }
+
+    @Override
+    public List<ModifierGroupDto> getByMenuItemId(Integer menuItemId) {
+        return repositery.getByMenuItemId(menuItemId);
+    }
 }

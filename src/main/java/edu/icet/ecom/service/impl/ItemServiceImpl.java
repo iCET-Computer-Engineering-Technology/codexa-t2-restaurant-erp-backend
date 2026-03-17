@@ -36,6 +36,6 @@ public class ItemServiceImpl implements ItemService {
 
     @Override
     public List<ItemDto> getAll() {
-        return List.of();
+        return repositery.getAll();
     }
 }
