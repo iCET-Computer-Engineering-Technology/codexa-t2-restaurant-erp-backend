@@ -1,7 +1,8 @@
 package edu.icet.ecom.controller;
 
-import edu.icet.ecom.entity.OrderAssign;
-import edu.icet.ecom.service.WaiterService;
+import edu.icet.ecom.dto.WaiterOrderDto;
+import edu.icet.ecom.entity.Waiters;
+import edu.icet.ecom.service.WaitersService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
 
@@ -12,15 +13,20 @@ import java.util.List;
 @RequiredArgsConstructor
 public class WaiterController {
 
-    private final WaiterService waiterService;
+    private final WaitersService waitersService;
 
-    @GetMapping("/{waiterId}/unserved")
-    public List<OrderAssign> getUnservedOrders(@PathVariable Long waiterId) {
-        return waiterService.getUnservedOrders(waiterId);
+    @GetMapping("/active")
+    public List<Waiters> getActiveWaiters() {
+        return waitersService.getActiveWaiters();
     }
 
-    @PutMapping("/serve/{assignmentId}")
-    public boolean serveOrder(@PathVariable Long assignmentId) {
-        return waiterService.serveOrder(assignmentId);
+    @GetMapping("/{waiterId}/unserved")
+    public List<WaiterOrderDto> getUnservedOrders(@PathVariable Integer waiterId) {
+        return waitersService.getUnservedOrders(waiterId);
+    }
+
+    @PutMapping("/serve/{orderId}")
+    public boolean serveOrder(@PathVariable Integer orderId) {
+        return waitersService.serveOrder(orderId);
     }
 }
