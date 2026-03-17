@@ -16,7 +16,6 @@ public class CustomerRepositoryImpl implements CustomerRepository {
 
     private final JdbcTemplate jdbcTemplate;
 
-    // Database එකෙන් එන දත්ත Java Object එකකට ගලපාගන්න තැන
     private final RowMapper<CustomerDto> rowMapper = (rs, rowNum) -> {
         CustomerDto customer = new CustomerDto();
         customer.setId(rs.getInt("id"));
@@ -39,19 +38,14 @@ public class CustomerRepositoryImpl implements CustomerRepository {
     }
 
     @Override
-    public boolean saveCustomer(CustomerDto customerDto) {
-        String sql = "INSERT INTO customers (first_name, last_name, email, phone, preferred_language, dietary_notes, communication_email, communication_sms) " +
-                "VALUES (?, ?, ?, ?, ?, ?, ?, ?)";
-
+    public boolean saveCustomer(CustomerDto dto) {
+        String sql = "INSERT INTO customers (first_name, last_name, email, phone, preferred_language, dietary_notes, communication_email, communication_sms) VALUES (?,?,?,?,?,?,?,?)";
         int result = jdbcTemplate.update(sql,
-                customerDto.getFirstName(),
-                customerDto.getLastName(),
-                customerDto.getEmail(),
-                customerDto.getPhone(),
-                customerDto.getPreferredLanguage() != null ? customerDto.getPreferredLanguage() : "en",
-                customerDto.getDietaryNotes(),
-                customerDto.getCommunicationEmail() != null ? customerDto.getCommunicationEmail() : 1,
-                customerDto.getCommunicationSms() != null ? customerDto.getCommunicationSms() : 1
+                dto.getFirstName(), dto.getLastName(), dto.getEmail(), dto.getPhone(),
+                dto.getPreferredLanguage() != null ? dto.getPreferredLanguage() : "en",
+                dto.getDietaryNotes(),
+                dto.getCommunicationEmail() != null ? dto.getCommunicationEmail() : 1,
+                dto.getCommunicationSms() != null ? dto.getCommunicationSms() : 1
         );
         return result > 0;
     }
@@ -70,24 +64,17 @@ public class CustomerRepositoryImpl implements CustomerRepository {
 
     @Override
     public boolean deleteCustomerByPhone(String phone) {
-        // Soft Delete: gdpr_deleted එක 1 කරනවා
-        String sql = "UPDATE customers SET gdpr_deleted = 1, updated_at = CURRENT_TIMESTAMP WHERE phone = ?";
+        String sql = "UPDATE customers SET gdpr_deleted = 1 WHERE phone = ?";
         return jdbcTemplate.update(sql, phone) > 0;
     }
 
     @Override
-    public boolean updateCustomer(CustomerDto customerDto) {
+    public boolean updateCustomer(CustomerDto dto) {
         String sql = "UPDATE customers SET first_name=?, last_name=?, email=?, preferred_language=?, dietary_notes=?, communication_email=?, communication_sms=? WHERE phone=?";
-
         int result = jdbcTemplate.update(sql,
-                customerDto.getFirstName(),
-                customerDto.getLastName(),
-                customerDto.getEmail(),
-                customerDto.getPreferredLanguage(),
-                customerDto.getDietaryNotes(),
-                customerDto.getCommunicationEmail(),
-                customerDto.getCommunicationSms(),
-                customerDto.getPhone()
+                dto.getFirstName(), dto.getLastName(), dto.getEmail(),
+                dto.getPreferredLanguage(), dto.getDietaryNotes(),
+                dto.getCommunicationEmail(), dto.getCommunicationSms(), dto.getPhone()
         );
         return result > 0;
     }
