@@ -32,7 +32,7 @@ public class OrderServiceImpl implements OrderService {
     @Override
     @Transactional
     public OrderResponseDto createOrder(OrderRequestDto orderRequestDto) {
-        //Calculate total amount(items + modifiers)
+        //Calculate total amount(items * qty + modifiers)
         BigDecimal subTotal = orderRequestDto.getItems().stream()
                 .map(itemDto -> {
                     BigDecimal itemTotal = itemDto.getUnitPrice()
@@ -41,70 +41,79 @@ public class OrderServiceImpl implements OrderService {
                     BigDecimal modifierTotal = BigDecimal.ZERO;
                     if (itemDto.getModifiers() != null){
                         modifierTotal = itemDto.getModifiers().stream()
-                                .map(modifierDto ->
-                                        modifierDto.getPriceAdjustment()
-                                                .multiply(BigDecimal.valueOf(modifierDto.getQuantity())))
+                                .map(OrderItemModifierRequestDto::getPriceAdjustment)
                                 .reduce(BigDecimal.ZERO, BigDecimal::add);
                     }
-                    return itemTotal.add(modifierTotal); //item prices + item modifier prices
+                    return itemTotal.add(modifierTotal);
                 }).reduce(BigDecimal.ZERO, BigDecimal::add);
 
         //if we want to add tax : calculation
-        BigDecimal taxRate = new BigDecimal("0.00");
-        BigDecimal tax = subTotal.multiply(taxRate);
-        BigDecimal totalAmount = subTotal.add(tax);
+        BigDecimal discountAmount = BigDecimal.ZERO;      // extend later with discount logic
+        BigDecimal taxRate = new BigDecimal("0.00");  // adjust if tax applies
+        BigDecimal taxAmount = subTotal.subtract(discountAmount).multiply(taxRate);
+        BigDecimal totalAmount = subTotal.subtract(discountAmount).add(taxAmount);
 
         //save order
         Order order = new Order();
+        order.setOrderNumber(generateOrderNumber());          // uses order_sequence table
+        order.setOrderType(orderRequestDto.getOrderType());   // REQUIRED field
         order.setTableId(orderRequestDto.getTableId());
-        order.setCustomerId(orderRequestDto.getCustomerId());
-        order.setOrderNumber(generateOrderNumber());
-        order.setStatus("RECEIVED");
+        order.setCustomerId(orderRequestDto.getCustomerId()); // nullable
+        order.setServerId(orderRequestDto.getServerId());     // nullable
+        order.setStatus("open");
+        order.setSubTotal(subTotal);
+        order.setDiscountAmount(discountAmount);
+        order.setTaxAmount(taxAmount);
         order.setTotalAmount(totalAmount);
-        order.setTax(tax);
-        order.setPaymentStatus("PENDING");
+        order.setNotes(orderRequestDto.getNotes());
+        order.setSource(orderRequestDto.getSource());
 
-        Long orderId = orderRepository.saveAndGetId(order);
+        Integer orderId = orderRepository.saveAndGetId(order);
 
-        //save oder items
+        //save order items
         List<OrderItem> orderItemsArray = new ArrayList<>();
 
-        for(OrderItemRequestDto itemDto: orderRequestDto.getItems()){
+        for (OrderItemRequestDto itemDto : orderRequestDto.getItems()) {
+
+            // Per-item modifier total
+            BigDecimal itemModifierTotal = BigDecimal.ZERO;
+            if (itemDto.getModifiers() != null) {
+                itemModifierTotal = itemDto.getModifiers().stream()
+                        .map(OrderItemModifierRequestDto::getPriceAdjustment)
+                        .reduce(BigDecimal.ZERO, BigDecimal::add);
+            }
+
+            BigDecimal lineTotal = itemDto.getUnitPrice()
+                    .multiply(BigDecimal.valueOf(itemDto.getQuantity()))
+                    .add(itemModifierTotal);
+
             OrderItem orderItem = new OrderItem();
             orderItem.setOrderId(orderId);
             orderItem.setMenuItemId(itemDto.getMenuItemId());
             orderItem.setQuantity(itemDto.getQuantity());
             orderItem.setUnitPrice(itemDto.getUnitPrice());
-            //orderItem.setTotalPrice(itemDto.getUnitPrice().multiply(BigDecimal.valueOf(itemDto.getQuantity()))); //duplication erro fix
-            BigDecimal modifierTotal = BigDecimal.ZERO;
-            if (itemDto.getModifiers() != null) {
-                modifierTotal = itemDto.getModifiers().stream()
-                        .map(m -> m.getPriceAdjustment()
-                                .multiply(BigDecimal.valueOf(m.getQuantity())))
-                        .reduce(BigDecimal.ZERO, BigDecimal::add);
-            }
-            orderItem.setTotalPrice(
-                    itemDto.getUnitPrice()
-                            .multiply(BigDecimal.valueOf(itemDto.getQuantity()))
-                            .add(modifierTotal)
-            );
+            orderItem.setModifierTotal(itemModifierTotal);
+            orderItem.setLineTotal(lineTotal);
+            orderItem.setCourseNumber(1);                    // default
+            orderItem.setStatus("pending");                  //  default
+            orderItem.setNotes(itemDto.getNotes());
 
-            Long orderItemId = orderItemRepository.saveAndGetId(orderItem); //get order item id
+            Integer orderItemId = orderItemRepository.saveAndGetId(orderItem);
             orderItem.setId(orderItemId);
 
             //save modifiers
-            if(itemDto.getModifiers() != null){
-                for(OrderItemModifierRequestDto modifierDto: itemDto.getModifiers()){
+            if (itemDto.getModifiers() != null) {
+                for (OrderItemModifierRequestDto modifierDto : itemDto.getModifiers()) {
                     OrderItemModifier modifier = new OrderItemModifier();
                     modifier.setOrderItemId(orderItemId);
                     modifier.setModifierId(modifierDto.getModifierId());
                     modifier.setModifierName(modifierDto.getModifierName());
                     modifier.setPriceAdjustment(modifierDto.getPriceAdjustment());
-                    modifier.setQuantity(modifierDto.getQuantity());
-
-                    int rows =  orderItemModifierRepository.save(modifier); //save to db
-                    if(rows == 0){
-                        throw new OrderPersistenceException("Failed to save modifier: " + modifier.getModifierName());
+                    // Note: No quantity field — removed from new schema
+                    int rows = orderItemModifierRepository.save(modifier);
+                    if (rows == 0) {
+                        throw new OrderPersistenceException(
+                                "Failed to save modifier: " + modifier.getModifierName());
                     }
                 }
             }
@@ -112,53 +121,59 @@ public class OrderServiceImpl implements OrderService {
         }
 
         //return response
-        OrderResponseDto response = new OrderResponseDto();
-        response.setId(orderId);
-        response.setOrderNumber(order.getOrderNumber());
-        response.setStatus(order.getStatus());
-        response.setTotalAmount(order.getTotalAmount());
-        response.setPaymentStatus(order.getPaymentStatus());
-        response.setItems(orderItemsArray);
-
-        return response;
+        return new OrderResponseDto(
+                orderId,
+                order.getOrderNumber(),
+                order.getOrderType(),
+                order.getStatus(),
+                order.getSubTotal(),
+                order.getDiscountAmount(),
+                order.getTaxAmount(),
+                order.getTotalAmount(),
+                order.getSource(),
+                orderItemsArray);
     }
 
     @Override
-    public List<OrderResponseDto> findReceivedOrders() {
-        List<Order> orderList = orderRepository.findReceivedOrders();
-        return orderList.stream().map(order -> {
+    public List<OrderResponseDto> findOpenOrders() {
+        return orderRepository.findOpenOrders().stream().map(order -> {
             OrderResponseDto dto = new OrderResponseDto();
             dto.setId(order.getId());
             dto.setOrderNumber(order.getOrderNumber());
+            dto.setOrderType(order.getOrderType());
             dto.setStatus(order.getStatus());
+            dto.setSubTotal(order.getSubTotal());
+            dto.setDiscountAmount(order.getDiscountAmount());
+            dto.setTaxAmount(order.getTaxAmount());
             dto.setTotalAmount(order.getTotalAmount());
-            dto.setPaymentStatus(order.getPaymentStatus());
-            dto.setItems(order.getItems());
+            dto.setSource(order.getSource());
+            List<OrderItem> items = orderItemRepository.findByOrderId(order.getId());
+            dto.setItems(items);
             return dto;
         }).toList();
     }
 
     @Override
-    public Boolean updateStatus(Long orderId, String status) {
-        //validate status
-        List<String> validStatus = List.of("RECEIVED", "PREPARING", "READY", "COMPLETED", "CANCELLED");
-        if (!validStatus.contains(status)){
-            throw new IllegalArgumentException("Invalid status: " + status);
+    public Boolean updateStatus(Integer orderId, String status) {
+        // Valid statuses from new schema ENUM
+        List<String> validStatuses = List.of(
+                "open", "sent_to_kitchen", "partially_ready", "ready", "paid", "voided");
+        if (!validStatuses.contains(status)) {
+            throw new IllegalArgumentException("Invalid status: " + status +
+                    ". Must be one of: " + validStatuses);
         }
-        //update
         boolean updated = orderRepository.updateStatus(orderId, status);
-        //order not found
         if (!updated) {
-            throw new ResourceNotFoundException("Order not found: " + orderId);
+            throw new ResourceNotFoundException("Order not found with id: " + orderId);
         }
         return true;
     }
+
 
     //Generate order num
     private String generateOrderNumber() {
         LocalDate today = LocalDate.now();
         int sequence = orderRepository.upsertAndGetSequence(today);
-
         String date = today.format(DateTimeFormatter.ofPattern("yyyyMMdd"));
         return "ORD-" + date + "-" + String.format("%04d", sequence);
     }

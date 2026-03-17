@@ -22,16 +22,16 @@ public class OrderController {
         return ResponseEntity.ok(orderService.createOrder(orderRequestDto));
     }
 
-    @GetMapping("/recieved")
-    public ResponseEntity<List<OrderResponseDto>> findReceivedOrders(){
-        return  ResponseEntity.ok(orderService.findReceivedOrders());
+    @GetMapping("/open-orders")
+    public ResponseEntity<List<OrderResponseDto>> findOpenOrders(){
+        return  ResponseEntity.ok(orderService.findOpenOrders());
     }
 
     @PutMapping("/update/{orderId}/status")
-    ResponseEntity<String> updateStatus(@PathVariable Long orderId, @RequestParam String status){
+    ResponseEntity<String> updateStatus(@PathVariable Integer orderId, @RequestParam String status){
         boolean updated = orderService.updateStatus(orderId, status);
         if(updated){
-            return ResponseEntity.ok("Order status updated success");
+            return ResponseEntity.ok("Order status updated successfully");
         }else{
             return ResponseEntity.badRequest().body("Update failed");
         }

@@ -9,6 +9,6 @@ import java.util.List;
 @Service
 public interface OrderService {
     OrderResponseDto createOrder(OrderRequestDto orderRequestDto);
-    List<OrderResponseDto> findReceivedOrders();
-    Boolean updateStatus(Long orderId, String status);
+    List<OrderResponseDto> findOpenOrders();
+    Boolean updateStatus(Integer orderId, String status);
 }

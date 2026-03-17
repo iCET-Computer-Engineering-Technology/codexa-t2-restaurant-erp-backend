@@ -11,10 +11,14 @@ import java.util.List;
 @NoArgsConstructor
 @AllArgsConstructor
 public class OrderResponseDto {
-    private Long id;
+    private Integer id;
     private String orderNumber;
+    private String orderType;
     private String status;
+    private BigDecimal subTotal;
+    private BigDecimal discountAmount;
+    private BigDecimal taxAmount;
     private BigDecimal totalAmount;
-    private String paymentStatus;
+    private String source;
     private List<OrderItem> items;
 }

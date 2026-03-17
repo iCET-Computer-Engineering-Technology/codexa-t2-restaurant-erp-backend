@@ -6,7 +6,7 @@ import java.util.List;
 
 public interface OrderAssignmentRepository {
 
-    void assignWaiter(Long orderId, Long waiterId);
+    void assignWaiter(Integer orderId, Long waiterId);
 
     List<OrderAssignment> getAssignments();
 

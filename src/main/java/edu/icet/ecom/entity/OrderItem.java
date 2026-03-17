@@ -12,12 +12,16 @@ import java.util.List;
 @AllArgsConstructor
 @NoArgsConstructor
 public class OrderItem {
-    private Long id;
-    private Long orderId;
-    private Long menuItemId;
+    private Integer id;
+    private Integer orderId;
+    private Integer menuItemId;
     private Integer quantity;
     private BigDecimal unitPrice;
-    private BigDecimal totalPrice;
+    private BigDecimal modifierTotal;
+    private BigDecimal lineTotal;
+    private Integer courseNumber;
+    private String status; // NEW ENUM: pending, fired, ready, served, voided
+    private String notes;
     private LocalDateTime createdAt;
     private List<OrderItemModifier> modifiers; // not save on DB
 }

@@ -9,8 +9,7 @@ import java.math.BigDecimal;
 @NoArgsConstructor
 @AllArgsConstructor
 public class OrderItemModifierRequestDto {
-    private Long modifierId;
+    private Integer modifierId;
     private String modifierName;
     private BigDecimal priceAdjustment;
-    private Integer quantity;
 }

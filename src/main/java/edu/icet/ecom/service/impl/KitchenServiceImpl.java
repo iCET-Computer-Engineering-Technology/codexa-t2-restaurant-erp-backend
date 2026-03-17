@@ -29,12 +29,10 @@ public class KitchenServiceImpl implements KitchenService {
 
     @Override
     public List<Order> getKitchenOrders() {
-        List<Order> orders = orderRepository.findReceivedOrders();
-
+        List<Order> orders = orderRepository.findOpenOrders();
         orders.forEach(order -> order.setItems(
                 orderItemRepository.findByOrderId(order.getId())
         ));
-
         return orders;
     }
 
@@ -44,12 +42,9 @@ public class KitchenServiceImpl implements KitchenService {
     }
 
     @Override
-    public void assignWaiter(Long orderId, Long waiterId) {
-
+    public void assignWaiter(Integer orderId, Long waiterId) {
         orderAssignmentRepository.assignWaiter(orderId, waiterId);
-
         orderRepository.updateStatus(orderId, "READY");
-
     }
 
     @Override

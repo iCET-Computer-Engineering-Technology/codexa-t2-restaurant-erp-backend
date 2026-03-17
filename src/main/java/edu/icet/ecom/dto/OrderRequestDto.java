@@ -9,7 +9,11 @@ import java.util.List;
 @NoArgsConstructor
 @AllArgsConstructor
 public class OrderRequestDto {
-    private Long tableId;
-    private Long customerId;
+    private Integer tableId;
+    private Integer customerId;
+    private Integer serverId;
+    private String orderType;
+    private String notes;
+    private String source;
     private List<OrderItemRequestDto> items;
 }

@@ -12,7 +12,7 @@ public interface KitchenService {
 
     List<Waiter> getActiveWaiters();
 
-    void assignWaiter(Long orderId,Long waiterId);
+    void assignWaiter(Integer orderId,Long waiterId);
 
     List<OrderAssignment> getAssignments();
 
