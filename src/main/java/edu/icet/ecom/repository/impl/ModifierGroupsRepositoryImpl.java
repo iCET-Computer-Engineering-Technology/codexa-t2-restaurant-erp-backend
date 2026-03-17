@@ -1,7 +1,7 @@
 package edu.icet.ecom.repository.impl;
 
 import edu.icet.ecom.dto.ModifierGroupDto;
-import edu.icet.ecom.repository.ModifierGroupsRepositery;
+import edu.icet.ecom.repository.ModifierGroupsRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Repository;
@@ -10,7 +10,7 @@ import java.util.List;
 
 @Repository
 @RequiredArgsConstructor
-public class ModifierGroupsRepositeryImpl implements ModifierGroupsRepositery {
+public class ModifierGroupsRepositoryImpl implements ModifierGroupsRepository {
 
     private final JdbcTemplate template;
 

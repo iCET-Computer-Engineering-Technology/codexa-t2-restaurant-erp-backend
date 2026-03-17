@@ -1,7 +1,7 @@
 package edu.icet.ecom.service.impl;
 
 import edu.icet.ecom.dto.ModifierGroupDto;
-import edu.icet.ecom.repository.ModifierGroupsRepositery;
+import edu.icet.ecom.repository.ModifierGroupsRepository;
 import edu.icet.ecom.service.ModifierGroupService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -12,7 +12,7 @@ import java.util.List;
 @RequiredArgsConstructor
 public class ModifierGroupServiceImpl implements ModifierGroupService {
 
-    private final ModifierGroupsRepositery repositery;
+    private final ModifierGroupsRepository repositery;
     @Override
     public boolean addModifierGroup(ModifierGroupDto modifierGroupDto) {
         return repositery.addModifierGroup(modifierGroupDto);

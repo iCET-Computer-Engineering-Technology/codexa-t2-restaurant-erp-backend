@@ -1,17 +1,16 @@
 package edu.icet.ecom.repository.impl;
 
 import edu.icet.ecom.dto.CategoryDto;
-import edu.icet.ecom.repository.CategoryRepositery;
+import edu.icet.ecom.repository.CategoryRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Repository;
-import org.springframework.stereotype.Service;
 
 import java.util.List;
 
 @Repository
 @RequiredArgsConstructor
-public class CategoryRepositeryImpl implements CategoryRepositery {
+public class CategoryRepositoryImpl implements CategoryRepository {
 
     private final JdbcTemplate template;
 

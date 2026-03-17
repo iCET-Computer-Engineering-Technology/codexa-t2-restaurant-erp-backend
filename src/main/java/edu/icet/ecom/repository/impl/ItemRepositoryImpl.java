@@ -1,7 +1,7 @@
 package edu.icet.ecom.repository.impl;
 
 import edu.icet.ecom.dto.ItemDto;
-import edu.icet.ecom.repository.ItemRepositery;
+import edu.icet.ecom.repository.ItemRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Repository;
@@ -10,7 +10,7 @@ import java.util.List;
 
 @Repository
 @RequiredArgsConstructor
-public class ItemRepositeryImpl implements ItemRepositery {
+public class ItemRepositoryImpl implements ItemRepository {
 
     private final JdbcTemplate template;
 

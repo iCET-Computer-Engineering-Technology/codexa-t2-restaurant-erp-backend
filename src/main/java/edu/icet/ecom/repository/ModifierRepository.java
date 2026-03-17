@@ -4,7 +4,7 @@ import edu.icet.ecom.dto.ModifierDto;
 
 import java.util.List;
 
-public interface ModifierRepositery {
+public interface ModifierRepository {
     boolean addModifier(ModifierDto modifierDto);
     boolean updateModifier(ModifierDto modifierDto);
     boolean deleteModifierById(Integer id);

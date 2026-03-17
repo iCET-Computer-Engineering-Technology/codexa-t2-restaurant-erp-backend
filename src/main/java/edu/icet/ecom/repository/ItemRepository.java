@@ -4,7 +4,7 @@ import edu.icet.ecom.dto.ItemDto;
 
 import java.util.List;
 
-public interface ItemRepositery {
+public interface ItemRepository {
     boolean addItem(ItemDto itemDto);
     boolean updateItem(ItemDto itemDto);
     boolean deleteById(Integer id);

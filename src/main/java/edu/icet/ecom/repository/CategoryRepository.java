@@ -4,7 +4,7 @@ import edu.icet.ecom.dto.CategoryDto;
 
 import java.util.List;
 
-public interface CategoryRepositery {
+public interface CategoryRepository {
     boolean addCategory(CategoryDto categoryDto);
     boolean updateCategory(CategoryDto categoryDto);
     boolean deleteById(Integer id);

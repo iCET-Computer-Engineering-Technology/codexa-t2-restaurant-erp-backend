@@ -1,7 +1,7 @@
 package edu.icet.ecom.service.impl;
 
 import edu.icet.ecom.dto.MenuItemModifierGroupDto;
-import edu.icet.ecom.repository.MenuItemModifierGroupRepositery;
+import edu.icet.ecom.repository.MenuItemModifierGroupRepository;
 import edu.icet.ecom.service.MenuItemModifierGroupService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -12,7 +12,7 @@ import java.util.List;
 @RequiredArgsConstructor
 public class MenuItemModifierGroupServiceImpl implements MenuItemModifierGroupService {
 
-    private final MenuItemModifierGroupRepositery repositery;
+    private final MenuItemModifierGroupRepository repositery;
 
     @Override
     public boolean assign(MenuItemModifierGroupDto dto) {

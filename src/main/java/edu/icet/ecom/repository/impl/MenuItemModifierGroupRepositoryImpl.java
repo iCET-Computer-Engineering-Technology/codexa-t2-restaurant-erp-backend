@@ -1,7 +1,7 @@
 package edu.icet.ecom.repository.impl;
 
 import edu.icet.ecom.dto.MenuItemModifierGroupDto;
-import edu.icet.ecom.repository.MenuItemModifierGroupRepositery;
+import edu.icet.ecom.repository.MenuItemModifierGroupRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Repository;
@@ -10,7 +10,7 @@ import java.util.List;
 
 @Repository
 @RequiredArgsConstructor
-public class MenuItemModifierGroupRepositeryImpl implements MenuItemModifierGroupRepositery {
+public class MenuItemModifierGroupRepositoryImpl implements MenuItemModifierGroupRepository {
 
     private final JdbcTemplate template;
 

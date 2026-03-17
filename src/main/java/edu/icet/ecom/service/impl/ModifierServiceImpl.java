@@ -1,7 +1,7 @@
 package edu.icet.ecom.service.impl;
 
 import edu.icet.ecom.dto.ModifierDto;
-import edu.icet.ecom.repository.ModifierRepositery;
+import edu.icet.ecom.repository.ModifierRepository;
 import edu.icet.ecom.service.ModifierService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -12,7 +12,7 @@ import java.util.List;
 @RequiredArgsConstructor
 public class ModifierServiceImpl implements ModifierService {
 
-    private final ModifierRepositery repositery;
+    private final ModifierRepository repositery;
 
     @Override
     public boolean addModifier(ModifierDto modifierDto) {

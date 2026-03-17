@@ -1,10 +1,9 @@
 package edu.icet.ecom.service.impl;
 
 import edu.icet.ecom.dto.CategoryDto;
-import edu.icet.ecom.repository.CategoryRepositery;
+import edu.icet.ecom.repository.CategoryRepository;
 import edu.icet.ecom.service.CategoryService;
 import lombok.RequiredArgsConstructor;
-import org.springframework.stereotype.Repository;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -12,7 +11,7 @@ import java.util.List;
 @RequiredArgsConstructor
 public class CategoryServiceImpl implements CategoryService {
 
-    private final CategoryRepositery repositery;
+    private final CategoryRepository repositery;
 
     @Override
     public boolean addCategory(CategoryDto categoryDto) {
