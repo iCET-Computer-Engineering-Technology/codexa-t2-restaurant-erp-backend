@@ -3,6 +3,7 @@ package edu.icet.ecom.config;
 import edu.icet.ecom.filter.JwtAuthFilter;
 import edu.icet.ecom.service.CustomUserDetailsService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.BeanCreationException;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -33,27 +34,32 @@ public class SecurityConfig {
     private final CustomUserDetailsService service;
 
     @Bean
-    public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
-        http.csrf(AbstractHttpConfigurer::disable)
-                .cors(Customizer.withDefaults())
-                .sessionManagement(sessionConfig ->
-                        sessionConfig.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
-                .authorizeHttpRequests(authConfig -> authConfig
-                        .requestMatchers("/api/auth/register").hasAuthority("ROLE_ADMIN")
-                        .requestMatchers("/api/auth/login").permitAll()
-                        .requestMatchers("/v3/api-docs/**").permitAll()
-                        .requestMatchers("/swagger-ui/**").permitAll()
-                        .requestMatchers("/swagger-ui.html").permitAll()
-                        .requestMatchers("/order/**").permitAll()
-                        .requestMatchers("/customers/**").permitAll()
-                        .requestMatchers("/api/kitchen/**").permitAll()
-                        .requestMatchers("/admin/**").hasAuthority("ROLE_ADMIN")
-                        .requestMatchers("/user/**").hasAuthority("ROLE_USER")
-                        .anyRequest().authenticated()
-                )
-                .authenticationProvider(authenticationProvider())
-                .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class);
-        return http.build();
+    public SecurityFilterChain securityFilterChain(HttpSecurity http) {
+        try {
+            http.csrf(AbstractHttpConfigurer::disable)
+                    .cors(Customizer.withDefaults())
+                    .sessionManagement(sessionConfig ->
+                            sessionConfig.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+                    .authorizeHttpRequests(authConfig -> authConfig
+                            .requestMatchers("/api/auth/login").permitAll()
+                            .requestMatchers("/api/auth/register").permitAll()
+                            .requestMatchers("/v3/api-docs/**").permitAll()
+                            .requestMatchers("/swagger-ui/**").permitAll()
+                            .requestMatchers("/swagger-ui.html").permitAll()
+                            .requestMatchers("/order/**").permitAll()
+                            .requestMatchers("/customers/**").permitAll()
+                            .requestMatchers("/api/kitchen/**").permitAll()
+                            .requestMatchers("/ingredient/**").hasAuthority("ROLE_ADMIN")
+                            .requestMatchers("/admin/**").hasAuthority("ROLE_ADMIN")
+                            .requestMatchers("/user/**").hasAuthority("ROLE_USER")
+                            .anyRequest().permitAll()
+                    )
+                    .authenticationProvider(authenticationProvider())
+                    .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class);
+            return http.build();
+        } catch (Exception e) {
+            throw new BeanCreationException("securityFilterChain", "Failed to configure security filter chain", e);
+        }
     }
 
     @Bean
@@ -81,10 +87,8 @@ public class SecurityConfig {
     public AuthenticationManager authenticationManager(AuthenticationConfiguration config) {
         try {
             return config.getAuthenticationManager();
-        } catch (RuntimeException e) {
-            throw e;
         } catch (Exception e) {
-            throw new IllegalStateException("Failed to get AuthenticationManager", e);
+            throw new BeanCreationException("authenticationManager", "Failed to get AuthenticationManager", e);
         }
     }
 
