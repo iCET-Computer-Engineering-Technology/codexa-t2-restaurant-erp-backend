@@ -24,12 +24,12 @@ public class CategoryServiceImpl implements CategoryService {
     }
 
     @Override
-    public boolean deleteById(Long id) {
+    public boolean deleteById(Integer id) {
         return repositery.deleteById(id);
     }
 
     @Override
-    public CategoryDto searchById(Long id) {
+    public CategoryDto searchById(Integer id) {
         return repositery.searchById(id);
     }
 

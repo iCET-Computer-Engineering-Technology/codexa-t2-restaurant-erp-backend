@@ -9,6 +9,8 @@ import lombok.*;
 @NoArgsConstructor
 @ToString
 public class CategoryDto {
-    private Long id;
+    private Integer id;
     private String name;
+    private Integer sortOrder;
+    private Integer isActive;
 }

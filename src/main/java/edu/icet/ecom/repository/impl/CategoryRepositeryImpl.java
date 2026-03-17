@@ -16,37 +16,45 @@ public class CategoryRepositeryImpl implements CategoryRepositery {
 
     @Override
     public boolean addCategory(CategoryDto categoryDto) {
-        return template.update("INSERT INTO category (name)" + " VALUES (?)",
-                categoryDto.getName()
+        return template.update("INSERT INTO menu_categories (name , sort_order , is_active)" + " VALUES (?,?,?)",
+                categoryDto.getName(),
+                categoryDto.getSortOrder(),
+                categoryDto.getIsActive()
         )>0;
     }
 
     @Override
     public boolean updateCategory(CategoryDto categoryDto) {
-        return template.update("UPDATE category SET name = ? WHERE id = ?",
+        return template.update("UPDATE menu_categories SET name = ? , sort_order = ? , is_active = ? WHERE id = ?",
                 categoryDto.getName(),
+                categoryDto.getSortOrder(),
+                categoryDto.getIsActive(),
                 categoryDto.getId()
         )>0;
     }
 
     @Override
-    public boolean deleteById(Long id) {
-        return template.update("DELETE FROM category WHERE id = ?" , id)>1;
+    public boolean deleteById(Integer id) {
+        return template.update("DELETE FROM menu_categories WHERE id = ?" , id)>1;
     }
 
     @Override
-    public CategoryDto searchById(Long id) {
-        return template.queryForObject("SELECT * FROM category WHERE id = ?" , (rs, rowNum) -> new CategoryDto(
-                rs.getLong(1),
-                rs.getString(2)
+    public CategoryDto searchById(Integer id) {
+        return template.queryForObject("SELECT * FROM menu_categories WHERE id = ?" , (rs, rowNum) -> new CategoryDto(
+                rs.getInt(1),
+                rs.getString(2),
+                rs.getInt(3),
+                rs.getInt(4)
                 ), id);
     }
 
     @Override
     public List<CategoryDto> getAll() {
-        return template.query("SELECT * FROM category", (rs, rowNum) -> new CategoryDto(
-                rs.getLong(1),
-                rs.getString(2)
+        return template.query("SELECT * FROM menu_categories", (rs, rowNum) -> new CategoryDto(
+                rs.getInt(1),
+                rs.getString(2),
+                rs.getInt(3),
+                rs.getInt(4)
         ) );
     }
 }

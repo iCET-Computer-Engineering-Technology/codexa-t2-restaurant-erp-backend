@@ -7,7 +7,7 @@ import java.util.List;
 public interface CategoryRepositery {
     boolean addCategory(CategoryDto categoryDto);
     boolean updateCategory(CategoryDto categoryDto);
-    boolean deleteById(Long id);
-    CategoryDto searchById(Long id);
+    boolean deleteById(Integer id);
+    CategoryDto searchById(Integer id);
     List<CategoryDto> getAll();
 }
