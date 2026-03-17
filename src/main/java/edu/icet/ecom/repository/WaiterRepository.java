@@ -10,7 +10,6 @@ public interface WaiterRepository {
 
     List<OrderAssign> getUnservedOrders(Long waiterId);
 
-    List<OrderAssign> getAssignments();
 
     List<Waiter> findActiveWaiters();
 
