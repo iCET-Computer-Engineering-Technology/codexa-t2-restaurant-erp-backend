@@ -58,6 +58,7 @@ public class SecurityConfig {
                             .requestMatchers("/category/**").permitAll()
                             .requestMatchers("/item/**").permitAll()
                             .requestMatchers("/modifierGroup/**").permitAll()
+                            .requestMatchers("/modifiers/**").permitAll()
                             .anyRequest().authenticated()
                     )
                     .authenticationProvider(authenticationProvider())
