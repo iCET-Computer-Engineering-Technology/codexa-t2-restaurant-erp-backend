@@ -38,3 +38,8 @@ build/
 
 ### Mac OS ###
 .DS_Store
+
+application.yml
+
+.idea/
+src/main/resources/application.yml
