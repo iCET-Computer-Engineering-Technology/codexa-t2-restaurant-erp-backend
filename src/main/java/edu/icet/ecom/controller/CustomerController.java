@@ -16,32 +16,32 @@ public class CustomerController {
 
     private final CustomerService customerService;
 
-    @GetMapping("/get-all")
-    public List<CustomerDto> getAllCustomer(){
-        return customerService.getAllCustomer();
+    @GetMapping
+    public List<CustomerDto> getAllCustomers(){
+        return customerService.getAllCustomers();
     }
 
-    @PostMapping("/add")
-    public boolean addCustomer(@Valid @RequestBody CustomerDto customerDto){
-        return customerService.addCustomer(customerDto);
+    @PostMapping
+    public boolean saveCustomer(@Valid @RequestBody CustomerDto customerDto){
+        return customerService.saveCustomer(customerDto);
     }
 
-    @GetMapping("/search/{phone}")
+    @GetMapping("/{phone}")
     public CustomerDto searchCustomerByPhone(@PathVariable String phone){
         return customerService.searchCustomerByPhone(phone);
     }
 
-    @GetMapping("/search/{id}")
-    public CustomerDto searchCustomerById(@PathVariable String id){
-        return customerService.searchCustomerByPhone(id);
+    @GetMapping("/{id}")
+    public CustomerDto searchCustomerById(@PathVariable Integer id){
+        return customerService.searchCustomerById(id);
     }
 
-    @DeleteMapping("/delete/{phone}")
+    @DeleteMapping("/{phone}")
     public boolean deleteCustomerByPhone(@PathVariable String phone){
         return customerService.deleteCustomerByPhone(phone);
     }
 
-    @PutMapping("/update")
+    @PutMapping
     public boolean updateCustomer(@Valid @RequestBody CustomerDto customerDto){
         return customerService.updateCustomer(customerDto);
     }
