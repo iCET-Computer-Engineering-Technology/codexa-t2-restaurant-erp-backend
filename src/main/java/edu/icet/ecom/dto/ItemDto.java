@@ -11,11 +11,15 @@ import java.sql.Timestamp;
 @ToString
 public class ItemDto {
     private Integer id;
+    private Integer categoryId;
     private String name;
     private String description;
-    private Boolean isActive;
-    private Integer portionId;
-    private Integer categoryId;
-    private  Double price;
+    private Double basePrice;
+    private Double currentPrice;
+    private Boolean isAvailable;
+    private Boolean isEightysixed;
+    private Double foodCostPct;
+    private String imageUrl;
     private Timestamp createdAt;
+    private Timestamp updatedAt;
 }

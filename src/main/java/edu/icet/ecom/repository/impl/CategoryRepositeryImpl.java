@@ -35,7 +35,7 @@ public class CategoryRepositeryImpl implements CategoryRepositery {
 
     @Override
     public boolean deleteById(Integer id) {
-        return template.update("DELETE FROM menu_categories WHERE id = ?" , id)>1;
+        return template.update("DELETE FROM menu_categories WHERE id = ?" , id)>0;
     }
 
     @Override
@@ -44,7 +44,7 @@ public class CategoryRepositeryImpl implements CategoryRepositery {
                 rs.getInt(1),
                 rs.getString(2),
                 rs.getInt(3),
-                rs.getInt(4)
+                rs.getBoolean(4)
                 ), id);
     }
 
@@ -54,7 +54,7 @@ public class CategoryRepositeryImpl implements CategoryRepositery {
                 rs.getInt(1),
                 rs.getString(2),
                 rs.getInt(3),
-                rs.getInt(4)
+                rs.getBoolean(4)
         ) );
     }
 }
