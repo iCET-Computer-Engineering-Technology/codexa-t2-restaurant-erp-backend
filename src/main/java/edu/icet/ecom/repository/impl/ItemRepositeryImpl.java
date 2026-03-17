@@ -52,12 +52,12 @@ public class ItemRepositeryImpl implements ItemRepositery {
 
     @Override
     public ItemDto searchById(Integer id) {
-        String sql = "SELECT mi.id, mi.category_id, mc.name, mi.name, mi.description, \" +\n" +
-                "\"mi.base_price, mi.current_price, mi.is_available, mi.is_eightysixed, \" +\n" +
-                "\"mi.eightysixed_at, mi.food_cost_pct, mi.image_url, mi.created_at, mi.updated_at \" +\n" +
-                "\"FROM menu_items mi \" +\n" +
-                "\"JOIN menu_categories mc ON mi.category_id = mc.id \" +\n" +
-                "\"WHERE mi.id = ?";
+        String sql = "SELECT mi.id, mi.category_id, mc.name, mi.name, mi.description, " +
+                "mi.base_price, mi.current_price, mi.is_available, mi.is_eightysixed, " +
+                "mi.eightysixed_at, mi.food_cost_pct, mi.image_url, mi.created_at, mi.updated_at " +
+                "FROM menu_items mi " +
+                "JOIN menu_categories mc ON mi.category_id = mc.id " +
+                "WHERE mi.id = ?";
         //String sql = "SELECT * FROM menu_items WHERE id = ?";
         return template.queryForObject( sql, (rs, rowNum) -> new ItemDto(
                 rs.getInt(1),
