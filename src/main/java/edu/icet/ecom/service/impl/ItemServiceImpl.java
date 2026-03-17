@@ -21,17 +21,17 @@ public class ItemServiceImpl implements ItemService {
 
     @Override
     public boolean updateItem(ItemDto itemDto) {
-        return false;
+        return  repositery.updateItem(itemDto);
     }
 
     @Override
     public boolean deleteById(Integer id) {
-        return false;
+        return repositery.deleteById(id);
     }
 
     @Override
     public ItemDto searchById(Integer id) {
-        return null;
+        return repositery.searchById(id);
     }
 
     @Override
