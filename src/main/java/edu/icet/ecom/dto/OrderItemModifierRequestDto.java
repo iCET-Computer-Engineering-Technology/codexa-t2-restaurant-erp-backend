@@ -1,10 +1,13 @@
 package edu.icet.ecom.dto;
 
-import lombok.Data;
+import lombok.*;
 
 import java.math.BigDecimal;
 
-@Data
+@Getter
+@Setter
+@NoArgsConstructor
+@AllArgsConstructor
 public class OrderItemModifierRequestDto {
     private Long modifierId;
     private String modifierName;

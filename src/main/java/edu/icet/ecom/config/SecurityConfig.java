@@ -41,7 +41,8 @@ public class SecurityConfig {
                     .sessionManagement(sessionConfig ->
                             sessionConfig.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                     .authorizeHttpRequests(authConfig -> authConfig
-                            .requestMatchers("/api/auth/**").permitAll()
+                            .requestMatchers("/api/auth/login").permitAll()
+                            .requestMatchers("/api/auth/register").hasAuthority("ROLE_ADMIN")
                             .requestMatchers("/v3/api-docs/**").permitAll()
                             .requestMatchers("/swagger-ui/**").permitAll()
                             .requestMatchers("/swagger-ui.html").permitAll()
@@ -64,6 +65,7 @@ public class SecurityConfig {
             throw new BeanCreationException("securityFilterChain", "Failed to configure security filter chain", e);
         }
     }
+
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration configuration = new CorsConfiguration();
