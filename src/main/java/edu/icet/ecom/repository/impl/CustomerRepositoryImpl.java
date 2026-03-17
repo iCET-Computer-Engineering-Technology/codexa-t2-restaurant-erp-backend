@@ -16,13 +16,19 @@ public class CustomerRepositoryImpl implements CustomerRepository {
 
     private final JdbcTemplate jdbcTemplate;
 
+    // Database එකෙන් එන දත්ත Java Object එකකට ගලපාගන්න තැන
     private final RowMapper<CustomerDto> rowMapper = (rs, rowNum) -> {
         CustomerDto customer = new CustomerDto();
         customer.setId(rs.getInt("id"));
-        customer.setName(rs.getString("name"));
+        customer.setFirstName(rs.getString("first_name"));
+        customer.setLastName(rs.getString("last_name"));
         customer.setEmail(rs.getString("email"));
         customer.setPhone(rs.getString("phone"));
-        customer.setAddress(rs.getString("address"));
+        customer.setPreferredLanguage(rs.getString("preferred_language"));
+        customer.setDietaryNotes(rs.getString("dietary_notes"));
+        customer.setCommunicationEmail(rs.getInt("communication_email"));
+        customer.setCommunicationSms(rs.getInt("communication_sms"));
+        customer.setGdprDeleted(rs.getInt("gdpr_deleted"));
         return customer;
     };
 
@@ -34,50 +40,55 @@ public class CustomerRepositoryImpl implements CustomerRepository {
 
     @Override
     public boolean saveCustomer(CustomerDto customerDto) {
-        String sql = "INSERT INTO customers (name,email,phone,address) VALUES (?,?,?,?)";
-        int result = jdbcTemplate.update(sql, customerDto.getName(), customerDto.getEmail(), customerDto.getPhone(), customerDto.getAddress());
+        String sql = "INSERT INTO customers (first_name, last_name, email, phone, preferred_language, dietary_notes, communication_email, communication_sms) " +
+                "VALUES (?, ?, ?, ?, ?, ?, ?, ?)";
+
+        int result = jdbcTemplate.update(sql,
+                customerDto.getFirstName(),
+                customerDto.getLastName(),
+                customerDto.getEmail(),
+                customerDto.getPhone(),
+                customerDto.getPreferredLanguage() != null ? customerDto.getPreferredLanguage() : "en",
+                customerDto.getDietaryNotes(),
+                customerDto.getCommunicationEmail() != null ? customerDto.getCommunicationEmail() : 1,
+                customerDto.getCommunicationSms() != null ? customerDto.getCommunicationSms() : 1
+        );
         return result > 0;
     }
-
 
     @Override
     public Optional<CustomerDto> searchCustomerByPhone(String phone) {
         String sql = "SELECT * FROM customers WHERE phone = ? AND gdpr_deleted = 0";
-        List<CustomerDto> customers = jdbcTemplate.query(sql, rowMapper, phone);
-
-        return customers.stream().findFirst();
+        return jdbcTemplate.query(sql, rowMapper, phone).stream().findFirst();
     }
 
     @Override
     public Optional<CustomerDto> searchCustomerById(Integer id) {
-        String sql = "SELECT * FROM customers WHERE id = ?";
-        List<CustomerDto> customers = jdbcTemplate.query(sql, rowMapper, id);
-
-        return customers.stream().findFirst();
+        String sql = "SELECT * FROM customers WHERE id = ? AND gdpr_deleted = 0";
+        return jdbcTemplate.query(sql, rowMapper, id).stream().findFirst();
     }
 
     @Override
     public boolean deleteCustomerByPhone(String phone) {
-
-        Optional<CustomerDto> existingCustomerOpt = searchCustomerByPhone(phone);
-
-        if (existingCustomerOpt.isEmpty()) {
-            System.out.println("Validation Failed: Customer not found with phone: " + phone);
-            return false;
-        }
-
-        java.time.LocalDateTime deleteTime = java.time.LocalDateTime.now();
-
-        String sql = "UPDATE customers SET gdpr_deleted = 1, updated_at = ? WHERE phone = ?";
-
-        int result = jdbcTemplate.update(sql, deleteTime, phone);
-        return result > 0;
+        // Soft Delete: gdpr_deleted එක 1 කරනවා
+        String sql = "UPDATE customers SET gdpr_deleted = 1, updated_at = CURRENT_TIMESTAMP WHERE phone = ?";
+        return jdbcTemplate.update(sql, phone) > 0;
     }
 
     @Override
     public boolean updateCustomer(CustomerDto customerDto) {
-        String sql = "UPDATE customers SET name=?, email=?, address=? WHERE phone=?";
-        int result = jdbcTemplate.update(sql,  customerDto.getName(), customerDto.getEmail(), customerDto.getAddress(), customerDto.getPhone());
+        String sql = "UPDATE customers SET first_name=?, last_name=?, email=?, preferred_language=?, dietary_notes=?, communication_email=?, communication_sms=? WHERE phone=?";
+
+        int result = jdbcTemplate.update(sql,
+                customerDto.getFirstName(),
+                customerDto.getLastName(),
+                customerDto.getEmail(),
+                customerDto.getPreferredLanguage(),
+                customerDto.getDietaryNotes(),
+                customerDto.getCommunicationEmail(),
+                customerDto.getCommunicationSms(),
+                customerDto.getPhone()
+        );
         return result > 0;
     }
 }
