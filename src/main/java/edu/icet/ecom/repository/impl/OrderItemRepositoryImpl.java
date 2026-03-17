@@ -21,7 +21,23 @@ public class OrderItemRepositoryImpl implements OrderItemRepository {
 
     @Override
     public List<OrderItem> findByOrderId(Long orderId) {
-        return List.of();
+        String sql = "SELECT oi.*, mi.item_name " +
+                "FROM order_items oi " +
+                "JOIN menu_items mi ON oi.menu_item_id = mi.menu_item_id " +
+                "WHERE oi.order_id = ?";
+
+        return jdbcTemplate.query(sql, (rs, rowNum) -> {
+            OrderItem item = new OrderItem();
+            item.setId(rs.getLong("id"));
+            item.setOrderId(rs.getLong("order_id"));
+            item.setMenuItemId(rs.getLong("menu_item_id"));
+            item.setItemName(rs.getString("item_name"));
+            item.setQuantity(rs.getInt("quantity"));
+            item.setUnitPrice(rs.getBigDecimal("unit_price"));
+            item.setTotalPrice(rs.getBigDecimal("total_price"));
+            item.setCreatedAt(rs.getTimestamp("created_at").toLocalDateTime());
+            return item;
+        }, orderId);
     }
 
     @Override
