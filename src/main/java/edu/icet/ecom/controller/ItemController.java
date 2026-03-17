@@ -1,7 +1,6 @@
 package edu.icet.ecom.controller;
 
 import edu.icet.ecom.dto.ItemDto;
-import edu.icet.ecom.dto.ItemsDto;
 import edu.icet.ecom.service.ItemService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;

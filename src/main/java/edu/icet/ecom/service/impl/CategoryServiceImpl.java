@@ -5,9 +5,10 @@ import edu.icet.ecom.repository.CategoryRepositery;
 import edu.icet.ecom.service.CategoryService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Repository;
+import org.springframework.stereotype.Service;
 
 import java.util.List;
-@Repository
+@Service
 @RequiredArgsConstructor
 public class CategoryServiceImpl implements CategoryService {
 
