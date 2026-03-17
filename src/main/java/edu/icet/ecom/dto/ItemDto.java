@@ -2,7 +2,6 @@ package edu.icet.ecom.dto;
 
 import lombok.*;
 
-import java.math.BigDecimal;
 import java.sql.Timestamp;
 
 @Getter
@@ -10,15 +9,19 @@ import java.sql.Timestamp;
 @AllArgsConstructor
 @NoArgsConstructor
 @ToString
-public class ItemsDto {
-    private Integer id;             // PK is now 'id' field
-    private Integer categoryId;     // FK to menu_categories
+public class ItemDto {
+    private Integer id;
+    private Integer categoryId;
+    private String categoryName;
     private String name;
     private String description;
-    private BigDecimal basePrice;
-    private BigDecimal currentPrice;
+    private Double basePrice;
+    private Double currentPrice;
     private Boolean isAvailable;
-    private Boolean isActive;
+    private Boolean isEightysixed;
+    private Double foodCostPct;
+    private String imageUrl;
     private Timestamp createdAt;
     private Timestamp updatedAt;
+
 }
