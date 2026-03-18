@@ -3,7 +3,7 @@ package edu.icet.ecom.service.impl;
 import edu.icet.ecom.dto.WaiterOrderDto;
 import edu.icet.ecom.entity.WaiterOrder;
 import edu.icet.ecom.entity.Waiters;
-import edu.icet.ecom.repository.WaitersRepository;
+import edu.icet.ecom.repository.impl.WaitersRepositoryImpl;
 import edu.icet.ecom.service.WaitersService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -15,7 +15,7 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 public class WaitersServiceImpl implements WaitersService {
 
-    private final WaitersRepository waitersRepository;
+    private final WaitersRepositoryImpl waitersRepository;
 
     @Override
     public List<Waiters> getActiveWaiters() {
