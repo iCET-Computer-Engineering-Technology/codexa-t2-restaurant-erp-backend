@@ -22,16 +22,16 @@ public class CustomerController {
     }
 
     @PostMapping
-    public boolean saveCustomer(@Valid @RequestBody CustomerDto customerDto){
+    public boolean saveCustomer(@RequestBody CustomerDto customerDto){
         return customerService.saveCustomer(customerDto);
     }
 
-    @GetMapping("/{phone}")
+    @GetMapping("/phone/{phone}")
     public CustomerDto searchCustomerByPhone(@PathVariable String phone){
         return customerService.searchCustomerByPhone(phone);
     }
 
-    @GetMapping("/{id}")
+    @GetMapping("/id/{id}")
     public CustomerDto searchCustomerById(@PathVariable Integer id){
         return customerService.searchCustomerById(id);
     }
