@@ -1,12 +1,13 @@
 package edu.icet.ecom.repository.impl;
 
 import edu.icet.ecom.entity.Waiter;
+import edu.icet.ecom.repository.WaiterRepository;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
 @Repository
-public class WaiterRepositoryImpl implements edu.icet.ecom.repository.WaiterRepository {
+public class WaiterRepositoryImpl implements WaiterRepository {
     private final JdbcTemplate jdbcTemplate;
 
     public WaiterRepositoryImpl(JdbcTemplate jdbcTemplate) {

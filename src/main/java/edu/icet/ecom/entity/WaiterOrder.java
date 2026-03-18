@@ -8,7 +8,6 @@ import java.time.LocalDateTime;
 @Setter
 @AllArgsConstructor
 @NoArgsConstructor
-@ToString
 public class WaiterOrder {
     private Integer id;
     private String orderNumber;

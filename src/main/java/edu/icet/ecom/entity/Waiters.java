@@ -7,7 +7,6 @@ import java.time.LocalDateTime;
 @Setter
 @AllArgsConstructor
 @NoArgsConstructor
-@ToString
 public class Waiters {
     private Integer id;
     private String fullName;
