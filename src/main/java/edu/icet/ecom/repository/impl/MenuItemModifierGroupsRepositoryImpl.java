@@ -1,7 +1,7 @@
 package edu.icet.ecom.repository.impl;
 
-import edu.icet.ecom.dto.MenuItemModifierGroupDto;
-import edu.icet.ecom.repository.MenuItemModifierGroupRepository;
+import edu.icet.ecom.dto.MenuItemModifierGroupsDto;
+import edu.icet.ecom.repository.MenuItemModifierGroupsRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Repository;
@@ -10,12 +10,12 @@ import java.util.List;
 
 @Repository
 @RequiredArgsConstructor
-public class MenuItemModifierGroupRepositoryImpl implements MenuItemModifierGroupRepository {
+public class MenuItemModifierGroupsRepositoryImpl implements MenuItemModifierGroupsRepository {
 
     private final JdbcTemplate template;
 
     @Override
-    public boolean assign(MenuItemModifierGroupDto dto) {
+    public boolean assign(MenuItemModifierGroupsDto dto) {
         return template.update("INSERT INTO menu_item_modifier_groups (menu_item_id, modifier_group_id, sort_order) VALUES (?,?,?)",
                 dto.getMenuItemId(),
                 dto.getModifierGroupId(),
@@ -29,8 +29,8 @@ public class MenuItemModifierGroupRepositoryImpl implements MenuItemModifierGrou
     }
 
     @Override
-    public List<MenuItemModifierGroupDto> getByMenuItemId(Integer menuItemId) {
-        return template.query("SELECT * FROM menu_item_modifier_groups WHERE menu_item_id = ?", (rs, rowNum) -> new MenuItemModifierGroupDto(
+    public List<MenuItemModifierGroupsDto> getByMenuItemId(Integer menuItemId) {
+        return template.query("SELECT * FROM menu_item_modifier_groups WHERE menu_item_id = ?", (rs, rowNum) -> new MenuItemModifierGroupsDto(
                 rs.getInt(1),
                 rs.getInt(2),
                 rs.getInt(3),

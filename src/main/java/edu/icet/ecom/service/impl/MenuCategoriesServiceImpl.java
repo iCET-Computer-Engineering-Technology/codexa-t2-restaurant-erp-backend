@@ -1,25 +1,25 @@
 package edu.icet.ecom.service.impl;
 
-import edu.icet.ecom.dto.CategoryDto;
-import edu.icet.ecom.repository.CategoryRepository;
-import edu.icet.ecom.service.CategoryService;
+import edu.icet.ecom.dto.MenuCategoriesDto;
+import edu.icet.ecom.repository.MenuCategoriesRepository;
+import edu.icet.ecom.service.MenuCategoriesService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
 @Service
 @RequiredArgsConstructor
-public class CategoryServiceImpl implements CategoryService {
+public class MenuCategoriesServiceImpl implements MenuCategoriesService {
 
-    private final CategoryRepository repositery;
+    private final MenuCategoriesRepository repositery;
 
     @Override
-    public boolean addCategory(CategoryDto categoryDto) {
+    public boolean addCategory(MenuCategoriesDto categoryDto) {
         return repositery.addCategory(categoryDto);
     }
 
     @Override
-    public boolean updateCategory(CategoryDto categoryDto) {
+    public boolean updateCategory(MenuCategoriesDto categoryDto) {
         return repositery.updateCategory(categoryDto);
     }
 
@@ -29,12 +29,12 @@ public class CategoryServiceImpl implements CategoryService {
     }
 
     @Override
-    public CategoryDto searchById(Integer id) {
+    public MenuCategoriesDto searchById(Integer id) {
         return repositery.searchById(id);
     }
 
     @Override
-    public List<CategoryDto> getAll() {
+    public List<MenuCategoriesDto> getAll() {
         return repositery.getAll();
     }
 }

@@ -1,6 +1,6 @@
 package edu.icet.ecom.repository.impl;
 
-import edu.icet.ecom.dto.ModifierGroupDto;
+import edu.icet.ecom.dto.ModifierGroupsDto;
 import edu.icet.ecom.repository.ModifierGroupsRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.jdbc.core.JdbcTemplate;
@@ -15,7 +15,7 @@ public class ModifierGroupsRepositoryImpl implements ModifierGroupsRepository {
     private final JdbcTemplate template;
 
     @Override
-    public boolean addModifierGroup(ModifierGroupDto modifierGroupDto) {
+    public boolean addModifierGroup(ModifierGroupsDto modifierGroupDto) {
         return template.update("INSERT INTO modifier_groups (name, selection_type, is_required) VALUES (?,?,?)",
                 modifierGroupDto.getName(),
                 modifierGroupDto.getSelectionType(),
@@ -24,7 +24,7 @@ public class ModifierGroupsRepositoryImpl implements ModifierGroupsRepository {
     }
 
     @Override
-    public boolean updateModifierGroup(ModifierGroupDto modifierGroupDto) {
+    public boolean updateModifierGroup(ModifierGroupsDto modifierGroupDto) {
         return template.update("UPDATE modifier_groups SET name = ?, selection_type = ?, is_required = ? WHERE id = ?",
                 modifierGroupDto.getName(),
                 modifierGroupDto.getSelectionType(),
@@ -39,8 +39,8 @@ public class ModifierGroupsRepositoryImpl implements ModifierGroupsRepository {
     }
 
     @Override
-    public ModifierGroupDto searchById(Integer id) {
-        return template.queryForObject("SELECT * FROM modifier_groups WHERE id = ?", (rs, rowNum) -> new ModifierGroupDto(
+    public ModifierGroupsDto searchById(Integer id) {
+        return template.queryForObject("SELECT * FROM modifier_groups WHERE id = ?", (rs, rowNum) -> new ModifierGroupsDto(
                 rs.getInt(1),
                 rs.getString(2),
                 rs.getString(3),
@@ -49,8 +49,8 @@ public class ModifierGroupsRepositoryImpl implements ModifierGroupsRepository {
     }
 
     @Override
-    public List<ModifierGroupDto> getAll() {
-        return template.query("SELECT * FROM modifier_groups" , (rs, rowNum) -> new ModifierGroupDto(
+    public List<ModifierGroupsDto> getAll() {
+        return template.query("SELECT * FROM modifier_groups" , (rs, rowNum) -> new ModifierGroupsDto(
                 rs.getInt(1),
                 rs.getString(2),
                 rs.getString(3),
@@ -59,12 +59,12 @@ public class ModifierGroupsRepositoryImpl implements ModifierGroupsRepository {
     }
 
     @Override
-    public List<ModifierGroupDto> getByMenuItemId(Integer menuItemId) {
+    public List<ModifierGroupsDto> getByMenuItemId(Integer menuItemId) {
         return template.query(
                 "SELECT mg.* FROM modifier_groups mg " +
                         "JOIN menu_item_modifier_groups mimg ON mg.id = mimg.modifier_group_id " +
                         "WHERE mimg.menu_item_id = ?",
-                (rs, rowNum) -> new ModifierGroupDto(
+                (rs, rowNum) -> new ModifierGroupsDto(
                         rs.getInt(1),
                         rs.getString(2),
                         rs.getString(3),

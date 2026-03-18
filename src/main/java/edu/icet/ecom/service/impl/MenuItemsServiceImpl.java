@@ -1,8 +1,8 @@
 package edu.icet.ecom.service.impl;
 
-import edu.icet.ecom.dto.ItemDto;
-import edu.icet.ecom.repository.ItemRepository;
-import edu.icet.ecom.service.ItemService;
+import edu.icet.ecom.dto.MenuItemsDto;
+import edu.icet.ecom.repository.MenuItemsRepository;
+import edu.icet.ecom.service.MenuItemsService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -10,17 +10,17 @@ import java.util.List;
 
 @Service
 @RequiredArgsConstructor
-public class ItemServiceImpl implements ItemService {
+public class MenuItemsServiceImpl implements MenuItemsService {
 
-    private final ItemRepository repositery;
+    private final MenuItemsRepository repositery;
 
     @Override
-    public boolean addItem(ItemDto itemDto) {
+    public boolean addItem(MenuItemsDto itemDto) {
         return repositery.addItem(itemDto);
     }
 
     @Override
-    public boolean updateItem(ItemDto itemDto) {
+    public boolean updateItem(MenuItemsDto itemDto) {
         return  repositery.updateItem(itemDto);
     }
 
@@ -30,12 +30,12 @@ public class ItemServiceImpl implements ItemService {
     }
 
     @Override
-    public ItemDto searchById(Integer id) {
+    public MenuItemsDto searchById(Integer id) {
         return repositery.searchById(id);
     }
 
     @Override
-    public List<ItemDto> getAll() {
+    public List<MenuItemsDto> getAll() {
         return repositery.getAll();
     }
 }

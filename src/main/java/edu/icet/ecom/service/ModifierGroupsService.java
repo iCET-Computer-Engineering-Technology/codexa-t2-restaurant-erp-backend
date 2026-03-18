@@ -1,10 +1,10 @@
-package edu.icet.ecom.repository;
+package edu.icet.ecom.service;
 
 import edu.icet.ecom.dto.ModifierGroupsDto;
 
 import java.util.List;
 
-public interface ModifierGroupsRepository {
+public interface ModifierGroupsService {
     boolean addModifierGroup(ModifierGroupsDto modifierGroupDto);
     boolean updateModifierGroup(ModifierGroupsDto modifierGroupDto);
     boolean deleteById(Integer id);

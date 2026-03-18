@@ -7,7 +7,7 @@ import lombok.*;
 @AllArgsConstructor
 @NoArgsConstructor
 @ToString
-public class MenuItemModifierGroupDto {
+public class MenuItemModifierGroupsDto {
     private Integer id;
     private Integer menuItemId;
     private Integer modifierGroupId;

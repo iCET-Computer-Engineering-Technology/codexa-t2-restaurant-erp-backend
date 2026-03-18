@@ -1,21 +1,21 @@
 package edu.icet.ecom.controller;
 
-import edu.icet.ecom.dto.MenuItemModifierGroupDto;
-import edu.icet.ecom.service.MenuItemModifierGroupService;
+import edu.icet.ecom.dto.MenuItemModifierGroupsDto;
+import edu.icet.ecom.service.MenuItemModifierGroupsService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
 @RestController
-@RequestMapping("/menu-item-modifier-group")
+@RequestMapping("/menu-item-modifier-groups")
 @RequiredArgsConstructor
-public class MenuItemModifierGroupController {
+public class MenuItemModifierGroupsController {
 
-    private final MenuItemModifierGroupService service;
+    private final MenuItemModifierGroupsService service;
 
     @PostMapping
-    public boolean assign(@RequestBody MenuItemModifierGroupDto dto) {
+    public boolean assign(@RequestBody MenuItemModifierGroupsDto dto) {
         return service.assign(dto);
     }
 
@@ -25,7 +25,7 @@ public class MenuItemModifierGroupController {
     }
 
     @GetMapping("/{menuItemId}")
-    public List<MenuItemModifierGroupDto> getByMenuItemId(@PathVariable Integer menuItemId) {
+    public List<MenuItemModifierGroupsDto> getByMenuItemId(@PathVariable Integer menuItemId) {
         return service.getByMenuItemId(menuItemId);
     }
 }

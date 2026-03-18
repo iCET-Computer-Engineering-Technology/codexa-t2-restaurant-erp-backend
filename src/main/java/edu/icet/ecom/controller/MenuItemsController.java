@@ -1,26 +1,26 @@
 package edu.icet.ecom.controller;
 
-import edu.icet.ecom.dto.ItemDto;
-import edu.icet.ecom.service.ItemService;
+import edu.icet.ecom.dto.MenuItemsDto;
+import edu.icet.ecom.service.MenuItemsService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
 @RestController
-@RequestMapping("/item")
+@RequestMapping("/menu-items")
 @RequiredArgsConstructor
-public class ItemController {
+public class MenuItemsController {
 
-    private final ItemService service;
+    private final MenuItemsService service;
 
     @PostMapping
-    public boolean addItem(@RequestBody ItemDto itemDto){
+    public boolean addItem(@RequestBody MenuItemsDto itemDto){
         return service.addItem(itemDto);
     }
 
     @PutMapping
-    public boolean updateItem(@RequestBody ItemDto itemDto){
+    public boolean updateItem(@RequestBody MenuItemsDto itemDto){
         return service.updateItem(itemDto);
     }
 
@@ -30,12 +30,12 @@ public class ItemController {
     }
 
     @GetMapping("/{id}")
-    public ItemDto searchById(@PathVariable Integer id){
+    public MenuItemsDto searchById(@PathVariable Integer id){
         return service.searchById(id);
     }
 
     @GetMapping
-    public List<ItemDto> getAll(){
+    public List<MenuItemsDto> getAll(){
         return service.getAll();
     }
 

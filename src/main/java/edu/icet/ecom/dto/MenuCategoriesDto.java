@@ -2,14 +2,15 @@ package edu.icet.ecom.dto;
 
 import lombok.*;
 
+
 @Getter
 @Setter
 @AllArgsConstructor
 @NoArgsConstructor
 @ToString
-public class ModifierGroupDto {
+public class MenuCategoriesDto {
     private Integer id;
     private String name;
-    private String selectionType;
-    private Boolean isRequired;
+    private Integer sortOrder;
+    private Boolean isActive;
 }

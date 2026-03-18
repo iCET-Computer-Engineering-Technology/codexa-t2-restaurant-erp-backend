@@ -7,7 +7,7 @@ import lombok.*;
 @AllArgsConstructor
 @NoArgsConstructor
 @ToString
-public class ModifierDto {
+public class ModifiersDto {
     private Integer id;
     private Integer groupId;
     private String name;

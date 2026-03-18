@@ -9,7 +9,7 @@ import java.sql.Timestamp;
 @AllArgsConstructor
 @NoArgsConstructor
 @ToString
-public class ItemDto {
+public class MenuItemsDto {
     private Integer id;
     private Integer categoryId;
     private String categoryName;
@@ -19,6 +19,7 @@ public class ItemDto {
     private Double currentPrice;
     private Boolean isAvailable;
     private Boolean isEightysixed;
+    private Timestamp eightysixedAt;
     private Double foodCostPct;
     private String imageUrl;
     private Timestamp createdAt;
