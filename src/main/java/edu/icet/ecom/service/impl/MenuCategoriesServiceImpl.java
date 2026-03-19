@@ -11,30 +11,30 @@ import java.util.List;
 @RequiredArgsConstructor
 public class MenuCategoriesServiceImpl implements MenuCategoriesService {
 
-    private final MenuCategoriesRepository repositery;
+    private final MenuCategoriesRepository menuCategoriesRepository;
 
     @Override
     public boolean addCategory(MenuCategoriesDto categoryDto) {
-        return repositery.addCategory(categoryDto);
+        return menuCategoriesRepository.addCategory(categoryDto);
     }
 
     @Override
     public boolean updateCategory(MenuCategoriesDto categoryDto) {
-        return repositery.updateCategory(categoryDto);
+        return menuCategoriesRepository.updateCategory(categoryDto);
     }
 
     @Override
     public boolean deleteById(Integer id) {
-        return repositery.deleteById(id);
+        return menuCategoriesRepository.deleteById(id);
     }
 
     @Override
     public MenuCategoriesDto searchById(Integer id) {
-        return repositery.searchById(id);
+        return menuCategoriesRepository.searchById(id);
     }
 
     @Override
     public List<MenuCategoriesDto> getAll() {
-        return repositery.getAll();
+        return menuCategoriesRepository.getAll();
     }
 }

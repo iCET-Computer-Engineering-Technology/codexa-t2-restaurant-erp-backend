@@ -12,7 +12,7 @@ import java.util.List;
 @RequiredArgsConstructor
 public class MenuItemsRepositoryImpl implements MenuItemsRepository {
 
-    private final JdbcTemplate template;
+    private final JdbcTemplate jdbcTemplate;
 
     private MenuItemsDto mapRow(java.sql.ResultSet rs) throws java.sql.SQLException {
         MenuItemsDto dto = new MenuItemsDto();
@@ -38,7 +38,7 @@ public class MenuItemsRepositoryImpl implements MenuItemsRepository {
 
     @Override
     public boolean addItem(MenuItemsDto itemDto) {
-        return template.update("INSERT INTO menu_items  (category_id, name, description, is_available, image_url, created_at, updated_at) VALUES (?,?,?,?,?,NOW(),NOW())",
+        return jdbcTemplate.update("INSERT INTO menu_items  (category_id, name, description, is_available, image_url, created_at, updated_at) VALUES (?,?,?,?,?,NOW(),NOW())",
                 itemDto.getCategoryId(),
                 itemDto.getName(),
                 itemDto.getDescription(),
@@ -49,7 +49,7 @@ public class MenuItemsRepositoryImpl implements MenuItemsRepository {
 
     @Override
     public boolean updateItem(MenuItemsDto itemDto) {
-        return template.update("UPDATE menu_items SET category_id = ?, name = ?, description = ?, is_available = ?, image_url = ?, updated_at = NOW() WHERE id = ?",
+        return jdbcTemplate.update("UPDATE menu_items SET category_id = ?, name = ?, description = ?, is_available = ?, image_url = ?, updated_at = NOW() WHERE id = ?",
                 itemDto.getCategoryId(),
                 itemDto.getName(),
                 itemDto.getDescription(),
@@ -61,24 +61,32 @@ public class MenuItemsRepositoryImpl implements MenuItemsRepository {
 
     @Override
     public boolean deleteById(Integer id) {
-        return template.update("DELETE FROM menu_items WHERE id = ?", id) > 0;
+        return jdbcTemplate.update("DELETE FROM menu_items WHERE id = ?", id) > 0;
     }
 
     @Override
     public MenuItemsDto searchById(Integer id) {
-        return template.queryForObject(BASE_SELECT + "WHERE mi.id = ?",
+        return jdbcTemplate.queryForObject(BASE_SELECT + "WHERE mi.id = ?",
                 (rs, rowNum) -> mapRow(rs), id);
     }
 
     @Override
     public List<MenuItemsDto> getAll() {
-        return template.query(BASE_SELECT, (rs, rowNum) -> mapRow(rs));
+        return jdbcTemplate.query(BASE_SELECT, (rs, rowNum) -> mapRow(rs));
     }
 
     @Override
     public List<MenuItemsDto> getItemByCategoryId(Integer categoryId) {
-        return template.query(BASE_SELECT + "WHERE mi.category_id = ?",
+        return jdbcTemplate.query(BASE_SELECT + "WHERE mi.category_id = ?",
                 (rs, rowNum) -> mapRow(rs), categoryId);
+    }
+
+    @Override
+    public List<MenuItemsDto> getAvailableItems() {
+        return jdbcTemplate.query(
+                BASE_SELECT + "WHERE mi.is_available = true",
+                (rs, rowNum) -> mapRow(rs)
+        );
     }
 
 }

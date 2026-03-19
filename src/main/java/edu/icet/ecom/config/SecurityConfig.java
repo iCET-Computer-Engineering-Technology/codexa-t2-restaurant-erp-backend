@@ -55,6 +55,7 @@ public class SecurityConfig {
                             .requestMatchers("/categories/**").permitAll()
                             .requestMatchers("/menu-items/**").permitAll()
                             .requestMatchers("/portions/**").permitAll()
+                            .requestMatchers("/menu-item-price/**").permitAll()
                             .anyRequest().authenticated()
                     )
                     .authenticationProvider(authenticationProvider())

@@ -11,4 +11,6 @@ public interface MenuItemsRepository {
     MenuItemsDto searchById(Integer id);
     List<MenuItemsDto> getAll();
     List<MenuItemsDto> getItemByCategoryId(Integer categoryId);
+    List<MenuItemsDto> getAvailableItems();
+
 }

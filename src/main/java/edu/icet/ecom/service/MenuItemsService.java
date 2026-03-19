@@ -11,4 +11,5 @@ public interface MenuItemsService {
     MenuItemsDto searchById(Integer id);
     List<MenuItemsDto> getAll();
     List<MenuItemsDto> getItemByCategoryId(Integer categoryId);
+    List<MenuItemsDto> getAvailableItems();
 }

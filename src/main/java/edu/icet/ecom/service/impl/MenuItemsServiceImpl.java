@@ -12,35 +12,42 @@ import java.util.List;
 @RequiredArgsConstructor
 public class MenuItemsServiceImpl implements MenuItemsService {
 
-    private final MenuItemsRepository repositery;
+    private final MenuItemsRepository menuItemsRepository;
 
     @Override
     public boolean addItem(MenuItemsDto itemDto) {
-        return repositery.addItem(itemDto);
+        return menuItemsRepository.addItem(itemDto);
     }
 
     @Override
     public boolean updateItem(MenuItemsDto itemDto) {
-        return  repositery.updateItem(itemDto);
+        return  menuItemsRepository.updateItem(itemDto);
     }
 
     @Override
     public boolean deleteById(Integer id) {
-        return repositery.deleteById(id);
+        return menuItemsRepository.deleteById(id);
     }
 
     @Override
     public MenuItemsDto searchById(Integer id) {
-        return repositery.searchById(id);
+        return menuItemsRepository.searchById(id);
     }
 
     @Override
     public List<MenuItemsDto> getAll() {
-        return repositery.getAll();
+        return menuItemsRepository.getAll();
     }
 
     @Override
     public List<MenuItemsDto> getItemByCategoryId(Integer categoryId) {
-        return repositery.getItemByCategoryId(categoryId);
+        return menuItemsRepository.getItemByCategoryId(categoryId);
     }
+
+    @Override
+    public List<MenuItemsDto> getAvailableItems() {
+        return menuItemsRepository.getAvailableItems();
+    }
+
+
 }

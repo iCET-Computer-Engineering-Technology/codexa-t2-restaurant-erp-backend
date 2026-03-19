@@ -12,30 +12,30 @@ import java.util.List;
 @RequiredArgsConstructor
 public class MenuCategoriesController {
 
-    private final MenuCategoriesService service;
+    private final MenuCategoriesService menuCategoriesService;
 
     @PostMapping
     public boolean addCategory(@RequestBody MenuCategoriesDto categoryDto){
-        return service.addCategory(categoryDto);
+        return menuCategoriesService.addCategory(categoryDto);
     }
 
     @PutMapping
     public boolean updateCategory(@RequestBody MenuCategoriesDto categoryDto){
-        return service.updateCategory(categoryDto);
+        return menuCategoriesService.updateCategory(categoryDto);
     }
 
     @DeleteMapping("/{id}")
     public boolean deleteById(@PathVariable Integer id){
-        return service.deleteById(id);
+        return menuCategoriesService.deleteById(id);
     }
 
     @GetMapping("/{id}")
     public MenuCategoriesDto searchById(@PathVariable Integer id){
-        return service.searchById(id);
+        return menuCategoriesService.searchById(id);
     }
 
     @GetMapping
     public List<MenuCategoriesDto> getAll(){
-        return service.getAll();
+        return menuCategoriesService.getAll();
     }
 }

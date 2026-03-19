@@ -68,7 +68,7 @@ public class MenuItemPriceRepositoryImpl implements MenuItemPriceRepository {
     }
 
     @Override
-    public List<MenuItemPriceDto> getAll() {
+    public List<MenuItemPriceDto> getAllItemPrice() {
         return jdbcTemplate.query("SELECT * FROM menu_item_price", (rs, rowNum) -> {
             MenuItemPriceDto dto = new MenuItemPriceDto();
             dto.setId(rs.getInt(1));
