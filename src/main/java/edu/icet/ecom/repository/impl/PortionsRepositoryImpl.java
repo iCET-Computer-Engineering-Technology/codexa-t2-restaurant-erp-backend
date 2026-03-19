@@ -15,7 +15,7 @@ public class PortionsRepositoryImpl implements PortionsRepository {
     private final JdbcTemplate template;
 
     public boolean addPortion(PortionsDto portionsDto) {
-        return template.update("INSERT INTO portions (portion_name)"+"VALUES (?)" ,
+        return template.update("INSERT INTO portions (portion_name) VALUES (?)" ,
                 portionsDto.getName()
         )>0;
     }
@@ -30,7 +30,7 @@ public class PortionsRepositoryImpl implements PortionsRepository {
 
     @Override
     public boolean deleteById(Integer id) {
-        return template.update("DELETE FROM portions WHERE id = ?" , id)>1;
+        return template.update("DELETE FROM portions WHERE id = ?" , id)>0;
     }
 
     @Override

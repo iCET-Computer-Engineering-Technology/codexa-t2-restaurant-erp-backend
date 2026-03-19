@@ -12,6 +12,7 @@ import java.sql.Timestamp;
 public class MenuItemsDto {
     private Integer id;
     private Integer categoryId;
+    private String categoryName;
     private String name;
     private String description;
     private Boolean isAvailable;

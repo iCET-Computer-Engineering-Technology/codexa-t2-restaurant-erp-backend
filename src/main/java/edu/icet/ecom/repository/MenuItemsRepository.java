@@ -10,4 +10,5 @@ public interface MenuItemsRepository {
     boolean deleteById(Integer id);
     MenuItemsDto searchById(Integer id);
     List<MenuItemsDto> getAll();
+    List<MenuItemsDto> getItemByCategoryId(Integer categoryId);
 }

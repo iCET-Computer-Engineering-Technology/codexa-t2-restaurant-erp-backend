@@ -38,4 +38,9 @@ public class MenuItemsServiceImpl implements MenuItemsService {
     public List<MenuItemsDto> getAll() {
         return repositery.getAll();
     }
+
+    @Override
+    public List<MenuItemsDto> getItemByCategoryId(Integer categoryId) {
+        return repositery.getItemByCategoryId(categoryId);
+    }
 }

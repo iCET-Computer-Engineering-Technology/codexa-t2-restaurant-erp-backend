@@ -14,6 +14,28 @@ public class MenuItemsRepositoryImpl implements MenuItemsRepository {
 
     private final JdbcTemplate template;
 
+    private MenuItemsDto mapRow(java.sql.ResultSet rs) throws java.sql.SQLException {
+        MenuItemsDto dto = new MenuItemsDto();
+        dto.setId(rs.getInt(1));
+        dto.setCategoryId(rs.getInt(2));
+        dto.setCategoryName(rs.getString(3));
+        dto.setName(rs.getString(4));
+        dto.setDescription(rs.getString(5));
+        dto.setIsAvailable(rs.getBoolean(6));
+        dto.setImageUrl(rs.getString(7));
+        dto.setCreatedAt(rs.getTimestamp(8));
+        dto.setUpdatedAt(rs.getTimestamp(9));
+        return dto;
+    }
+
+    private static final String BASE_SELECT =
+            "SELECT mi.id, mi.category_id, mc.name, " +
+                    "mi.name, mi.description, mi.is_available, mi.image_url, " +
+                    "mi.created_at, mi.updated_at " +
+                    "FROM menu_items mi " +
+                    "JOIN menu_categories mc ON mi.category_id = mc.id ";
+
+
     @Override
     public boolean addItem(MenuItemsDto itemDto) {
         return template.update("INSERT INTO menu_items  (category_id, name, description, is_available, image_url, created_at, updated_at) VALUES (?,?,?,?,?,NOW(),NOW())",
@@ -44,12 +66,19 @@ public class MenuItemsRepositoryImpl implements MenuItemsRepository {
 
     @Override
     public MenuItemsDto searchById(Integer id) {
-        return null;
+        return template.queryForObject(BASE_SELECT + "WHERE mi.id = ?",
+                (rs, rowNum) -> mapRow(rs), id);
     }
 
     @Override
     public List<MenuItemsDto> getAll() {
-        return List.of();
+        return template.query(BASE_SELECT, (rs, rowNum) -> mapRow(rs));
+    }
+
+    @Override
+    public List<MenuItemsDto> getItemByCategoryId(Integer categoryId) {
+        return template.query(BASE_SELECT + "WHERE mi.category_id = ?",
+                (rs, rowNum) -> mapRow(rs), categoryId);
     }
 
 }

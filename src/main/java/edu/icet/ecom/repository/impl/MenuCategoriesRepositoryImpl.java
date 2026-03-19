@@ -16,7 +16,7 @@ public class MenuCategoriesRepositoryImpl implements MenuCategoriesRepository {
 
     @Override
     public boolean addCategory(MenuCategoriesDto categoryDto) {
-        return template.update("INSERT INTO menu_categories (name , is_active)" + " VALUES (?,?)",
+        return template.update("INSERT INTO menu_categories (name , is_active) VALUES (?,?)",
                 categoryDto.getName(),
                 categoryDto.getIsActive()
         )>0;
