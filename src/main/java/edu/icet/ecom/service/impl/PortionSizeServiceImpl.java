@@ -4,7 +4,6 @@ import edu.icet.ecom.dto.PortionSizeDto;
 import edu.icet.ecom.repository.PortionSizeRepositery;
 import edu.icet.ecom.service.PortionSizeService;
 import lombok.RequiredArgsConstructor;
-import lombok.Setter;
 import org.springframework.stereotype.Service;
 
 import java.util.List;

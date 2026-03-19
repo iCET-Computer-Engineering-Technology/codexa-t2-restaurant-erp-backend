@@ -2,8 +2,6 @@ package edu.icet.ecom.repository.impl;
 
 import edu.icet.ecom.dto.ItemsDto;
 import edu.icet.ecom.repository.ItemsRepositery;
-import edu.icet.ecom.service.ItemsService;
-import lombok.RequiredArgsConstructor;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Repository;
 
