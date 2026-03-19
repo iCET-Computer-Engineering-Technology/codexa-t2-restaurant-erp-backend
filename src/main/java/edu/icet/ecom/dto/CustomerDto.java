@@ -1,9 +1,9 @@
 package edu.icet.ecom.dto;
 
-import jakarta.validation.constraints.Email;
-import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.Pattern;
+import jakarta.validation.constraints.*;
 import lombok.*;
+
+import java.time.LocalDate;
 
 @Getter
 @Setter
@@ -26,6 +26,9 @@ public class CustomerDto {
     private Integer communicationEmail;
     private Integer communicationSms;
     private Integer gdprDeleted;
-
+    @Past(message = "Birthday must be a past date")
+    private LocalDate birthday;
+    @Min(value = 0, message = "Loyalty points cannot be negative")
+    private Integer loyaltyPoints;
 }
 

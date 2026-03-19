@@ -14,7 +14,7 @@ public class MenuItemsDto {
     private Integer categoryId;
     private String name;
     private String description;
-    private Boolean isActive;
+    private Boolean isAvailable;
     private String imageUrl;
     private Timestamp createdAt;
     private Timestamp updatedAt;

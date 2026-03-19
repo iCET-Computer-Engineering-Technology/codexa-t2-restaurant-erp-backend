@@ -16,90 +16,41 @@ public class MenuItemsRepositoryImpl implements MenuItemsRepository {
 
     @Override
     public boolean addItem(MenuItemsDto itemDto) {
-        return template.update("INSERT INTO menu_items  (category_id, name, description, base_price, current_price, is_available, is_eightysixed, food_cost_pct, image_url, created_at, updated_at) VALUES (?,?,?,?,?,?,?,?,?,NOW(),NOW())",
+        return template.update("INSERT INTO menu_items  (category_id, name, description, is_available, image_url, created_at, updated_at) VALUES (?,?,?,?,?,NOW(),NOW())",
                 itemDto.getCategoryId(),
                 itemDto.getName(),
                 itemDto.getDescription(),
-                itemDto.getBasePrice(),
-                itemDto.getCurrentPrice(),
                 itemDto.getIsAvailable(),
-                itemDto.getIsEightysixed(),
-                itemDto.getFoodCostPct(),
                 itemDto.getImageUrl()
-        )>0;
+        ) > 0;
     }
 
     @Override
     public boolean updateItem(MenuItemsDto itemDto) {
-        return template.update("UPDATE menu_items SET category_id = ?, name = ?, description = ?, base_price = ?, current_price = ?, is_available = ?, is_eightysixed = ?, food_cost_pct = ?, image_url = ?, updated_at = NOW() WHERE id = ?",
+        return template.update("UPDATE menu_items SET category_id = ?, name = ?, description = ?, is_available = ?, image_url = ?, updated_at = NOW() WHERE id = ?",
                 itemDto.getCategoryId(),
                 itemDto.getName(),
                 itemDto.getDescription(),
-                itemDto.getBasePrice(),
-                itemDto.getCurrentPrice(),
                 itemDto.getIsAvailable(),
-                itemDto.getIsEightysixed(),
-                itemDto.getFoodCostPct(),
                 itemDto.getImageUrl(),
                 itemDto.getId()
-        )>0;
+        ) > 0;
     }
 
     @Override
     public boolean deleteById(Integer id) {
-        return template.update("DELETE FROM menu_items WHERE id = ?", id)>0;
+        return template.update("DELETE FROM menu_items WHERE id = ?", id) > 0;
     }
 
     @Override
     public MenuItemsDto searchById(Integer id) {
-        String sql = "SELECT mi.id, mi.category_id, mc.name, mi.name, mi.description, " +
-                "mi.base_price, mi.current_price, mi.is_available, mi.is_eightysixed, " +
-                "mi.eightysixed_at, mi.food_cost_pct, mi.image_url, mi.created_at, mi.updated_at " +
-                "FROM menu_items mi " +
-                "JOIN menu_categories mc ON mi.category_id = mc.id " +
-                "WHERE mi.id = ?";
-        //String sql = "SELECT * FROM menu_items WHERE id = ?";
-        return template.queryForObject( sql, (rs, rowNum) -> new MenuItemsDto(
-                rs.getInt(1),
-                rs.getInt(2),
-                rs.getString(3),
-                rs.getString(4),
-                rs.getString(5),
-                rs.getDouble(6),
-                rs.getDouble(7),
-                rs.getBoolean(8),
-                rs.getBoolean(9),
-                rs.getTimestamp(10),
-                rs.getDouble(11),
-                rs.getString(12),
-                rs.getTimestamp(13),
-                rs.getTimestamp(14)
-        ) , id);
+        return null;
     }
 
     @Override
     public List<MenuItemsDto> getAll() {
-        String sql = "SELECT mi.id, mi.category_id, mc.name, mi.name, mi.description, " +
-                "mi.base_price, mi.current_price, mi.is_available, mi.is_eightysixed, " +
-                "mi.eightysixed_at, mi.food_cost_pct, mi.image_url, mi.created_at, mi.updated_at " +
-                "FROM menu_items mi " +
-                "JOIN menu_categories mc ON mi.category_id = mc.id";
-        //String sql = "SELECT * FROM menu_items";
-        return template.query(sql , (rs, rowNum) -> new MenuItemsDto(
-                rs.getInt(1),
-                rs.getInt(2),
-                rs.getString(3),
-                rs.getString(4),
-                rs.getString(5),
-                rs.getDouble(6),
-                rs.getDouble(7),
-                rs.getBoolean(8),
-                rs.getBoolean(9),
-                rs.getTimestamp(10),
-                rs.getDouble(11),
-                rs.getString(12),
-                rs.getTimestamp(13),
-                rs.getTimestamp(14)
-        ));
+        return List.of();
     }
+
 }
+

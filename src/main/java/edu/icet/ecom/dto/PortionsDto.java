@@ -7,10 +7,7 @@ import lombok.*;
 @AllArgsConstructor
 @NoArgsConstructor
 @ToString
-public class ModifiersDto {
+public class PortionsDto {
     private Integer id;
-    private Integer groupId;
     private String name;
-    private Double priceAdjustment;
-    private Boolean isActive;
 }

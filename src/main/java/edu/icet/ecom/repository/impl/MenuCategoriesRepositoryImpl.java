@@ -16,18 +16,16 @@ public class MenuCategoriesRepositoryImpl implements MenuCategoriesRepository {
 
     @Override
     public boolean addCategory(MenuCategoriesDto categoryDto) {
-        return template.update("INSERT INTO menu_categories (name , sort_order , is_active)" + " VALUES (?,?,?)",
+        return template.update("INSERT INTO menu_categories (name , is_active)" + " VALUES (?,?)",
                 categoryDto.getName(),
-                categoryDto.getSortOrder(),
                 categoryDto.getIsActive()
         )>0;
     }
 
     @Override
     public boolean updateCategory(MenuCategoriesDto categoryDto) {
-        return template.update("UPDATE menu_categories SET name = ? , sort_order = ? , is_active = ? WHERE id = ?",
+        return template.update("UPDATE menu_categories SET name = ? , is_active = ? WHERE id = ?",
                 categoryDto.getName(),
-                categoryDto.getSortOrder(),
                 categoryDto.getIsActive(),
                 categoryDto.getId()
         )>0;
@@ -43,8 +41,7 @@ public class MenuCategoriesRepositoryImpl implements MenuCategoriesRepository {
         return template.queryForObject("SELECT * FROM menu_categories WHERE id = ?" , (rs, rowNum) -> new MenuCategoriesDto(
                 rs.getInt(1),
                 rs.getString(2),
-                rs.getInt(3),
-                rs.getBoolean(4)
+                rs.getBoolean(3)
                 ), id);
     }
 
@@ -53,8 +50,7 @@ public class MenuCategoriesRepositoryImpl implements MenuCategoriesRepository {
         return template.query("SELECT * FROM menu_categories", (rs, rowNum) -> new MenuCategoriesDto(
                 rs.getInt(1),
                 rs.getString(2),
-                rs.getInt(3),
-                rs.getBoolean(4)
+                rs.getBoolean(3)
         ) );
     }
 }
