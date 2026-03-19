@@ -7,8 +7,12 @@ import java.util.List;
 
 public interface OrderRepository {
     Integer saveAndGetId(Order order);
-    int upsertAndGetSequence(LocalDate date); //for generate order num
-    List<Order> findOpenOrders();
     boolean updateStatus(Integer orderId,String status);
+    Order findById(Integer id);
+    List<Order> findAll();
+    List<Order> findByStatus();
+    List<Order> findOpenOrders();
+
+    int upsertAndGetSequence(LocalDate date); //for generate order num
 }
 

@@ -10,23 +10,23 @@ import java.util.List;
 @Setter
 @AllArgsConstructor
 @NoArgsConstructor
-@ToString(exclude = {"items"}) //to prevent deep recursion
+@ToString(exclude = {"items"})
 public class Order {
     private Integer id;
     private String orderNumber;
-    private String orderType; //dine_in, takeout, delivery, online
+    private String orderType; //dine_in, takeout
     private Integer tableId;
     private Integer customerId;
     private Integer serverId;
-    private String status; // open, sent_to_kitchen, partially_ready, ready, paid, voided
+    private String status;
     private BigDecimal subTotal;
     private BigDecimal discountAmount;
     private BigDecimal taxAmount;
+    private BigDecimal serviceCharge;
     private BigDecimal totalAmount;
     private String notes;
-    private String source;
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
-    private List<OrderItem> items; // for convenience, not stored in SQL table
+    private List<OrderItem> items; //not a DB column — loaded separately
 
 }
