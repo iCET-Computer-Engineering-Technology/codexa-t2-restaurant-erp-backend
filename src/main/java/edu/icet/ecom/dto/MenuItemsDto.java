@@ -12,17 +12,10 @@ import java.sql.Timestamp;
 public class MenuItemsDto {
     private Integer id;
     private Integer categoryId;
-    private String categoryName;
     private String name;
     private String description;
-    private Double basePrice;
-    private Double currentPrice;
-    private Boolean isAvailable;
-    private Boolean isEightysixed;
-    private Timestamp eightysixedAt;
-    private Double foodCostPct;
+    private Boolean isActive;
     private String imageUrl;
     private Timestamp createdAt;
     private Timestamp updatedAt;
-
 }

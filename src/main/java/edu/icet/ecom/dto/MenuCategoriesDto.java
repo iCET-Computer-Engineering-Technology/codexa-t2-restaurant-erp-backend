@@ -11,6 +11,5 @@ import lombok.*;
 public class MenuCategoriesDto {
     private Integer id;
     private String name;
-    private Integer sortOrder;
     private Boolean isActive;
 }
