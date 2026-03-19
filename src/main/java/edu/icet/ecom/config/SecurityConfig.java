@@ -41,23 +41,34 @@ public class SecurityConfig {
                     .sessionManagement(sessionConfig ->
                             sessionConfig.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                     .authorizeHttpRequests(authConfig -> authConfig
+                            // Public endpoints
                             .requestMatchers("/api/auth/login").permitAll()
-                            .requestMatchers("/api/auth/register").hasAuthority("ROLE_ADMIN")
-//                            .requestMatchers("/api/auth/register").permitAll()
+                            .requestMatchers("/api/auth/register").permitAll()
                             .requestMatchers("/v3/api-docs/**").permitAll()
                             .requestMatchers("/swagger-ui/**").permitAll()
                             .requestMatchers("/swagger-ui.html").permitAll()
                             .requestMatchers("/order/**").permitAll()
                             .requestMatchers("/customers/**").permitAll()
                             .requestMatchers("/api/kitchen/**").permitAll()
-                            .requestMatchers("/ingredient/**").hasAuthority("ROLE_ADMIN")
-                            .requestMatchers("/admin/**").hasAuthority("ROLE_ADMIN")
-                            .requestMatchers("/user/**").hasAuthority("ROLE_USER")
                             .requestMatchers("/category/**").permitAll()
                             .requestMatchers("/item/**").permitAll()
                             .requestMatchers("/modifier-group/**").permitAll()
                             .requestMatchers("/modifiers/**").permitAll()
                             .requestMatchers("/menu-item-modifier-group/**").permitAll()
+
+                            // Admin endpoints - MUST be before other patterns
+                            .requestMatchers("/api/admin/**").hasAuthority("ROLE_ADMIN")
+                            .requestMatchers("/admin/**").hasAuthority("ROLE_ADMIN")
+                            .requestMatchers("/ingredient/**").hasAuthority("ROLE_ADMIN")
+
+                            // Marketing/Campaign Analytics endpoints - Admin only
+                            .requestMatchers("/api/campaigns/**").hasAuthority("ROLE_ADMIN")
+                            .requestMatchers("/api/campaign-analytics/**").hasAuthority("ROLE_ADMIN")
+
+                            // User endpoints
+                            .requestMatchers("/user/**").hasAuthority("ROLE_USER")
+
+                            // All other requests require authentication
                             .anyRequest().authenticated()
                     )
                     .authenticationProvider(authenticationProvider())
