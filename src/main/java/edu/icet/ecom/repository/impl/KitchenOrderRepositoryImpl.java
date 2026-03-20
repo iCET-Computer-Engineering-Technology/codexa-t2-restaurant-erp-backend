@@ -43,7 +43,7 @@ public class KitchenOrderRepositoryImpl implements KitchenOrderRepository {
     @Override
     public void markAsDone(Long orderId) {
         String sql = """
-            UPDATE kitchen_order 
+            UPDATE kitchen_order
             SET status='done', end_time=NOW()
             WHERE order_id=?
         """;
