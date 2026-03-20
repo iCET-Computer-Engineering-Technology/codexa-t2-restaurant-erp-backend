@@ -178,7 +178,6 @@ public class OrderServiceImpl implements OrderService {
             orderItemDto.setLineTotal(item.getPrice().multiply(BigDecimal.valueOf(item.getQuantity())));
             orderItemDto.setStatus(item.getStatus());
             orderItemDto.setNotes(item.getNotes());
-            // Add null-safety check for createdAt
             if (item.getCreatedAt() != null) {
                 orderItemDto.setCreatedAt(Timestamp.valueOf(item.getCreatedAt()));
             }
