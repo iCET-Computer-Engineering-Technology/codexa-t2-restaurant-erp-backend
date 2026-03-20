@@ -1,26 +1,23 @@
 package edu.icet.ecom.service.impl;
 
-import edu.icet.ecom.dto.OrderDto;
-import edu.icet.ecom.dto.OrderItemDto;
+import edu.icet.ecom.dto.*;
 import edu.icet.ecom.entity.Order;
 import edu.icet.ecom.entity.OrderItem;
-import edu.icet.ecom.repository.*;
+import edu.icet.ecom.exception.ResourceNotFoundException;
+import edu.icet.ecom.repository.OrderItemRepository;
+import edu.icet.ecom.repository.OrderRepository;
 import edu.icet.ecom.service.OrderService;
-import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-
 import java.math.BigDecimal;
-import java.sql.Timestamp;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
-import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -40,39 +37,13 @@ public class OrderServiceImpl implements OrderService {
 
     @Override
     @Transactional
-    public OrderDto createOrder(@NonNull OrderDto orderDto) {
-        //Validation
-        if(orderDto.getItems() == null || orderDto.getItems().isEmpty()){
-            throw new IllegalArgumentException("Order must have at least one item");
-        }
-        if(orderDto.getOrderType() == null || !VALID_ORDER_TYPES.contains(orderDto.getOrderType())) {
-            throw new IllegalArgumentException("Invalid order type");
-        }
-        if ("dine_in".equals(orderDto.getOrderType()) && orderDto.getTableId() == null){
-            throw new IllegalArgumentException("Table ID is required for dine_in orders");
-        }
-        if(!"dine_in".equals(orderDto.getOrderType())){
-            orderDto.setTableId(null);
-        }
-        //Validate items
-        for (OrderItemDto orderItemDto : orderDto.getItems()){
-            if(orderItemDto.getMenuItemId() == null){
-                throw new IllegalArgumentException("Menu item ID is required for each item");
-            }
-            if(orderItemDto.getPortionId() == null) {
-                throw new IllegalArgumentException("Portion ID is required for each item");
-            }
-            if(orderItemDto.getQuantity() == null || orderItemDto.getQuantity() <= 0) {
-                throw new IllegalArgumentException("Quantity must be greater than 0 for each item");
-            }
-            if(orderItemDto.getPrice() == null || orderItemDto.getPrice().compareTo(BigDecimal.ZERO) <= 0) {
-                throw new IllegalArgumentException("Price must be greater than 0 for each item");
-            }
-        }
-        //Calculate subtotal
-        BigDecimal subtotal = orderDto.getItems().stream()
-                .map(item -> item.getPrice().multiply(BigDecimal.valueOf(item.getQuantity())))
+    public OrderResponse createOrder(OrderCreateRequest request) {
+        validateCreateRequest(request);
+
+        BigDecimal subtotal = request.getItems().stream()
+                .map(i -> i.getPrice().multiply(BigDecimal.valueOf(i.getQuantity())))
                 .reduce(BigDecimal.ZERO, BigDecimal::add);
+
         BigDecimal discountAmount = BigDecimal.ZERO;
         BigDecimal taxAmount = subtotal.multiply(TAX_RATE);
         BigDecimal serviceCharge = subtotal.multiply(SERVICE_RATE);
@@ -80,81 +51,113 @@ public class OrderServiceImpl implements OrderService {
 
         Order order = new Order();
         order.setOrderNumber(generateOrderNumber());
-        order.setOrderType(orderDto.getOrderType());
-        order.setTableId(orderDto.getTableId());
-        order.setCustomerId(orderDto.getCustomerId());
-        order.setServerId(orderDto.getServerId());
+        order.setOrderType(request.getOrderType());
+        order.setTableId("dine_in".equals(request.getOrderType()) ? request.getTableId() : null);
+        order.setCustomerId(request.getCustomerId());
+        order.setServerId(request.getServerId());
         order.setStatus("open");
         order.setSubTotal(subtotal);
         order.setDiscountAmount(discountAmount);
         order.setTaxAmount(taxAmount);
         order.setServiceCharge(serviceCharge);
         order.setTotalAmount(totalAmount);
-        order.setNotes(orderDto.getNotes());
-        order.setCreatedAt(orderDto.getCreatedAt() != null ? orderDto.getCreatedAt().toLocalDateTime() : LocalDateTime.now());
+        order.setNotes(request.getNotes());
+        order.setCreatedAt(LocalDateTime.now());
         order.setUpdatedAt(LocalDateTime.now());
 
         Integer orderId = orderRepository.saveAndGetId(order);
         order.setId(orderId);
 
-        //Save each
-        List<OrderItem> orderItemsArray = new ArrayList<>();
-        for (OrderItemDto orderItemDto : orderDto.getItems()) {
-            OrderItem orderItem = new OrderItem();
-            orderItem.setOrderId(orderId);
-            orderItem.setMenuItemId(orderItemDto.getMenuItemId());
-            orderItem.setPortionId(orderItemDto.getPortionId());
-            orderItem.setQuantity(orderItemDto.getQuantity());
-            orderItem.setPrice(orderItemDto.getPrice());
-            orderItem.setStatus("pending");
-            orderItem.setNotes(orderItemDto.getNotes());
-            orderItem.setCreatedAt(LocalDateTime.now());
-            orderItem.setId(orderItemRepository.saveAndGetId(orderItem));
-            orderItemsArray.add(orderItem);
+        List<OrderItem> savedItems = new ArrayList<>();
+        for (OrderItemCreateRequest itemReq : request.getItems()) {
+            OrderItem item = new OrderItem();
+            item.setOrderId(orderId);
+            item.setMenuItemId(itemReq.getMenuItemId());
+            item.setPortionId(itemReq.getPortionId());
+            item.setQuantity(itemReq.getQuantity());
+            item.setPrice(itemReq.getPrice());
+            item.setStatus("pending");
+            item.setNotes(itemReq.getNotes());
+            item.setCreatedAt(LocalDateTime.now());
+            item.setId(orderItemRepository.saveAndGetId(item));
+            savedItems.add(item);
         }
-        return toDto(order, orderItemsArray);
+
+        return mapToResponse(order, savedItems);
     }
 
     @Override
-    public OrderDto findById(Integer id) {
+    public OrderResponse findById(Integer id) {
+        if (id == null || id <= 0) {
+            throw new IllegalArgumentException("Invalid id: " + id);
+        }
         Order order = orderRepository.findById(id);
         if (order == null) {
-            return null;
+            throw new ResourceNotFoundException("Order not found: id=" + id);
         }
         List<OrderItem> items = orderItemRepository.findByOrderId(id);
-        return toDto(order, items);
+        return mapToResponse(order, items);
     }
 
     @Override
-    public List<OrderDto> findByStatus(String status) {
+    public List<OrderResponse> findByStatus(String status) {
+        if (status == null || status.trim().isEmpty()) {
+            throw new IllegalArgumentException("status is required");
+        }
         if (!VALID_STATUSES.contains(status)) {
             throw new IllegalArgumentException("Invalid status: " + status + ". Must be one of: " + VALID_STATUSES);
         }
         return orderRepository.findByStatus(status).stream()
-                .map(order -> toDto(order,
-                        orderItemRepository.findByOrderId(order.getId())))
-                .collect(Collectors.toList());
+                .map(o -> mapToResponse(o, orderItemRepository.findByOrderId(o.getId())))
+                .toList();
     }
 
     @Override
-    public List<OrderDto> findAll() {
+    public List<OrderResponse> findAll() {
         return orderRepository.findAll().stream()
-                .map(order -> toDto(order,
-                        orderItemRepository.findByOrderId(order.getId())))
+                .map(o -> mapToResponse(o, orderItemRepository.findByOrderId(o.getId())))
                 .toList();
     }
 
     @Override
     public Boolean updateStatus(Integer orderId, String status) {
+        if (orderId == null || orderId <= 0) {
+            throw new IllegalArgumentException("Invalid orderId: " + orderId);
+        }
+        if (status == null || status.trim().isEmpty()) {
+            throw new IllegalArgumentException("status is required");
+        }
         if (!VALID_STATUSES.contains(status)) {
-            throw new IllegalArgumentException("Invalid status: " + status +". Must be one of: " + VALID_STATUSES);
+            throw new IllegalArgumentException("Invalid status: " + status + ". Must be one of: " + VALID_STATUSES);
         }
         boolean updated = orderRepository.updateStatus(orderId, status);
-        if (!updated)
-            throw new RuntimeException("Order not found: id=" + orderId);
+        if (!updated) {
+            throw new ResourceNotFoundException("Order not found: id=" + orderId);
+        }
         return true;
     }
 
+    private void validateCreateRequest(OrderCreateRequest request) {
+        if (request == null) {
+            throw new IllegalArgumentException("Request body is required");
+        }
+        if (request.getOrderType() == null || !VALID_ORDER_TYPES.contains(request.getOrderType())) {
+            throw new IllegalArgumentException("Invalid orderType. Must be one of: " + VALID_ORDER_TYPES);
+        }
+        if ("dine_in".equals(request.getOrderType()) && request.getTableId() == null) {
+            throw new IllegalArgumentException("tableId is required for dine_in orders");
+        }
+        if (request.getItems() == null || request.getItems().isEmpty()) {
+            throw new IllegalArgumentException("Order must have at least one item");
+        }
+        for (OrderItemCreateRequest item : request.getItems()) {
+            if (item == null) throw new IllegalArgumentException("items must not contain null elements");
+            if (item.getMenuItemId() == null) throw new IllegalArgumentException("menuItemId is required");
+            if (item.getPortionId() == null) throw new IllegalArgumentException("portionId is required");
+            if (item.getQuantity() == null || item.getQuantity() <= 0) throw new IllegalArgumentException("quantity must be >= 1");
+            if (item.getPrice() == null || item.getPrice().compareTo(BigDecimal.ZERO) <= 0) throw new IllegalArgumentException("price must be > 0");
+        }
+    }
 
     //Generate order num : ORD-20260318-0001
     private String generateOrderNumber() {
@@ -164,48 +167,42 @@ public class OrderServiceImpl implements OrderService {
         return "ORD-" + date + "-" + String.format("%04d", sequence);
     }
 
-    //map order to dto
-    private OrderDto toDto(Order order, List<OrderItem> items) {
-
-        List<OrderItemDto> orderItemDtoList= items.stream().map(item -> {
-            OrderItemDto orderItemDto = new OrderItemDto();
-            orderItemDto.setId(item.getId());
-            orderItemDto.setOrderId(item.getOrderId());
-            orderItemDto.setMenuItemId(item.getMenuItemId());
-            orderItemDto.setPortionId(item.getPortionId());
-            orderItemDto.setQuantity(item.getQuantity());
-            orderItemDto.setPrice(item.getPrice());
-            orderItemDto.setLineTotal(item.getPrice().multiply(BigDecimal.valueOf(item.getQuantity())));
-            orderItemDto.setStatus(item.getStatus());
-            orderItemDto.setNotes(item.getNotes());
-            if (item.getCreatedAt() != null) {
-                orderItemDto.setCreatedAt(Timestamp.valueOf(item.getCreatedAt()));
+    private OrderResponse mapToResponse(Order order, List<OrderItem> items) {
+        List<OrderItem> safeItems = items == null ? List.of() : items;
+        List<OrderItemResponse> itemResponses = safeItems.stream().map(i -> {
+            OrderItemResponse r = new OrderItemResponse();
+            r.setId(i.getId());
+            r.setOrderId(i.getOrderId());
+            r.setMenuItemId(i.getMenuItemId());
+            r.setPortionId(i.getPortionId());
+            r.setQuantity(i.getQuantity());
+            r.setPrice(i.getPrice());
+            if (i.getPrice() != null && i.getQuantity() != null) {
+                r.setLineTotal(i.getPrice().multiply(BigDecimal.valueOf(i.getQuantity())));
             }
-            return orderItemDto;
+            r.setStatus(i.getStatus());
+            r.setNotes(i.getNotes());
+            r.setCreatedAt(i.getCreatedAt());
+            return r;
         }).toList();
 
-        OrderDto orderDto = new OrderDto();
-        orderDto.setId(order.getId());
-        orderDto.setOrderNumber(order.getOrderNumber());
-        orderDto.setOrderType(order.getOrderType());
-        orderDto.setTableId(order.getTableId());
-        orderDto.setCustomerId(order.getCustomerId());
-        orderDto.setServerId(order.getServerId());
-        orderDto.setStatus(order.getStatus());
-        orderDto.setSubTotal(order.getSubTotal());
-        orderDto.setDiscountAmount(order.getDiscountAmount());
-        orderDto.setTaxAmount(order.getTaxAmount());
-        orderDto.setServiceCharge(order.getServiceCharge());
-        orderDto.setTotalAmount(order.getTotalAmount());
-        orderDto.setNotes(order.getNotes());
-        // Add null-safety checks for order timestamps
-        if (order.getCreatedAt() != null) {
-            orderDto.setCreatedAt(Timestamp.valueOf(order.getCreatedAt()));
-        }
-        if (order.getUpdatedAt() != null) {
-            orderDto.setUpdatedAt(Timestamp.valueOf(order.getUpdatedAt()));
-        }
-        orderDto.setItems(orderItemDtoList);
-        return orderDto;
+        OrderResponse response = new OrderResponse();
+        response.setId(order.getId());
+        response.setOrderNumber(order.getOrderNumber());
+        response.setOrderType(order.getOrderType());
+        response.setTableId(order.getTableId());
+        response.setCustomerId(order.getCustomerId());
+        response.setServerId(order.getServerId());
+        response.setStatus(order.getStatus());
+        response.setSubTotal(order.getSubTotal());
+        response.setDiscountAmount(order.getDiscountAmount());
+        response.setTaxAmount(order.getTaxAmount());
+        response.setServiceCharge(order.getServiceCharge());
+        response.setTotalAmount(order.getTotalAmount());
+        response.setNotes(order.getNotes());
+        response.setCreatedAt(order.getCreatedAt());
+        response.setUpdatedAt(order.getUpdatedAt());
+        response.setItems(itemResponses);
+        return response;
     }
 }
