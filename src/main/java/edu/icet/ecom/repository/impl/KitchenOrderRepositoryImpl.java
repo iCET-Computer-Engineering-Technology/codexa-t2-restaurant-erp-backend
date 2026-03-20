@@ -11,6 +11,7 @@ import java.util.List;
 public class KitchenOrderRepositoryImpl implements KitchenOrderRepository {
 
     private final JdbcTemplate jdbcTemplate;
+    private static final String COL_GET_TIME = "get_time";
 
     public KitchenOrderRepositoryImpl(JdbcTemplate jdbcTemplate) {
         this.jdbcTemplate = jdbcTemplate;
@@ -34,9 +35,7 @@ public class KitchenOrderRepositoryImpl implements KitchenOrderRepository {
             ko.setId(rs.getLong("id"));
             ko.setOrderId(rs.getLong("order_id"));
             ko.setStatus(rs.getString("status"));
-            if (rs.getTimestamp("get_time") != null) {
-                ko.setGetTime(rs.getTimestamp("get_time").toLocalDateTime());
-            }
+            ko.setGetTime(rs.getTimestamp(COL_GET_TIME).toLocalDateTime());
             return ko;
         });
     }
@@ -68,8 +67,8 @@ public class KitchenOrderRepositoryImpl implements KitchenOrderRepository {
             ko.setOrderId(rs.getLong("order_id"));
             ko.setStatus(rs.getString("status"));
 
-            if (rs.getTimestamp("get_time") != null) {
-                ko.setGetTime(rs.getTimestamp("get_time").toLocalDateTime());
+            if (rs.getTimestamp(COL_GET_TIME) != null) {
+                ko.setGetTime(rs.getTimestamp(COL_GET_TIME).toLocalDateTime());
             }
 
             if (rs.getTimestamp("end_time") != null) {
