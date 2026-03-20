@@ -68,19 +68,6 @@ public class MenuItemPriceRepositoryImpl implements MenuItemPriceRepository {
     }
 
     @Override
-    public List<MenuItemPriceDto> getAllItemPrice() {
-        return jdbcTemplate.query("SELECT * FROM menu_item_price", (rs, rowNum) -> {
-            MenuItemPriceDto dto = new MenuItemPriceDto();
-            dto.setId(rs.getInt(1));
-            dto.setItemId(rs.getInt(2));
-            dto.setPortionId(rs.getInt(3));
-            dto.setPrice(rs.getDouble(4));
-            dto.setIsActive(rs.getBoolean(5));
-            return dto;
-        });
-    }
-
-    @Override
     public List<MenuItemPriceDto> findByItemId(Integer itemId) {
         return jdbcTemplate.query(
                 "SELECT mip.id, mip.item_id, mip.portion_id," +
@@ -104,7 +91,6 @@ public class MenuItemPriceRepositoryImpl implements MenuItemPriceRepository {
                 (rs, rowNum) -> mapRow(rs), itemId);
     }
 
-    // Method 2 — full menu
     @Override
     public List<MenuItemPriceDto> getFullMenu() {
         return jdbcTemplate.query(BASE_SELECT + "ORDER BY mc.name, mi.name, p.id",

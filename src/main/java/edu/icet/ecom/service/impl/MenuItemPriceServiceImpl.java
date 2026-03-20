@@ -35,11 +35,6 @@ public class MenuItemPriceServiceImpl implements MeuItemPriceService {
     }
 
     @Override
-    public List<MenuItemPriceDto> getAllItemPrice() {
-        return menuItemPriceRepository.getAllItemPrice();
-    }
-
-    @Override
     public List<MenuItemPriceDto> findByItemId(Integer itemId) {
         return menuItemPriceRepository.findByItemId(itemId);
     }

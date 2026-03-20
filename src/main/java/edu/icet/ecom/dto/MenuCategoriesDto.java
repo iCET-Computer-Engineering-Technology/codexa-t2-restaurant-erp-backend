@@ -2,7 +2,6 @@ package edu.icet.ecom.dto;
 
 import lombok.*;
 
-
 @Getter
 @Setter
 @AllArgsConstructor

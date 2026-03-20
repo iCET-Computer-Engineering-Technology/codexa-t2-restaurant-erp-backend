@@ -34,11 +34,6 @@ public class MenuItemPriceController {
         return meuItemPriceService.searchById(id);
     }
 
-    @GetMapping
-    public List<MenuItemPriceDto> getAllItemPrice(){
-        return meuItemPriceService.getAllItemPrice();
-    }
-
     @GetMapping("/find/{itemId}")
     public List<MenuItemPriceDto> findByItemId(@PathVariable Integer itemId){
         return meuItemPriceService.findByItemId(itemId);
