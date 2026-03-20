@@ -1,11 +1,11 @@
-CREATE TABLE `menu_categories` (
+CREATE TABLE IF NOT EXIST `menu_categories` (
                                                              `id`        INT          NOT NULL AUTO_INCREMENT,
                                                              `name`      VARCHAR(200) NULL DEFAULT NULL,
     `is_active` TINYINT      NULL DEFAULT '1',
     PRIMARY KEY (`id`)
     ) ENGINE = InnoDB DEFAULT CHARACTER SET = utf8mb4 COLLATE = utf8mb4_0900_ai_ci;
 
-CREATE TABLE `menu_items` (
+CREATE TABLE IF NOT EXIST `menu_items` (
                                                         `id`            INT           NOT NULL AUTO_INCREMENT,
                                                         `category_id`   INT           NULL DEFAULT NULL,
                                                         `name`          VARCHAR(200)  NULL DEFAULT NULL,
@@ -20,13 +20,13 @@ CREATE TABLE `menu_items` (
                                                                  ON DELETE SET NULL ON UPDATE CASCADE
     ) ENGINE = InnoDB DEFAULT CHARACTER SET = utf8mb4 COLLATE = utf8mb4_0900_ai_ci;
 
-CREATE TABLE `portions` (
+CREATE TABLE IF NOT EXIST `portions` (
                                                       `id`           INT          NOT NULL AUTO_INCREMENT,
                                                       `portion_name` VARCHAR(100) NOT NULL,
     PRIMARY KEY (`id`)
     ) ENGINE = InnoDB DEFAULT CHARACTER SET = utf8mb4 COLLATE = utf8mb4_0900_ai_ci;
 
-CREATE TABLE `menu_item_price` (
+CREATE TABLE IF NOT EXIST `menu_item_price` (
                                                              `id`        INT           NOT NULL AUTO_INCREMENT,
                                                              `item_id`   INT           NOT NULL,
                                                              `portion_id` INT          NOT NULL,
