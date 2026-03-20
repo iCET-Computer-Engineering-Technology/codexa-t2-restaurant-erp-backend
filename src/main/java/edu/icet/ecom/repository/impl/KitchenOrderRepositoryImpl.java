@@ -34,7 +34,9 @@ public class KitchenOrderRepositoryImpl implements KitchenOrderRepository {
             ko.setId(rs.getLong("id"));
             ko.setOrderId(rs.getLong("order_id"));
             ko.setStatus(rs.getString("status"));
-            ko.setGetTime(rs.getTimestamp("get_time").toLocalDateTime());
+            if (rs.getTimestamp("get_time") != null) {
+                ko.setGetTime(rs.getTimestamp("get_time").toLocalDateTime());
+            }
             return ko;
         });
     }
