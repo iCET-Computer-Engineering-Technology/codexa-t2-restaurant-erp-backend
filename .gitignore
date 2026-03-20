@@ -44,4 +44,4 @@ application.yml
 .idea/
 src/main/resources/application.yml
 
-db/migration/V2__itemdepends_db.sql
+
