@@ -7,6 +7,6 @@ import lombok.Setter;
 @Getter
 @Setter
 public class AssignWaiterRequest {
-    private Long orderId;
+    private Long kitchenOrderId;
     private Long waiterId;
 }

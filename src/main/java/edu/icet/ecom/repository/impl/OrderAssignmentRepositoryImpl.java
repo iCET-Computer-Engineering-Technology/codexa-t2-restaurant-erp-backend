@@ -17,29 +17,33 @@ public class OrderAssignmentRepositoryImpl implements OrderAssignmentRepository 
     }
 
     @Override
-    public void assignWaiter(Long orderId, Long waiterId) {
+    public void assignWaiter(Long kitchenOrderId, Long waiterId) {
         String sql = """
-                INSERT INTO order_assignments(order_id, waiter_id)
-                VALUES (?,?)
-                """;
-
-        jdbcTemplate.update(sql, orderId, waiterId);
+        INSERT INTO order_assignment(kitchen_order_id, waiter_id)
+        VALUES (?,?)
+    """;
+        jdbcTemplate.update(sql, kitchenOrderId, waiterId);
     }
 
     @Override
     public List<OrderAssignment> getAssignments() {
-        String sql = "SELECT * FROM order_assignments";
+        String sql = "SELECT * FROM order_assignment";
 
         return jdbcTemplate.query(sql,(rs,rowNum)->{
 
             OrderAssignment assignment = new OrderAssignment();
 
             assignment.setId(rs.getLong("id"));
-            assignment.setOrderId(rs.getLong("order_id"));
+            assignment.setKitchenOrderId(rs.getLong("kitchen_order_id"));
             assignment.setWaiterId(rs.getLong("waiter_id"));
-
             return assignment;
-
         });
+    }
+
+    @Override
+    public boolean existsByKitchenOrderId(Long kitchenOrderId) {
+        String sql = "SELECT COUNT(*) FROM order_assignment WHERE kitchen_order_id=?";
+        Integer count = jdbcTemplate.queryForObject(sql, Integer.class, kitchenOrderId);
+        return count != null && count > 0;
     }
 }
