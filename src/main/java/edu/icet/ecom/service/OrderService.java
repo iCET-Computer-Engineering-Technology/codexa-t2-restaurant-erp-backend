@@ -9,7 +9,6 @@ import java.util.List;
 public interface OrderService {
     OrderDto createOrder(OrderDto orderDto);
     OrderDto findById(Integer id);
-    List<OrderDto> findOpenOrders();
     List<OrderDto> findByStatus(String status);
     List<OrderDto> findAll();
     Boolean updateStatus(Integer orderId, String status);

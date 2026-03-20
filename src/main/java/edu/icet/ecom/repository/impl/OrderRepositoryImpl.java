@@ -9,9 +9,7 @@ import org.springframework.jdbc.support.GeneratedKeyHolder;
 import org.springframework.jdbc.support.KeyHolder;
 import org.springframework.stereotype.Repository;
 
-import java.sql.PreparedStatement;
-import java.sql.Statement;
-import java.sql.Types;
+import java.sql.*;
 import java.time.LocalDate;
 import java.util.List;
 import java.util.Optional;
@@ -29,8 +27,8 @@ public class OrderRepositoryImpl implements OrderRepository {
                 "tax_amount, service_charge, total_amount, notes) " +
                 "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
         KeyHolder keyHolder = new GeneratedKeyHolder();
-        jdbcTemplate.update(Connection ->{
-            PreparedStatement ps = Connection.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS);
+        jdbcTemplate.update(connection ->{
+            PreparedStatement ps = connection.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS);
             ps.setString(1, order.getOrderNumber());
             ps.setString(2, order.getOrderType());
             if(order.getTableId() != null){
@@ -61,44 +59,116 @@ public class OrderRepositoryImpl implements OrderRepository {
                 .map(Number::intValue).orElseThrow(()-> new DataRetrievalFailureException("Order insert failed - no generated key returned"));
     }
 
-    //Get open orders
-    @Override
-    public List<Order> findOpenOrders() {
-        return null;
-    }
-
     //Update status
     @Override
     public boolean updateStatus(Integer orderId, String status) {
-        return jdbcTemplate.update("UPDATE orders SET status = ?, updated_at = NOW() WHERE id = ?", status, orderId) > 0;
+        // Input validation
+        if (orderId == null || orderId <= 0) {
+            throw new IllegalArgumentException("Invalid orderId: " + orderId);
+        }
+        if (status == null || status.trim().isEmpty()) {
+            throw new IllegalArgumentException("Status cannot be null or empty");
+        }
+
+        int rowsUpdated = jdbcTemplate.update(
+                "UPDATE orders SET status = ?, updated_at = NOW() WHERE id = ?",
+                status, orderId
+        );
+        return rowsUpdated > 0;
     }
 
     @Override
     public Order findById(Integer id) {
-        return null;
+        if (id == null || id <= 0) {
+            return null;
+        }
+        try {
+            return jdbcTemplate.queryForObject(
+                    "SELECT id, order_number, order_type, table_id, customer_id, server_id, " +
+                            "status, subtotal, discount_amount, tax_amount, service_charge, " +
+                            "total_amount, notes, created_at, updated_at " +
+                            "FROM orders WHERE id = ?",
+                    (rs, row) -> mapRow(rs), id
+            );
+        } catch (org.springframework.dao.EmptyResultDataAccessException e) {
+            return null;  // Order not found
+        }
     }
 
     @Override
     public List<Order> findAll() {
-        return List.of();
+        return jdbcTemplate.query(
+                "SELECT id, order_number, order_type, table_id, customer_id, server_id, " +
+                        "status, subtotal, discount_amount, tax_amount, service_charge, " +
+                        "total_amount, notes, created_at, updated_at " +
+                        "FROM orders ORDER BY created_at DESC",
+                (rs, row) -> mapRow(rs)
+        );
     }
 
     @Override
-    public List<Order> findByStatus() {
-        return List.of();
+    public List<Order> findByStatus(String status) {
+        return jdbcTemplate.query(
+                "SELECT id, order_number, order_type, table_id, customer_id, server_id, " +
+                        "status, subtotal, discount_amount, tax_amount, service_charge, " +
+                        "total_amount, notes, created_at, updated_at " +
+                        "FROM orders WHERE status = ? ORDER BY created_at DESC",
+                (rs, row) -> mapRow(rs), status
+        );
     }
 
     //Get sequence for order number - uses order_sequence table to maintain daily counter
     @Override
     public int upsertAndGetSequence(LocalDate date) {
+        if (date == null) {
+            throw new IllegalArgumentException("Date cannot be null");
+        }
+
+        java.sql.Date sqlDate = java.sql.Date.valueOf(date);
         String sql = "INSERT INTO order_sequence (sequence_date, last_sequence) VALUES (?, 1) " +
                 "ON DUPLICATE KEY UPDATE last_sequence = last_sequence + 1";
-        jdbcTemplate.update(sql, java.sql.Date.valueOf(date));
+        jdbcTemplate.update(sql, sqlDate);
 
         // Retrieve the updated sequence number
         String selectSql = "SELECT last_sequence FROM order_sequence WHERE sequence_date = ?";
-        Integer sequence = jdbcTemplate.queryForObject(selectSql, Integer.class, java.sql.Date.valueOf(date));
+        Integer sequence = jdbcTemplate.queryForObject(selectSql, Integer.class, sqlDate);
         return sequence != null ? sequence : 1;
     }
 
+    private Order mapRow(ResultSet rs) throws SQLException {
+        Order order = new Order();
+        order.setId(rs.getInt("id"));
+        order.setOrderNumber(rs.getString("order_number"));
+        order.setOrderType(rs.getString("order_type"));
+
+        int tableId = rs.getInt("table_id");
+        order.setTableId(rs.wasNull() ? null : tableId);
+
+        int customerId = rs.getInt("customer_id");
+        order.setCustomerId(rs.wasNull() ? null : customerId);
+
+        int serverId = rs.getInt("server_id");
+        order.setServerId(rs.wasNull() ? null : serverId);
+
+        order.setStatus(rs.getString("status"));
+        order.setSubTotal(rs.getBigDecimal("subtotal"));
+        order.setDiscountAmount(rs.getBigDecimal("discount_amount"));
+        order.setTaxAmount(rs.getBigDecimal("tax_amount"));
+        order.setServiceCharge(rs.getBigDecimal("service_charge"));
+        order.setTotalAmount(rs.getBigDecimal("total_amount"));
+        order.setNotes(rs.getString("notes"));
+
+        // FIX: Handle null timestamps to prevent NullPointerException
+        Timestamp createdTs = rs.getTimestamp("created_at");
+        if (createdTs != null) {
+            order.setCreatedAt(createdTs.toLocalDateTime());
+        }
+
+        Timestamp updatedTs = rs.getTimestamp("updated_at");
+        if (updatedTs != null) {
+            order.setUpdatedAt(updatedTs.toLocalDateTime());
+        }
+
+        return order;
+    }
 }

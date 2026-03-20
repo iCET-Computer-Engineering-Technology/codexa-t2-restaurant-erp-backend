@@ -10,9 +10,7 @@ public interface OrderRepository {
     boolean updateStatus(Integer orderId,String status);
     Order findById(Integer id);
     List<Order> findAll();
-    List<Order> findByStatus();
-    List<Order> findOpenOrders();
-
+    List<Order> findByStatus(String status);
     int upsertAndGetSequence(LocalDate date); //for generate order num
 }
 

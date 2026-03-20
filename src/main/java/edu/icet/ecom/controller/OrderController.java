@@ -26,22 +26,40 @@ public class OrderController {
         }
     }
 
-    @GetMapping("/find-by-id/{id}")
-    public ResponseEntity<OrderDto> findById(@PathVariable Integer id){
-        return ResponseEntity.ok(orderService.findById(id));
+    @GetMapping("/find-all")
+    public ResponseEntity<List<OrderDto>> findAll(){
+        return ResponseEntity.ok(orderService.findAll());
+    }
+
+
+    @GetMapping("/find-open-orders")
+    public ResponseEntity<List<OrderDto>> findOpenOrders(){
+        return ResponseEntity.ok(orderService.findByStatus("open"));
     }
 
     @GetMapping("/find-by-status/{status}")
-    public ResponseEntity<List<OrderDto>> findByStatus(@PathVariable String status) {
-        return null;
-    }
-    @GetMapping("/open-orders")
-    public ResponseEntity<List<OrderDto>> findOpenOrders(){
-        return  null;
+    public ResponseEntity<Object> findByStatus(@PathVariable String status) {
+        try {
+            return ResponseEntity.ok(orderService.findByStatus(status));
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.badRequest().body(e.getMessage());
+        }
     }
 
+
     @PutMapping("/update/{orderId}/status")
-    ResponseEntity<String> updateStatus(@PathVariable Integer orderId, @RequestParam String status){
-        return null;
+    ResponseEntity<Object> updateStatus(@PathVariable Integer orderId, @RequestParam String status){
+        try {
+            orderService.updateStatus(orderId, status);
+            return ResponseEntity.ok("Order status updated successfully");
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.badRequest().body(e.getMessage());
+        } catch (RuntimeException e) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(e.getMessage());
+        }
+    }
+    @GetMapping("/find-by-id/{id}")
+    public ResponseEntity<OrderDto> findById(@PathVariable Integer id){
+        return ResponseEntity.ok(orderService.findById(id));
     }
 }

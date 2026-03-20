@@ -21,7 +21,28 @@ public class OrderItemRepositoryImpl implements OrderItemRepository {
 
     @Override
     public List<OrderItem> findByOrderId(Integer orderId) {
-       return null;
+        if (orderId == null || orderId <= 0) {
+            return List.of();
+        }
+        String sql = "SELECT id, order_id, menu_item_id, portion_id, quantity, price, status, notes, created_at " +
+                "FROM order_items WHERE order_id = ? ORDER BY id ASC";
+        try {
+            return jdbcTemplate.query(sql, (rs, rowNum) -> {
+                OrderItem item = new OrderItem();
+                item.setId(rs.getInt("id"));
+                item.setOrderId(rs.getInt("order_id"));
+                item.setMenuItemId(rs.getInt("menu_item_id"));
+                item.setPortionId(rs.getInt("portion_id"));
+                item.setQuantity(rs.getInt("quantity"));
+                item.setPrice(rs.getBigDecimal("price"));
+                item.setStatus(rs.getString("status"));
+                item.setNotes(rs.getString("notes"));
+                item.setCreatedAt(rs.getObject("created_at", java.time.LocalDateTime.class));
+                return item;
+            }, orderId);
+        } catch (Exception e) {
+            return List.of(); // Return empty list instead of null on error
+        }
     }
 
     @Override

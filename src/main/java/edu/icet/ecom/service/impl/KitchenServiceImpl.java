@@ -29,7 +29,7 @@ public class KitchenServiceImpl implements KitchenService {
 
     @Override
     public List<Order> getKitchenOrders() {
-        List<Order> orders = orderRepository.findOpenOrders();
+        List<Order> orders = orderRepository.findByStatus("open");
         orders.forEach(order -> order.setItems(
                 orderItemRepository.findByOrderId(order.getId())
         ));

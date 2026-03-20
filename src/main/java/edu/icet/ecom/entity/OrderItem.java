@@ -20,7 +20,4 @@ public class OrderItem {
     private String status; // NEW ENUM: pending, fired, ready, served, voided
     private String notes;
     private LocalDateTime createdAt;
-    //not saved to DB
-    private String menuItemName;
-    private String portionName;
 }

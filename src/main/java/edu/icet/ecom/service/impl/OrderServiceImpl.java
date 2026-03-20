@@ -6,6 +6,7 @@ import edu.icet.ecom.entity.Order;
 import edu.icet.ecom.entity.OrderItem;
 import edu.icet.ecom.repository.*;
 import edu.icet.ecom.service.OrderService;
+import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -14,10 +15,12 @@ import org.springframework.transaction.annotation.Transactional;
 import java.math.BigDecimal;
 import java.sql.Timestamp;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -37,7 +40,7 @@ public class OrderServiceImpl implements OrderService {
 
     @Override
     @Transactional
-    public OrderDto createOrder(OrderDto orderDto) {
+    public OrderDto createOrder(@NonNull OrderDto orderDto) {
         //Validation
         if(orderDto.getItems() == null || orderDto.getItems().isEmpty()){
             throw new IllegalArgumentException("Order must have at least one item");
@@ -88,6 +91,8 @@ public class OrderServiceImpl implements OrderService {
         order.setServiceCharge(serviceCharge);
         order.setTotalAmount(totalAmount);
         order.setNotes(orderDto.getNotes());
+        order.setCreatedAt(orderDto.getCreatedAt() != null ? orderDto.getCreatedAt().toLocalDateTime() : LocalDateTime.now());
+        order.setUpdatedAt(LocalDateTime.now());
 
         Integer orderId = orderRepository.saveAndGetId(order);
         order.setId(orderId);
@@ -103,6 +108,7 @@ public class OrderServiceImpl implements OrderService {
             orderItem.setPrice(orderItemDto.getPrice());
             orderItem.setStatus("pending");
             orderItem.setNotes(orderItemDto.getNotes());
+            orderItem.setCreatedAt(LocalDateTime.now());
             orderItem.setId(orderItemRepository.saveAndGetId(orderItem));
             orderItemsArray.add(orderItem);
         }
@@ -111,26 +117,41 @@ public class OrderServiceImpl implements OrderService {
 
     @Override
     public OrderDto findById(Integer id) {
-        return null;
-    }
-
-    @Override
-    public List<OrderDto> findOpenOrders() {
-        return null;
+        Order order = orderRepository.findById(id);
+        if (order == null) {
+            return null;
+        }
+        List<OrderItem> items = orderItemRepository.findByOrderId(id);
+        return toDto(order, items);
     }
 
     @Override
     public List<OrderDto> findByStatus(String status) {
-        return List.of();
+        if (!VALID_STATUSES.contains(status)) {
+            throw new IllegalArgumentException("Invalid status: " + status + ". Must be one of: " + VALID_STATUSES);
+        }
+        return orderRepository.findByStatus(status).stream()
+                .map(order -> toDto(order,
+                        orderItemRepository.findByOrderId(order.getId())))
+                .collect(Collectors.toList());
     }
 
     @Override
     public List<OrderDto> findAll() {
-        return List.of();
+        return orderRepository.findAll().stream()
+                .map(order -> toDto(order,
+                        orderItemRepository.findByOrderId(order.getId())))
+                .toList();
     }
 
     @Override
     public Boolean updateStatus(Integer orderId, String status) {
+        if (!VALID_STATUSES.contains(status)) {
+            throw new IllegalArgumentException("Invalid status: " + status +". Must be one of: " + VALID_STATUSES);
+        }
+        boolean updated = orderRepository.updateStatus(orderId, status);
+        if (!updated)
+            throw new RuntimeException("Order not found: id=" + orderId);
         return true;
     }
 
@@ -151,19 +172,19 @@ public class OrderServiceImpl implements OrderService {
             orderItemDto.setId(item.getId());
             orderItemDto.setOrderId(item.getOrderId());
             orderItemDto.setMenuItemId(item.getMenuItemId());
-            orderItemDto.setMenuItemName(item.getMenuItemName());
             orderItemDto.setPortionId(item.getPortionId());
-            orderItemDto.setPortionName(item.getPortionName());
             orderItemDto.setQuantity(item.getQuantity());
             orderItemDto.setPrice(item.getPrice());
             orderItemDto.setLineTotal(item.getPrice().multiply(BigDecimal.valueOf(item.getQuantity())));
             orderItemDto.setStatus(item.getStatus());
             orderItemDto.setNotes(item.getNotes());
+            // Add null-safety check for createdAt
             if (item.getCreatedAt() != null) {
                 orderItemDto.setCreatedAt(Timestamp.valueOf(item.getCreatedAt()));
             }
             return orderItemDto;
         }).toList();
+
         OrderDto orderDto = new OrderDto();
         orderDto.setId(order.getId());
         orderDto.setOrderNumber(order.getOrderNumber());
@@ -178,6 +199,7 @@ public class OrderServiceImpl implements OrderService {
         orderDto.setServiceCharge(order.getServiceCharge());
         orderDto.setTotalAmount(order.getTotalAmount());
         orderDto.setNotes(order.getNotes());
+        // Add null-safety checks for order timestamps
         if (order.getCreatedAt() != null) {
             orderDto.setCreatedAt(Timestamp.valueOf(order.getCreatedAt()));
         }
