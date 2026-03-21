@@ -4,7 +4,6 @@ import jakarta.validation.constraints.*;
 import lombok.*;
 
 import java.time.LocalDate;
-import java.util.Date;
 
 @Getter
 @Setter
@@ -31,5 +30,5 @@ public class CustomerDto {
     private LocalDate birthday;
     @Min(value = 0, message = "Loyalty points cannot be negative")
     private Integer loyaltyPoints;
+    private LocalDate createdAt;
 }
-

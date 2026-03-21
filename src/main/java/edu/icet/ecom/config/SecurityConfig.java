@@ -41,6 +41,7 @@ public class SecurityConfig {
                     .sessionManagement(sessionConfig ->
                             sessionConfig.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                     .authorizeHttpRequests(authConfig -> authConfig
+                            // Public endpoints
                             .requestMatchers("/api/auth/login").permitAll()
                             .requestMatchers("/api/auth/register").permitAll()
                             .requestMatchers("/v3/api-docs/**").permitAll()
@@ -49,14 +50,31 @@ public class SecurityConfig {
                             .requestMatchers("/order/**").permitAll()
                             .requestMatchers("/customers/**").permitAll()
                             .requestMatchers("/api/kitchen/**").permitAll()
-                            .requestMatchers("/ingredient/**").hasAuthority("ROLE_ADMIN")
+                            .requestMatchers("/category/**").permitAll()
+                            .requestMatchers("/item/**").permitAll()
+                            .requestMatchers("/modifier-group/**").permitAll()
+                            .requestMatchers("/modifiers/**").permitAll()
+                            .requestMatchers("/menu-item-modifier-group/**").permitAll()
+
+                            // Admin endpoints - MUST be before other patterns
+                            .requestMatchers("/api/admin/**").hasAuthority("ROLE_ADMIN")
                             .requestMatchers("/admin/**").hasAuthority("ROLE_ADMIN")
+                            .requestMatchers("/ingredient/**").hasAuthority("ROLE_ADMIN")
+
+                            // Marketing/Campaign Analytics endpoints - Admin only
+                            .requestMatchers("/api/campaigns/**").hasAuthority("ROLE_ADMIN")
+                            .requestMatchers("/api/campaign-analytics/**").hasAuthority("ROLE_ADMIN")
+
+                            // User endpoints
                             .requestMatchers("/user/**").hasAuthority("ROLE_USER")
                             .requestMatchers("/categories/**").hasAuthority("ROLE_ADMIN")
                             .requestMatchers("/menu-items/**").hasAuthority("ROLE_ADMIN")
                             .requestMatchers("/portions/**").hasAuthority("ROLE_ADMIN")
                             .requestMatchers("/menu-item-price/**").hasAuthority("ROLE_ADMIN")
                             .anyRequest().permitAll()
+
+                            // All other requests require authentication
+                            .anyRequest().authenticated()
                     )
                     .authenticationProvider(authenticationProvider())
                     .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class);
@@ -69,9 +87,11 @@ public class SecurityConfig {
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration configuration = new CorsConfiguration();
-        configuration.setAllowedOrigins(List.of("http://localhost:3000", "http://localhost:5173", "http://localhost:4200")); // Add your frontend URLs here
+        // Use allowedOriginPatterns instead of allowedOrigins when allowCredentials is true
+        configuration.setAllowedOriginPatterns(List.of("http://localhost:*", "http://127.0.0.1:*"));
         configuration.setAllowedMethods(List.of("GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"));
-        configuration.setAllowedHeaders(List.of("*"));
+        configuration.setAllowedHeaders(List.of("Content-Type", "Authorization", "X-Requested-With"));
+        configuration.setExposedHeaders(List.of("Authorization", "Content-Type"));
         configuration.setAllowCredentials(true);
         configuration.setMaxAge(3600L);
 

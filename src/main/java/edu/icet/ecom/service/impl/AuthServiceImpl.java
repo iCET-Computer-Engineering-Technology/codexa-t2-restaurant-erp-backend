@@ -5,14 +5,12 @@ import edu.icet.ecom.dto.LoginRequestDto;
 import edu.icet.ecom.dto.RegisterRequestDto;
 import edu.icet.ecom.entity.UserEntity;
 import edu.icet.ecom.exception.AuthenticationException;
-import edu.icet.ecom.repository.UserRepository;
-import edu.icet.ecom.service.AuthService;
+import edu.icet.ecom.repository.UserRepository;import edu.icet.ecom.service.AuthService;
 import edu.icet.ecom.service.CustomUserDetailsService;
 import edu.icet.ecom.service.JwtService;
 import edu.icet.ecom.util.Role;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.authentication.AuthenticationManager;
-import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -66,7 +64,7 @@ public class AuthServiceImpl implements AuthService {
                             request.getPassword()
                     )
             );
-        } catch (BadCredentialsException e) {
+        } catch (org.springframework.security.core.AuthenticationException e) {
             throw new AuthenticationException("Username or password is incorrect");
         }
         UserDetails details = userDetailsService.loadUserByUsername(request.getUsername());
