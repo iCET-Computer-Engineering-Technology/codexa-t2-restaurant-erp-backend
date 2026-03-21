@@ -17,12 +17,14 @@ public class KitchenServiceImpl implements KitchenService {
     private final WaiterRepository waiterRepository;
     private final OrderAssignmentRepository orderAssignmentRepository;
     private final KitchenOrderRepository kitchenOrderRepository;
+    private final OrderItemRepository orderItemRepository;
 
-    public KitchenServiceImpl(OrderRepository orderRepository, WaiterRepository waiterRepository, OrderAssignmentRepository orderAssignmentRepository, KitchenOrderRepository kitchenOrderRepository) {
+    public KitchenServiceImpl(OrderRepository orderRepository, WaiterRepository waiterRepository, OrderAssignmentRepository orderAssignmentRepository, KitchenOrderRepository kitchenOrderRepository, OrderItemRepository orderItemRepository) {
         this.orderRepository = orderRepository;
         this.waiterRepository = waiterRepository;
         this.orderAssignmentRepository = orderAssignmentRepository;
         this.kitchenOrderRepository = kitchenOrderRepository;
+        this.orderItemRepository = orderItemRepository;
     }
 
     @Override
@@ -64,7 +66,15 @@ public class KitchenServiceImpl implements KitchenService {
 
     @Override
     public List<Order> getOpenOrders() {
-        return orderRepository.findOpenOrders();
+        List<Order> orders = orderRepository.findOpenOrders();
+
+        orders.forEach(order ->
+                order.setItems(
+                        orderItemRepository.findByOrderId(order.getId())
+                )
+        );
+
+        return orders;
     }
 
     @Override
