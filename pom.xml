@@ -116,6 +116,14 @@
             <version>0.13.0</version>
             <scope>runtime</scope>
         </dependency>
+
+        <!-- JavaMail for email sending -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-mail</artifactId>
+            <version>4.0.3</version>
+            <scope>compile</scope>
+        </dependency>
     </dependencies>
 
     <build>

@@ -3,15 +3,18 @@ package edu.icet.ecom.repository.impl;
 import edu.icet.ecom.dto.CustomerDto;
 import edu.icet.ecom.repository.CustomerRepository;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.RowMapper;
 import org.springframework.stereotype.Repository;
 
+import java.time.LocalDate;
 import java.util.List;
 import java.util.Optional;
 
 @Repository
 @RequiredArgsConstructor
+@Slf4j
 public class CustomerRepositoryImpl implements CustomerRepository {
 
     private final JdbcTemplate jdbcTemplate;
@@ -30,6 +33,7 @@ public class CustomerRepositoryImpl implements CustomerRepository {
         customer.setGdprDeleted(rs.getInt("gdpr_deleted"));
         customer.setBirthday(rs.getDate("birthday") != null ? rs.getDate("birthday").toLocalDate() : null);
         customer.setLoyaltyPoints(rs.getInt("loyalty_points"));
+        customer.setCreatedAt(rs.getDate("created_at") != null ? rs.getDate("created_at").toLocalDate() : null);
         return customer;
     };
 
@@ -92,5 +96,32 @@ public class CustomerRepositoryImpl implements CustomerRepository {
                 dto.getPhone()
         );
         return result > 0;
+    }
+
+    public List<CustomerDto> findCustomersWithBirthdayOn(LocalDate targetDate) {
+        String sql = "SELECT * FROM customers " +
+                "WHERE gdpr_deleted = 0 " +
+                "AND birthday IS NOT NULL " +
+                "AND MONTH(birthday) = ? " +
+                "AND DAY(birthday) = ?";
+
+        log.debug("Finding customers with birthday on {}/{}", targetDate.getMonthValue(), targetDate.getDayOfMonth());
+        return jdbcTemplate.query(sql, rowMapper,
+                targetDate.getMonthValue(),
+                targetDate.getDayOfMonth());
+    }
+
+    @Override
+    public List<CustomerDto> findCustomersWithAnniversaryOn(LocalDate targetDate) {
+        String sql = "SELECT * FROM customers " +
+                "WHERE gdpr_deleted = 0 " +
+                "AND created_at IS NOT NULL " +
+                "AND MONTH(created_at) = ? " +
+                "AND DAY(created_at) = ?";
+
+        log.debug("Finding customers with anniversary on {}/{}", targetDate.getMonthValue(), targetDate.getDayOfMonth());
+        return jdbcTemplate.query(sql, rowMapper,
+                targetDate.getMonthValue(),
+                targetDate.getDayOfMonth());
     }
 }
