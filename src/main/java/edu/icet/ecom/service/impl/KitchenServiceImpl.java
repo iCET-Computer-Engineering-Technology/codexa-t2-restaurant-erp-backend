@@ -3,6 +3,7 @@ package edu.icet.ecom.service.impl;
 import edu.icet.ecom.entity.Order;
 import edu.icet.ecom.entity.OrderAssignment;
 import edu.icet.ecom.entity.Waiter;
+import edu.icet.ecom.entity.WaiterNameDisplay;
 import edu.icet.ecom.repository.OrderAssignmentRepository;
 import edu.icet.ecom.repository.OrderItemRepository;
 import edu.icet.ecom.repository.OrderRepository;
@@ -49,7 +50,6 @@ public class KitchenServiceImpl implements KitchenService {
     }
 
     @Override
-    public List<OrderAssignment> getAssignments() {
         return orderAssignmentRepository.getAssignments();
     }
 }
