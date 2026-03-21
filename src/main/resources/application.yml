@@ -7,8 +7,8 @@ spring:
   mail:
     host: smtp.gmail.com
     port: 587
-    username: wasudadark999@gmail.com
-    password: yipb hsyi lhdi gbiv
+    username: put your email here
+    password: put your app password here(you can get app from google account settings -> security -> app passwords)
     properties:
       mail:
         smtp:
@@ -32,3 +32,4 @@ app:
     businessName: "Restaurant_ERP_BETA"
     auditLogging: true
     maxRetries: 1
+
