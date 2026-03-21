@@ -12,7 +12,6 @@ import java.math.BigDecimal;
 @NoArgsConstructor
 @AllArgsConstructor
 public class OrderItemCreateRequest {
-
     @NotNull(message = "menuItemId is required")
     private Integer menuItemId;
 

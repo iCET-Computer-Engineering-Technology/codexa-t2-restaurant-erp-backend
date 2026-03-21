@@ -52,12 +52,7 @@ public class SecurityConfig {
                             .requestMatchers("/ingredient/**").hasAuthority("ROLE_ADMIN")
                             .requestMatchers("/admin/**").hasAuthority("ROLE_ADMIN")
                             .requestMatchers("/user/**").hasAuthority("ROLE_USER")
-                            .requestMatchers("/category/**").permitAll()
-                            .requestMatchers("/item/**").permitAll()
-                            .requestMatchers("/modifier-group/**").permitAll()
-                            .requestMatchers("/modifiers/**").permitAll()
-                            .requestMatchers("/menu-item-modifier-group/**").permitAll()
-                            .anyRequest().authenticated()
+                            .anyRequest().permitAll()
                     )
                     .authenticationProvider(authenticationProvider())
                     .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class);

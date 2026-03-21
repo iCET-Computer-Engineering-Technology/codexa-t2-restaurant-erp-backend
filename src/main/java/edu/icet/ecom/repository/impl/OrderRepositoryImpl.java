@@ -59,17 +59,14 @@ public class OrderRepositoryImpl implements OrderRepository {
                 .map(Number::intValue).orElseThrow(()-> new DataRetrievalFailureException("Order insert failed - no generated key returned"));
     }
 
-    //Update status
     @Override
     public boolean updateStatus(Integer orderId, String status) {
-        // Input validation
         if (orderId == null || orderId <= 0) {
             throw new IllegalArgumentException("Invalid orderId: " + orderId);
         }
         if (status == null || status.trim().isEmpty()) {
             throw new IllegalArgumentException("Status cannot be null or empty");
         }
-
         int rowsUpdated = jdbcTemplate.update(
                 "UPDATE orders SET status = ?, updated_at = NOW() WHERE id = ?",
                 status, orderId
@@ -123,13 +120,11 @@ public class OrderRepositoryImpl implements OrderRepository {
         if (date == null) {
             throw new IllegalArgumentException("Date cannot be null");
         }
-
         java.sql.Date sqlDate = java.sql.Date.valueOf(date);
         String sql = "INSERT INTO order_sequence (sequence_date, last_sequence) VALUES (?, 1) " +
                 "ON DUPLICATE KEY UPDATE last_sequence = last_sequence + 1";
         jdbcTemplate.update(sql, sqlDate);
 
-        // Retrieve the updated sequence number
         String selectSql = "SELECT last_sequence FROM order_sequence WHERE sequence_date = ?";
         Integer sequence = jdbcTemplate.queryForObject(selectSql, Integer.class, sqlDate);
         return sequence != null ? sequence : 1;
@@ -158,17 +153,15 @@ public class OrderRepositoryImpl implements OrderRepository {
         order.setTotalAmount(rs.getBigDecimal("total_amount"));
         order.setNotes(rs.getString("notes"));
 
-        // FIX: Handle null timestamps to prevent NullPointerException
+        //Handle null timestamps to prevent NullPointerException
         Timestamp createdTs = rs.getTimestamp("created_at");
         if (createdTs != null) {
             order.setCreatedAt(createdTs.toLocalDateTime());
         }
-
         Timestamp updatedTs = rs.getTimestamp("updated_at");
         if (updatedTs != null) {
             order.setUpdatedAt(updatedTs.toLocalDateTime());
         }
-
         return order;
     }
 }

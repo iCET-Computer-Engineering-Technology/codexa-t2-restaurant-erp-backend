@@ -8,9 +8,9 @@ import edu.icet.ecom.repository.OrderItemRepository;
 import edu.icet.ecom.repository.OrderRepository;
 import edu.icet.ecom.service.OrderService;
 import lombok.RequiredArgsConstructor;
+import org.jspecify.annotations.NonNull;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -32,8 +32,8 @@ public class OrderServiceImpl implements OrderService {
     // Valid statuses matching the DB ENUM
     private static final Set<String> VALID_STATUSES = Set.of("open", "sent_to_kitchen", "partially_ready", "ready", "paid", "voided");
 
-    private static final BigDecimal TAX_RATE     = new BigDecimal("0.10");
-    private static final BigDecimal SERVICE_RATE = new BigDecimal("0.15");
+    private static final BigDecimal TAX_RATE     = new BigDecimal("0.00");
+    private static final BigDecimal SERVICE_RATE = new BigDecimal("0.00");
 
     @Override
     @Transactional
@@ -82,7 +82,6 @@ public class OrderServiceImpl implements OrderService {
             item.setId(orderItemRepository.saveAndGetId(item));
             savedItems.add(item);
         }
-
         return mapToResponse(order, savedItems);
     }
 
@@ -185,7 +184,10 @@ public class OrderServiceImpl implements OrderService {
             r.setCreatedAt(i.getCreatedAt());
             return r;
         }).toList();
+        return getOrderResponse(order, itemResponses);
+    }
 
+    private static @NonNull OrderResponse getOrderResponse(Order order, List<OrderItemResponse> itemResponses) {
         OrderResponse response = new OrderResponse();
         response.setId(order.getId());
         response.setOrderNumber(order.getOrderNumber());

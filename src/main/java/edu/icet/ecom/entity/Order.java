@@ -14,7 +14,7 @@ import java.util.List;
 public class Order {
     private Integer id;
     private String orderNumber;
-    private String orderType; //dine_in, takeout
+    private String orderType;
     private Integer tableId;
     private Integer customerId;
     private Integer serverId;
@@ -27,6 +27,6 @@ public class Order {
     private String notes;
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
-    private List<OrderItem> items; //not a DB column — loaded separately
+    private List<OrderItem> items;
 
 }
