@@ -820,4 +820,89 @@ public class AutomatedMessageController {
 
         return emailTemplateService.renderTemplate(template, variables);
     }
+
+    @PostMapping("/send-to-all")
+    @PreAuthorize("hasRole('ROLE_ADMIN')")
+    @Operation(summary = "Send email to all customers",
+               description = "Send a promotional email to all customers with valid email preferences")
+    public ResponseEntity<?> sendToAllCustomers() {
+        try {
+            log.info("=== Send Email to All Customers Request ===");
+
+            List<CustomerDto> customers = customerRepository.getAllCustomers();
+            if (customers == null || customers.isEmpty()) {
+                log.warn("No customers found in database");
+                Map<String, Object> response = new HashMap<>();
+                response.put("status", 200);
+                response.put("message", "No customers found in database");
+                response.put("emailsSent", 0);
+                return new ResponseEntity<>(response, HttpStatus.OK);
+            }
+
+            log.info("Found {} customers in database", customers.size());
+
+            long successCount = 0;
+            long failCount = 0;
+            long skippedCount = 0;
+
+            for (CustomerDto customer : customers) {
+                try {
+
+                    if (customer.getEmail() == null || customer.getEmail().trim().isEmpty()) {
+                        log.debug("⊘ Customer {} skipped: no email address", customer.getId());
+                        skippedCount++;
+                        continue;
+                    }
+
+                    Integer commEmail = customer.getCommunicationEmail();
+                    if (commEmail != null && commEmail == 0) {
+                        log.debug("⊘ Customer {} skipped: email communication disabled", customer.getId());
+                        skippedCount++;
+                        continue;
+                    }
+
+                    String name = (customer.getFirstName() != null && !customer.getFirstName().isEmpty())
+                            ? customer.getFirstName()
+                            : "Valued Customer";
+
+                    String subject = "Special Offer for You!";
+                    String template = emailTemplateService.getPromotionalEmailTemplate();
+
+                    Map<String, String> variables = new HashMap<>();
+                    variables.put("name", name);
+                    variables.put("discount", "20");
+                    variables.put("restaurant", "Restaurant ERP");
+                    variables.put("expiryDate", LocalDate.now().plusDays(7).toString());
+
+                    String htmlBody = emailTemplateService.renderTemplate(template, variables);
+
+                    emailService.sendEmailToCustomer(customer.getEmail().trim(), subject, htmlBody);
+                    successCount++;
+                    log.info("✓ Email sent to {} ({})", name, customer.getEmail());
+
+                } catch (Exception ex) {
+                    failCount++;
+                    log.error("✗ Failed to send email to customer {}: {}", customer.getId(), ex.getMessage());
+                }
+            }
+
+            log.info("✓ Email broadcast completed - Success: {}, Failed: {}, Skipped: {}", successCount, failCount, skippedCount);
+
+            Map<String, Object> response = new HashMap<>();
+            response.put("status", 200);
+            response.put("message", "Emails sent to all eligible customers");
+            response.put("emailsSent", successCount);
+            response.put("failed", failCount);
+            response.put("skipped", skippedCount);
+            return new ResponseEntity<>(response, HttpStatus.OK);
+
+        } catch (Exception e) {
+            log.error("Exception in sendToAllCustomers: {}", e.getMessage(), e);
+            Map<String, Object> errorResponse = new HashMap<>();
+            errorResponse.put("status", 500);
+            errorResponse.put("message", "Error sending emails");
+            errorResponse.put("error", e.getMessage());
+            return new ResponseEntity<>(errorResponse, HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+    }
 }

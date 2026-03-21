@@ -3,6 +3,7 @@ package edu.icet.ecom.controller;
 import edu.icet.ecom.dto.MarketingCampaignDto;
 import edu.icet.ecom.service.MarketingCampaignService;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -14,6 +15,7 @@ import java.util.List;
 @RestController
 @RequestMapping("/api/campaigns")
 @RequiredArgsConstructor
+@Slf4j
 @PreAuthorize("hasRole('ROLE_ADMIN')")
 public class MarketingCampaignController {
 
@@ -22,10 +24,40 @@ public class MarketingCampaignController {
     @PostMapping
     public ResponseEntity<?> createCampaign(@RequestBody MarketingCampaignDto campaignDto) {
         try {
+            log.info("Creating campaign: {}", campaignDto);
+
+            if (campaignDto.getCampaignName() == null || campaignDto.getCampaignName().trim().isEmpty()) {
+                log.error("Campaign name is required");
+                return new ResponseEntity<>("Error: Campaign name is required", HttpStatus.BAD_REQUEST);
+            }
+
+            if (campaignDto.getChannel() == null || campaignDto.getChannel().trim().isEmpty()) {
+                log.error("Channel (email/sms) is required");
+                return new ResponseEntity<>("Error: Channel (email/sms) is required", HttpStatus.BAD_REQUEST);
+            }
+
+            String channel = campaignDto.getChannel().toLowerCase();
+            if (!channel.equals("email") && !channel.equals("sms")) {
+                log.error("Invalid channel: {}. Must be 'email' or 'sms'", channel);
+                return new ResponseEntity<>("Error: Channel must be 'email' or 'sms'", HttpStatus.BAD_REQUEST);
+            }
+
+            if (campaignDto.getSegmentId() == null) {
+                log.debug("segmentId is optional and not provided");
+            }
+            if (campaignDto.getCreatedBy() == null) {
+                log.debug("createdBy is optional and not provided");
+            }
+
             MarketingCampaignDto createdCampaign = marketingCampaignService.createCampaign(campaignDto);
+            log.info("Campaign created successfully with ID: {}", createdCampaign.getId());
             return new ResponseEntity<>(createdCampaign, HttpStatus.CREATED);
+        } catch (IllegalArgumentException e) {
+            log.error("Invalid argument creating campaign: {}", e.getMessage());
+            return new ResponseEntity<>("Error: " + e.getMessage(), HttpStatus.BAD_REQUEST);
         } catch (Exception e) {
-            return new ResponseEntity<>("Error creating campaign: " + e.getMessage(), HttpStatus.BAD_REQUEST);
+            log.error("Error creating campaign: {}", e.getMessage(), e);
+            return new ResponseEntity<>("Error creating campaign: " + e.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
 

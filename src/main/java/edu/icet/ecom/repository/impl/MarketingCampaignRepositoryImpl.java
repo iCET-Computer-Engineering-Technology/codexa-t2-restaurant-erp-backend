@@ -29,7 +29,12 @@ public class MarketingCampaignRepositoryImpl implements MarketingCampaignReposit
         jdbcTemplate.update(connection -> {
             PreparedStatement ps = connection.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS);
             ps.setString(1, campaign.getCampaignName());
-            ps.setInt(2, campaign.getSegmentId());
+
+            if (campaign.getSegmentId() != null) {
+                ps.setInt(2, campaign.getSegmentId());
+            } else {
+                ps.setNull(2, java.sql.Types.INTEGER);
+            }
             ps.setString(3, campaign.getChannel().getDbValue());
             ps.setString(4, campaign.getSubject());
             ps.setString(5, campaign.getBodyTemplate());
@@ -37,7 +42,12 @@ public class MarketingCampaignRepositoryImpl implements MarketingCampaignReposit
             ps.setString(7, campaign.getVariantBBody());
             ps.setObject(8, campaign.getScheduledAt());
             ps.setString(9, campaign.getStatus().getDbValue());
-            ps.setInt(10, campaign.getCreatedBy());
+
+            if (campaign.getCreatedBy() != null) {
+                ps.setInt(10, campaign.getCreatedBy());
+            } else {
+                ps.setNull(10, java.sql.Types.INTEGER);
+            }
             return ps;
         }, keyHolder);
 
@@ -182,7 +192,6 @@ public class MarketingCampaignRepositoryImpl implements MarketingCampaignReposit
         return jdbcTemplate.update(sql, id) > 0;
     }
 
-    // Helper method
     private List<MarketingCampaign> mapCampaigns(String sql, Object[] params) {
         return jdbcTemplate.query(sql, params, (rs, rowNum) -> {
             MarketingCampaign campaign = new MarketingCampaign();
