@@ -125,7 +125,7 @@ public class OrderServiceImpl implements OrderService {
 
     @Override
     public List<OrderResponseDto> findReceivedOrders() {
-        List<Order> orderList = orderRepository.findReceivedOrders();
+        List<Order> orderList = orderRepository.findOpenOrders();
         return orderList.stream().map(order -> {
             OrderResponseDto dto = new OrderResponseDto();
             dto.setId(order.getId());

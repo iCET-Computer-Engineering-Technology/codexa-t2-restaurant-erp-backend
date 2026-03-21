@@ -44,4 +44,11 @@ public class OrderAssignmentRepositoryImpl implements OrderAssignmentRepository 
             return waiterNameDisplay;
         });
     }
+
+    @Override
+    public boolean existsByKitchenOrderId(Long kitchenOrderId) {
+        String sql = "SELECT COUNT(*) FROM order_assignment WHERE kitchen_order_id=?";
+        Integer count = jdbcTemplate.queryForObject(sql, Integer.class, kitchenOrderId);
+        return count != null && count > 0;
+    }
 }

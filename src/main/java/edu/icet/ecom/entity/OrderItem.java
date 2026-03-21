@@ -8,13 +8,13 @@ import java.util.List;
 
 @Getter
 @Setter
-@ToString(exclude = {"modifiers"}) //prevent recursion
 @AllArgsConstructor
 @NoArgsConstructor
 public class OrderItem {
     private Long id;
     private Long orderId;
     private Long menuItemId;
+    private String itemName;
     private Integer quantity;
     private BigDecimal unitPrice;
     private BigDecimal totalPrice;
