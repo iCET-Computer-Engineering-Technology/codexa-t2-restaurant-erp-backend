@@ -1,16 +1,19 @@
 package edu.icet.ecom.service.impl;
 
-import edu.icet.ecom.entity.KitchenOrder;
-import edu.icet.ecom.entity.Order;
-import edu.icet.ecom.entity.OrderAssignment;
-import edu.icet.ecom.entity.Waiter;
+import edu.icet.ecom.entity.*;
 import edu.icet.ecom.repository.*;
+import edu.icet.ecom.repository.OrderAssignmentRepository;
+import edu.icet.ecom.repository.OrderItemRepository;
+import edu.icet.ecom.repository.OrderRepository;
+import edu.icet.ecom.repository.WaiterRepository;
 import edu.icet.ecom.service.KitchenService;
+import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
 
 @Service
+@RequiredArgsConstructor
 public class KitchenServiceImpl implements KitchenService {
 
     private final OrderRepository orderRepository;
@@ -45,7 +48,7 @@ public class KitchenServiceImpl implements KitchenService {
         if (ko == null) {
             throw new IllegalArgumentException("Kitchen order not found");
         }
-        waiterRepository.assignWaiter(kitchenOrderId, waiterId);
+        orderAssignmentRepository.assignWaiter(kitchenOrderId, waiterId);
 
         if (!"done".equals(ko.getStatus())) {
             throw new IllegalArgumentException("Order not ready for assignment");
@@ -61,7 +64,7 @@ public class KitchenServiceImpl implements KitchenService {
     }
 
     @Override
-    public List<OrderAssignment> getAssignments() {
+    public List<WaiterNameDisplay> getAssignments() {
         return orderAssignmentRepository.getAssignments();
     }
 
@@ -104,3 +107,4 @@ public class KitchenServiceImpl implements KitchenService {
         orderRepository.updateStatus(orderId, "partially_ready");
     }
 }
+
