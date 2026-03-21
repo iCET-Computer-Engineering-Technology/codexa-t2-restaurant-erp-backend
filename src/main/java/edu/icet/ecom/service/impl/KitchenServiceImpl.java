@@ -45,6 +45,7 @@ public class KitchenServiceImpl implements KitchenService {
         if (ko == null) {
             throw new IllegalArgumentException("Kitchen order not found");
         }
+        waiterRepository.assignWaiter(kitchenOrderId, waiterId);
 
         if (!"done".equals(ko.getStatus())) {
             throw new IllegalArgumentException("Order not ready for assignment");
