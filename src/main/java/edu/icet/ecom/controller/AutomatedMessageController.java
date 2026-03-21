@@ -1,11 +1,14 @@
 package edu.icet.ecom.controller;
 
 import edu.icet.ecom.dto.CustomerDto;
-import edu.icet.ecom.dto.SendEmailRequest;
+import edu.icet.ecom.dto.MarketingEmailRequest;
 import edu.icet.ecom.entity.AutomatedMessage;
+import edu.icet.ecom.service.EmailTemplateService;
 import edu.icet.ecom.repository.AutomatedMessageRepository;
-import edu.icet.ecom.repository.impl.CustomerRepositoryImpl;
+import edu.icet.ecom.repository.CustomerRepository;
 import edu.icet.ecom.service.EmailService;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
@@ -13,10 +16,10 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
+import java.time.LocalDate;
+import java.time.Period;
 import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
-import java.util.Optional;
 import java.util.Map;
 import java.util.Optional;
 
@@ -24,17 +27,28 @@ import java.util.Optional;
 @RequestMapping("/api/admin/automated-messages")
 @RequiredArgsConstructor
 @Slf4j
+@Tag(name = "Automated Messages", description = "Automated message configuration and email operations")
 public class AutomatedMessageController {
 
     private final AutomatedMessageRepository automatedMessageRepository;
     private final EmailService emailService;
-    private final CustomerRepositoryImpl customerRepository;
+    private final CustomerRepository customerRepository;
+    private final EmailTemplateService emailTemplateService;
 
+    //automated message operations
     @PreAuthorize("hasRole('ROLE_ADMIN')")
     @GetMapping
     public ResponseEntity<List<AutomatedMessage>> getAllActiveMessages() {
         log.info("Fetching all active automated messages");
         List<AutomatedMessage> messages = automatedMessageRepository.findActiveMessages();
+        return ResponseEntity.ok(messages);
+    }
+
+    @PreAuthorize("hasRole('ROLE_ADMIN')")
+    @GetMapping("/inactive")
+    public ResponseEntity<List<AutomatedMessage>> getAllInactiveMessages() {
+        log.info("Fetching all inactive automated messages");
+        List<AutomatedMessage> messages = automatedMessageRepository.findInactiveMessages();
         return ResponseEntity.ok(messages);
     }
 
@@ -122,255 +136,688 @@ public class AutomatedMessageController {
         }
     }
 
+    //Email operations
+    @PostMapping("/send-marketing")
     @PreAuthorize("hasRole('ROLE_ADMIN')")
-    @PostMapping("/send-to-all")
-    public ResponseEntity<Map<String, Object>> sendEmailToAllCustomers(@RequestBody SendEmailRequest request) {
-        log.info("========== SEND EMAIL TO ALL CUSTOMERS ==========");
-        log.info("Subject: {}", request.getSubject());
-
+    @Operation(summary = "Send marketing email with template",
+               description = "Send a marketing email with dynamic template placeholders")
+    public ResponseEntity<?> sendMarketingEmail(@RequestBody MarketingEmailRequest request) {
         try {
-            // Get all customers directly from repository
-            java.util.List<CustomerDto> customers = customerRepository.getAllCustomers();
-            log.info("Total customers found in database: {}", customers.size());
-
-            if (customers.isEmpty()) {
-                log.warn("No customers found in database");
-                Map<String, Object> response = new HashMap<>();
-                response.put("success", true);
-                response.put("message", "No customers found in database");
-                response.put("sentCount", 0);
-                return ResponseEntity.ok(response);
+            if (request.getRecipientEmail() == null || request.getRecipientEmail().trim().isEmpty()) {
+                return new ResponseEntity<>(
+                    "Recipient email is required",
+                    HttpStatus.BAD_REQUEST
+                );
             }
 
-            int sentCount = 0;
-            int skippedCount = 0;
-
-            for (CustomerDto customer : customers) {
-                try {
-                    String email = customer.getEmail();
-                    Integer commEmail = customer.getCommunicationEmail();
-
-                    log.debug("Processing customer: ID={}, Email={}, CommEmail={}",
-                        customer.getId(), email, commEmail);
-
-                    // Send only to customers with valid email and opted in
-                    if (email != null && !email.trim().isEmpty() && commEmail != null && commEmail == 1) {
-                        log.info("Sending email to: {}", email);
-                        emailService.sendEmailToCustomer(email, request.getSubject(), request.getMessage());
-                        sentCount++;
-                        log.info("✓ Email sent to: {}", email);
-                    } else {
-                        skippedCount++;
-                        String reason = "";
-                        if (email == null || email.trim().isEmpty()) {
-                            reason = "NO_EMAIL";
-                        } else if (commEmail == null) {
-                            reason = "COMM_EMAIL_IS_NULL";
-                        } else if (commEmail != 1) {
-                            reason = "OPTED_OUT (commEmail=" + commEmail + ")";
-                        }
-                        log.info("⊘ SKIPPED Customer {}: {} | Email={}, CommEmail={}", customer.getId(), reason, email, commEmail);
-                    }
-                } catch (Exception e) {
-                    log.error("✗ Failed to send email to customer {}: {}", customer.getId(), e.getMessage());
-                    skippedCount++;
-                }
+            if (request.getTemplateType() == null || request.getTemplateType().trim().isEmpty()) {
+                request.setTemplateType("promotional");
             }
 
-            log.info("========== EMAIL SENDING COMPLETE ==========");
-            log.info("Sent: {}, Skipped: {}, Total: {}", sentCount, skippedCount, customers.size());
+            if (request.getSubject() == null || request.getSubject().trim().isEmpty()) {
+                request.setSubject("Special Offer from Restaurant ERP");
+            }
 
-            Map<String, Object> response = new HashMap<>();
-            response.put("success", true);
-            response.put("message", "Emails sent successfully");
-            response.put("sentCount", sentCount);
-            response.put("skippedCount", skippedCount);
-            response.put("totalCustomers", customers.size());
-            return ResponseEntity.ok(response);
+            boolean sent = emailService.sendMarketingEmail(request);
+
+            if (sent) {
+                return new ResponseEntity<>(
+                    "Marketing email sent successfully to: " + request.getRecipientEmail(),
+                    HttpStatus.OK
+                );
+            } else {
+                return new ResponseEntity<>(
+                    "Failed to send marketing email",
+                    HttpStatus.INTERNAL_SERVER_ERROR
+                );
+            }
         } catch (Exception e) {
-            log.error("Error sending emails to all customers: {}", e.getMessage(), e);
-            Map<String, Object> response = new HashMap<>();
-            response.put("success", false);
-            response.put("message", "Error sending emails: " + e.getMessage());
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(response);
+            log.error("Error sending marketing email", e);
+            return new ResponseEntity<>(
+                "Error sending email: " + e.getMessage(),
+                HttpStatus.INTERNAL_SERVER_ERROR
+            );
         }
     }
 
-    @PreAuthorize("hasRole('ROLE_ADMIN')")
     @PostMapping("/send-birthday")
-    public ResponseEntity<Map<String, Object>> sendBirthdayEmails(@RequestBody SendEmailRequest request) {
-        log.info("========== SEND BIRTHDAY EMAILS ==========");
+    @PreAuthorize("hasRole('ROLE_ADMIN')")
+    @Operation(summary = "Send birthday email (unified)",
+               description = "Send a birthday email - accepts query params or JSON body or both")
+    public ResponseEntity<?> sendBirthdayEmailUnified(
+            @RequestParam(required = false) String recipientEmail,
+            @RequestParam(required = false) String recipientName,
+            @RequestParam(required = false) String discount,
+            @RequestBody(required = false) MarketingEmailRequest bodyRequest) {
         try {
-            java.time.LocalDate today = java.time.LocalDate.now();
-            java.util.List<CustomerDto> customers = customerRepository.findCustomersWithBirthdayOn(today);
-            log.info("Found {} customers with birthday today", customers.size());
+            log.info("=== Birthday Email Request ===");
+            log.info("Query Params - Email: {}, Name: {}, Discount: {}", recipientEmail, recipientName, discount);
+            log.info("Request Body: {}", bodyRequest);
 
-            int sentCount = 0;
-            int skippedCount = 0;
-
-            for (CustomerDto customer : customers) {
-                try {
-                    String email = customer.getEmail();
-                    Integer commEmail = customer.getCommunicationEmail();
-
-                    if (email != null && !email.trim().isEmpty() && commEmail != null && commEmail == 1) {
-                        log.info("Sending birthday email to: {}", email);
-                        emailService.sendEmailToCustomer(email, request.getSubject(), request.getMessage());
-                        sentCount++;
-                        log.info("✓ Birthday email sent to: {}", email);
-                    } else {
-                        skippedCount++;
-                    }
-                } catch (Exception e) {
-                    log.error("✗ Failed to send birthday email to customer {}: {}", customer.getId(), e.getMessage());
-                    skippedCount++;
+            if (bodyRequest != null) {
+                if ((recipientEmail == null || recipientEmail.trim().isEmpty()) && bodyRequest.getRecipientEmail() != null) {
+                    recipientEmail = bodyRequest.getRecipientEmail();
+                    log.info("Using recipientEmail from JSON body: {}", recipientEmail);
+                }
+                if ((recipientName == null || recipientName.trim().isEmpty()) && bodyRequest.getRecipientName() != null) {
+                    recipientName = bodyRequest.getRecipientName();
+                    log.info("Using recipientName from JSON body: {}", recipientName);
+                }
+                if ((discount == null || discount.trim().isEmpty()) && bodyRequest.getTemplateVariables() != null
+                        && bodyRequest.getTemplateVariables().containsKey("discount")) {
+                    discount = bodyRequest.getTemplateVariables().get("discount");
+                    log.info("Using discount from JSON body: {}", discount);
                 }
             }
 
-            log.info("Birthday email sending complete - Sent: {}, Skipped: {}", sentCount, skippedCount);
+            if (discount == null || discount.trim().isEmpty()) {
+                discount = "25";
+            }
 
-            Map<String, Object> response = new HashMap<>();
-            response.put("success", true);
-            response.put("message", "Birthday emails sent successfully");
-            response.put("sentCount", sentCount);
-            response.put("skippedCount", skippedCount);
-            response.put("totalMatched", customers.size());
-            return ResponseEntity.ok(response);
+            log.info("Final parameters - Email: {}, Name: {}, Discount: {}", recipientEmail, recipientName, discount);
+
+            boolean singleRecipient = recipientEmail != null && !recipientEmail.trim().isEmpty();
+
+            Optional<AutomatedMessage> activeMsg = automatedMessageRepository
+                    .findActiveMessagesByTriggerType(AutomatedMessage.TriggerType.BIRTHDAY)
+                    .stream()
+                    .filter(msg -> msg.getChannel() == null || msg.getChannel() == AutomatedMessage.Channel.EMAIL)
+                    .findFirst();
+
+            if (activeMsg.isEmpty()) {
+                log.warn("No active automated message found for birthday trigger");
+                return new ResponseEntity<>(
+                    "No active birthday automated message configured",
+                    HttpStatus.BAD_REQUEST
+                );
+            }
+
+            if (singleRecipient) {
+                if (recipientName == null || recipientName.trim().isEmpty()) {
+                    recipientName = "Valued Customer";
+                }
+
+                try {
+                    String html = buildBirthdayHtml(recipientName, discount, activeMsg.get());
+                    String subject = "🎉 Happy Birthday, " + recipientName + "!";
+                    emailService.sendEmailToCustomer(recipientEmail.trim(), subject, html);
+                    log.info("✓ Birthday email sent successfully to: {}", recipientEmail);
+                    return new ResponseEntity<>(
+                        "✓ Birthday email sent successfully to: " + recipientEmail,
+                        HttpStatus.OK
+                    );
+                } catch (Exception ex) {
+                    log.error("✗ Failed to send birthday email to {}: {}", recipientEmail, ex.getMessage());
+                    return new ResponseEntity<>(
+                        "✗ Failed to send birthday email to: " + recipientEmail,
+                        HttpStatus.INTERNAL_SERVER_ERROR
+                    );
+                }
+            }
+
+            //broadcast to all customers when no recipientEmail is provided
+            List<CustomerDto> customers = customerRepository.getAllCustomers();
+            long successCount = 0;
+            long failCount = 0;
+
+
+            for (CustomerDto customer : customers) {
+                if (customer.getEmail() == null || customer.getEmail().trim().isEmpty()) {
+                    continue; //skip customers without email
+                }
+                Integer commEmail = customer.getCommunicationEmail();
+                if (commEmail != null && commEmail == 0) {
+                    continue; //respect communication preference
+                }
+
+                String name = (customer.getFirstName() != null && !customer.getFirstName().isEmpty())
+                        ? customer.getFirstName()
+                        : "Valued Customer";
+
+                try {
+                    String html = buildBirthdayHtml(name, discount, activeMsg.get());
+                    String subject = "🎉 Happy Birthday, " + name + "!";
+                    emailService.sendEmailToCustomer(customer.getEmail().trim(), subject, html);
+                    successCount++;
+                } catch (Exception ex) {
+                    failCount++;
+                    log.warn("Failed to send birthday email to {}: {}", customer.getEmail(), ex.getMessage());
+                }
+            }
+
+            if (successCount == 0) {
+                log.warn("Birthday broadcast: no emails were sent ({} skipped/fail)", failCount);
+                return new ResponseEntity<>(
+                    "No customers with valid email preferences to send birthday email",
+                    HttpStatus.BAD_REQUEST
+                );
+            }
+
+            log.info("Birthday broadcast completed - success: {}, failed: {}", successCount, failCount);
+            return new ResponseEntity<>(
+                "Birthday emails sent. Success: " + successCount + ", Failed: " + failCount,
+                HttpStatus.OK
+            );
         } catch (Exception e) {
-            log.error("Error sending birthday emails: {}", e.getMessage(), e);
-            Map<String, Object> response = new HashMap<>();
-            response.put("success", false);
-            response.put("message", "Error sending emails: " + e.getMessage());
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(response);
+            log.error("Exception in sendBirthdayEmailUnified: {}", e.getMessage(), e);
+            return new ResponseEntity<>(
+                "Error sending birthday email: " + e.getMessage(),
+                HttpStatus.INTERNAL_SERVER_ERROR
+            );
         }
     }
 
+    @PostMapping("/send-birthday-request")
     @PreAuthorize("hasRole('ROLE_ADMIN')")
+    @Operation(summary = "Send birthday email (request body)",
+               description = "Send a birthday email with special discount offer using JSON request body")
+    public ResponseEntity<?> sendBirthdayEmailRequest(@RequestBody MarketingEmailRequest request) {
+        try {
+            if (request == null || request.getRecipientEmail() == null || request.getRecipientEmail().trim().isEmpty()) {
+                log.warn("Birthday email request rejected: recipientEmail is missing");
+                return new ResponseEntity<>(
+                    "Error: recipientEmail is required",
+                    HttpStatus.BAD_REQUEST
+                );
+            }
+
+            String recipientName = request.getRecipientName() != null && !request.getRecipientName().trim().isEmpty()
+                ? request.getRecipientName()
+                : "Valued Customer";
+
+            String discount = "25";
+            if (request.getTemplateVariables() != null && request.getTemplateVariables().containsKey("discount")) {
+                discount = request.getTemplateVariables().get("discount");
+            }
+
+            log.info("Send birthday email - Email: {}, Name: {}, Discount: {}", request.getRecipientEmail(), recipientName, discount);
+
+            MarketingEmailRequest emailRequest = MarketingEmailRequest.builder()
+                .recipientEmail(request.getRecipientEmail().trim())
+                .recipientName(recipientName.trim())
+                .templateType("birthday")
+                .subject("Happy Birthday, " + recipientName + "! 🎉")
+                .build();
+
+            emailRequest.addVariable("discount", discount + "%");
+            emailRequest.addVariable("restaurant", "Restaurant ERP");
+            emailRequest.addVariable("expiryDate", LocalDate.now().plusDays(7).toString());
+
+            boolean sent = emailService.sendMarketingEmail(emailRequest);
+
+            if (sent) {
+                log.info("✓ Birthday email sent successfully to: {}", request.getRecipientEmail());
+                return new ResponseEntity<>(
+                    "✓ Birthday email sent successfully to: " + request.getRecipientEmail(),
+                    HttpStatus.OK
+                );
+            } else {
+                log.error("✗ Failed to send birthday email to: {}", request.getRecipientEmail());
+                return new ResponseEntity<>(
+                    "✗ Failed to send birthday email to: " + request.getRecipientEmail(),
+                    HttpStatus.INTERNAL_SERVER_ERROR
+                );
+            }
+        } catch (Exception e) {
+            log.error("Exception in sendBirthdayEmailRequest: {}", e.getMessage(), e);
+            return new ResponseEntity<>(
+                "Error sending birthday email: " + e.getMessage(),
+                HttpStatus.INTERNAL_SERVER_ERROR
+            );
+        }
+    }
+
     @PostMapping("/send-anniversary")
-    public ResponseEntity<Map<String, Object>> sendAnniversaryEmails(@RequestBody SendEmailRequest request) {
-        log.info("========== SEND ANNIVERSARY EMAILS ==========");
+    @PreAuthorize("hasRole('ROLE_ADMIN')")
+    @Operation(summary = "Send anniversary email",
+               description = "Send an anniversary email with special discount offer")
+    public ResponseEntity<?> sendAnniversaryEmail(
+            @RequestParam(required = false) String recipientEmail,
+            @RequestParam(required = false) String recipientName,
+            @RequestParam(required = false) String discount,
+            @RequestParam(required = false) String years) {
         try {
-            java.time.LocalDate today = java.time.LocalDate.now();
-            java.util.List<CustomerDto> customers = customerRepository.findCustomersWithAnniversaryOn(today);
-            log.info("Found {} customers with anniversary today", customers.size());
+            if (discount == null || discount.trim().isEmpty()) {
+                discount = "20";
+            }
 
-            int sentCount = 0;
-            int skippedCount = 0;
+            boolean singleRecipient = recipientEmail != null && !recipientEmail.trim().isEmpty();
 
-            for (CustomerDto customer : customers) {
-                try {
-                    String email = customer.getEmail();
-                    Integer commEmail = customer.getCommunicationEmail();
+            Optional<AutomatedMessage> activeMsg = automatedMessageRepository
+                    .findActiveMessagesByTriggerType(AutomatedMessage.TriggerType.ANNIVERSARY)
+                    .stream()
+                    .filter(msg -> msg.getChannel() == null || msg.getChannel() == AutomatedMessage.Channel.EMAIL)
+                    .findFirst();
 
-                    if (email != null && !email.trim().isEmpty() && commEmail != null && commEmail == 1) {
-                        log.info("Sending anniversary email to: {}", email);
-                        emailService.sendEmailToCustomer(email, request.getSubject(), request.getMessage());
-                        sentCount++;
-                        log.info("✓ Anniversary email sent to: {}", email);
-                    } else {
-                        skippedCount++;
-                    }
-                } catch (Exception e) {
-                    log.error("✗ Failed to send anniversary email to customer {}: {}", customer.getId(), e.getMessage());
-                    skippedCount++;
+            if (activeMsg.isEmpty()) {
+                log.warn("No active automated message found for anniversary trigger");
+                return new ResponseEntity<>(
+                    "No active anniversary automated message configured",
+                    HttpStatus.BAD_REQUEST
+                );
+            }
+
+            if (singleRecipient) {
+                if (recipientName == null || recipientName.trim().isEmpty()) {
+                    recipientName = "Valued Customer";
+                }
+                if (years == null || years.trim().isEmpty()) {
+                    years = "5";
+                }
+
+                log.info("Send anniversary email - Email: {}, Name: {}, Discount: {}, Years: {}", recipientEmail, recipientName, discount, years);
+
+                MarketingEmailRequest request = MarketingEmailRequest.builder()
+                    .recipientEmail(recipientEmail.trim())
+                    .recipientName(recipientName.trim())
+                    .templateType("anniversary")
+                    .subject("Happy Anniversary with Restaurant ERP! 🎊")
+                    .build();
+
+                request.addVariable("discount", discount + "%");
+                request.addVariable("years", years);
+                request.addVariable("restaurant", "Restaurant ERP");
+                request.addVariable("expiryDate", LocalDate.now().plusDays(7).toString());
+
+                boolean sent = emailService.sendMarketingEmail(request);
+
+                if (sent) {
+                    log.info("✓ Anniversary email sent successfully to: {}", recipientEmail);
+                    return new ResponseEntity<>(
+                        "✓ Anniversary email sent successfully to: " + recipientEmail,
+                        HttpStatus.OK
+                    );
+                } else {
+                    log.error("✗ emailService.sendMarketingEmail returned false for: {}", recipientEmail);
+                    return new ResponseEntity<>(
+                        "✗ Failed to send anniversary email to: " + recipientEmail,
+                        HttpStatus.INTERNAL_SERVER_ERROR
+                    );
                 }
             }
 
-            log.info("Anniversary email sending complete - Sent: {}, Skipped: {}", sentCount, skippedCount);
+            List<CustomerDto> customers = customerRepository.findCustomersWithAnniversaryOn(LocalDate.now());
+            long successCount = 0;
+            long failCount = 0;
 
-            Map<String, Object> response = new HashMap<>();
-            response.put("success", true);
-            response.put("message", "Anniversary emails sent successfully");
-            response.put("sentCount", sentCount);
-            response.put("skippedCount", skippedCount);
-            response.put("totalMatched", customers.size());
-            return ResponseEntity.ok(response);
-        } catch (Exception e) {
-            log.error("Error sending anniversary emails: {}", e.getMessage(), e);
-            Map<String, Object> response = new HashMap<>();
-            response.put("success", false);
-            response.put("message", "Error sending emails: " + e.getMessage());
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(response);
-        }
-    }
+            for (CustomerDto customer : customers) {
+                if (customer.getEmail() == null || customer.getEmail().trim().isEmpty()) {
+                    continue; // skip customers without email
+                }
+                Integer commEmail = customer.getCommunicationEmail();
+                if (commEmail != null && commEmail == 0) {
+                    continue; // respect communication preference
+                }
+                if (customer.getCreatedAt() == null) {
+                    continue; // cannot compute years
+                }
 
-    @PreAuthorize("hasRole('ROLE_ADMIN')")
-    @PostMapping("/test-email")
-    public ResponseEntity<Map<String, Object>> sendTestEmail(@RequestParam String toEmail) {
-        log.info("Admin requesting to send test email to: {}", toEmail);
-        try {
-            String subject = "Test Email from Restaurant ERP";
-            String message = "If you're reading this, the email system is working correctly! \n\n" +
-                    "Test sent on: " + new java.util.Date() + "\n" +
-                    "From: Restaurant ERP System";
-            emailService.sendEmailToCustomer(toEmail, subject, message);
+                int yearsWithUs = Math.max(Period.between(customer.getCreatedAt(), LocalDate.now()).getYears(), 1);
+                String name = (customer.getFirstName() != null && !customer.getFirstName().isEmpty())
+                        ? customer.getFirstName()
+                        : "Valued Customer";
 
-            Map<String, Object> response = new HashMap<>();
-            response.put("success", true);
-            response.put("message", "Test email sent successfully to: " + toEmail);
-            response.put("recipientEmail", toEmail);
-            return ResponseEntity.ok(response);
-        } catch (Exception e) {
-            log.error("Error sending test email to: {}", toEmail, e);
-            Map<String, Object> response = new HashMap<>();
-            response.put("success", false);
-            response.put("message", "Error sending test email: " + e.getMessage());
-            response.put("errorType", e.getClass().getSimpleName());
-            response.put("recipientEmail", toEmail);
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(response);
-        }
-    }
-
-    @PreAuthorize("hasRole('ROLE_ADMIN')")
-    @GetMapping("/debug/customer-status")
-    public ResponseEntity<Map<String, Object>> debugCustomerStatus() {
-        log.info("Checking customer email status");
-        try {
-            // Get all customers from repository
-            java.util.List<CustomerDto> allCustomers = customerRepository.getAllCustomers();
-
-            Map<String, Object> response = new HashMap<>();
-            response.put("totalCustomers", allCustomers.size());
-
-            // Count customers with valid emails
-            long validEmailCount = allCustomers.stream()
-                    .filter(c -> c.getEmail() != null && c.getEmail().trim().length() > 0)
-                    .count();
-            response.put("customersWithValidEmails", validEmailCount);
-
-            // Count customers with communication_email = 1
-            long optedInCount = allCustomers.stream()
-                    .filter(c -> c.getCommunicationEmail() != null && c.getCommunicationEmail() == 1)
-                    .count();
-            response.put("customersOptedInForEmail", optedInCount);
-
-            // Count eligible customers (valid email AND opted in AND not GDPR deleted)
-            long eligibleCount = allCustomers.stream()
-                    .filter(c -> c.getEmail() != null && c.getEmail().trim().length() > 0 &&
-                               c.getCommunicationEmail() != null && c.getCommunicationEmail() == 1)
-                    .count();
-            response.put("eligibleCustomersForEmailing", eligibleCount);
-
-            // Show first few customers
-            java.util.List<Map<String, Object>> customerList = new java.util.ArrayList<>();
-            for (CustomerDto customer : allCustomers) {
-                Map<String, Object> custMap = new HashMap<>();
-                custMap.put("id", customer.getId());
-                custMap.put("name", customer.getFirstName() + " " + customer.getLastName());
-                custMap.put("email", customer.getEmail());
-                custMap.put("communicationEmail", customer.getCommunicationEmail());
-                custMap.put("gdprDeleted", customer.getGdprDeleted());
-                customerList.add(custMap);
+                try {
+                    String html = buildAnniversaryHtml(name, yearsWithUs, discount, activeMsg.get());
+                    String subject = "🎉 Happy Anniversary with Restaurant ERP!";
+                    emailService.sendEmailToCustomer(customer.getEmail().trim(), subject, html);
+                    successCount++;
+                } catch (Exception ex) {
+                    failCount++;
+                    log.warn("Failed to send anniversary email to {}: {}", customer.getEmail(), ex.getMessage());
+                }
             }
-            response.put("customers", customerList);
 
-            return ResponseEntity.ok(response);
+            if (successCount == 0) {
+                log.warn("Anniversary broadcast: no emails were sent ({} skipped/fail)", failCount);
+                return new ResponseEntity<>(
+                    "No customers with valid anniversary data to send emails",
+                    HttpStatus.BAD_REQUEST
+                );
+            }
+
+            log.info("Anniversary broadcast completed - success: {}, failed: {}", successCount, failCount);
+            return new ResponseEntity<>(
+                "Anniversary emails sent. Success: " + successCount + ", Failed: " + failCount,
+                HttpStatus.OK
+            );
         } catch (Exception e) {
-            log.error("Error checking customer status", e);
-            Map<String, Object> response = new HashMap<>();
-            response.put("error", e.getMessage());
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(response);
+            log.error("Exception in sendAnniversaryEmail: {}", e.getMessage(), e);
+            return new ResponseEntity<>(
+                "Error sending anniversary email: " + e.getMessage(),
+                HttpStatus.INTERNAL_SERVER_ERROR
+            );
         }
+    }
+
+    @PostMapping("/send-anniversary-request")
+    @PreAuthorize("hasRole('ROLE_ADMIN')")
+    @Operation(summary = "Send anniversary email (request body)",
+               description = "Send an anniversary email with special discount offer using JSON request body")
+    public ResponseEntity<?> sendAnniversaryEmailRequest(@RequestBody MarketingEmailRequest request) {
+        try {
+            if (request == null || request.getRecipientEmail() == null || request.getRecipientEmail().trim().isEmpty()) {
+                log.warn("Anniversary email request rejected: recipientEmail is missing");
+                return new ResponseEntity<>(
+                    "Error: recipientEmail is required",
+                    HttpStatus.BAD_REQUEST
+                );
+            }
+
+            String recipientName = request.getRecipientName() != null && !request.getRecipientName().trim().isEmpty()
+                ? request.getRecipientName()
+                : "Valued Customer";
+
+            String discount = "20";
+            String years = "5";
+            if (request.getTemplateVariables() != null) {
+                if (request.getTemplateVariables().containsKey("discount")) {
+                    discount = request.getTemplateVariables().get("discount");
+                }
+                if (request.getTemplateVariables().containsKey("years")) {
+                    years = request.getTemplateVariables().get("years");
+                }
+            }
+
+            log.info("Send anniversary email - Email: {}, Name: {}, Discount: {}, Years: {}", request.getRecipientEmail(), recipientName, discount, years);
+
+            MarketingEmailRequest emailRequest = MarketingEmailRequest.builder()
+                .recipientEmail(request.getRecipientEmail().trim())
+                .recipientName(recipientName.trim())
+                .templateType("anniversary")
+                .subject("Happy Anniversary with Restaurant ERP! 🎊")
+                .build();
+
+            emailRequest.addVariable("discount", discount + "%");
+            emailRequest.addVariable("years", years);
+            emailRequest.addVariable("restaurant", "Restaurant ERP");
+            emailRequest.addVariable("expiryDate", LocalDate.now().plusDays(7).toString());
+
+            boolean sent = emailService.sendMarketingEmail(emailRequest);
+
+            if (sent) {
+                log.info("✓ Anniversary email sent successfully to: {}", request.getRecipientEmail());
+                return new ResponseEntity<>(
+                    "✓ Anniversary email sent successfully to: " + request.getRecipientEmail(),
+                    HttpStatus.OK
+                );
+            } else {
+                log.error("✗ Failed to send anniversary email to: {}", request.getRecipientEmail());
+                return new ResponseEntity<>(
+                    "✗ Failed to send anniversary email to: " + request.getRecipientEmail(),
+                    HttpStatus.INTERNAL_SERVER_ERROR
+                );
+            }
+        } catch (Exception e) {
+            log.error("Exception in sendAnniversaryEmailRequest: {}", e.getMessage(), e);
+            return new ResponseEntity<>(
+                "Error sending anniversary email: " + e.getMessage(),
+                HttpStatus.INTERNAL_SERVER_ERROR
+            );
+        }
+    }
+
+    @PostMapping("/send-promotional")
+    @PreAuthorize("hasRole('ROLE_ADMIN')")
+    @Operation(summary = "Send promotional email",
+               description = "Send a promotional email with custom discount")
+    public ResponseEntity<?> sendPromotionalEmail(
+            @RequestParam(required = false) String recipientEmail,
+            @RequestParam(required = false) String recipientName,
+            @RequestParam(required = false) String discount) {
+        try {
+            if (discount == null || discount.trim().isEmpty()) {
+                discount = "15";
+            }
+
+            log.info("Send promotional email - Email: {}, Name: {}, Discount: {}", recipientEmail, recipientName, discount);
+
+            if (recipientEmail == null || recipientEmail.trim().isEmpty()) {
+                log.warn("Promotional email request rejected: recipientEmail is missing or empty");
+                return new ResponseEntity<>(
+                    "Error: recipientEmail is required",
+                    HttpStatus.BAD_REQUEST
+                );
+            }
+
+            if (recipientName == null || recipientName.trim().isEmpty()) {
+                recipientName = "Valued Customer";
+            }
+
+            MarketingEmailRequest request = MarketingEmailRequest.builder()
+                .recipientEmail(recipientEmail.trim())
+                .recipientName(recipientName.trim())
+                .templateType("promotional")
+                .subject("Special Promotional Offer - " + discount + "% Off!")
+                .build();
+
+            request.addVariable("discount", discount + "% discount on all items");
+            request.addVariable("restaurant", "Restaurant ERP");
+
+            boolean sent = emailService.sendMarketingEmail(request);
+
+            if (sent) {
+                log.info("✓ Promotional email sent successfully to: {}", recipientEmail);
+                return new ResponseEntity<>(
+                    "✓ Promotional email sent successfully to: " + recipientEmail,
+                    HttpStatus.OK
+                );
+            } else {
+                log.error("✗ emailService.sendMarketingEmail returned false for: {}", recipientEmail);
+                return new ResponseEntity<>(
+                    "✗ Failed to send promotional email to: " + recipientEmail,
+                    HttpStatus.INTERNAL_SERVER_ERROR
+                );
+            }
+        } catch (Exception e) {
+            log.error("Exception in sendPromotionalEmail: {}", e.getMessage(), e);
+            return new ResponseEntity<>(
+                "Error sending promotional email: " + e.getMessage(),
+                HttpStatus.INTERNAL_SERVER_ERROR
+            );
+        }
+    }
+
+    @PostMapping("/send-promotional-request")
+    @PreAuthorize("hasRole('ROLE_ADMIN')")
+    @Operation(summary = "Send promotional email (request body)",
+               description = "Send a promotional email with custom discount using JSON request body")
+    public ResponseEntity<?> sendPromotionalEmailRequest(@RequestBody MarketingEmailRequest request) {
+        try {
+            if (request == null || request.getRecipientEmail() == null || request.getRecipientEmail().trim().isEmpty()) {
+                log.warn("Promotional email request rejected: recipientEmail is missing");
+                return new ResponseEntity<>(
+                    "Error: recipientEmail is required",
+                    HttpStatus.BAD_REQUEST
+                );
+            }
+
+            String recipientName = request.getRecipientName() != null && !request.getRecipientName().trim().isEmpty()
+                ? request.getRecipientName()
+                : "Valued Customer";
+
+            String discount = "15";
+            if (request.getTemplateVariables() != null && request.getTemplateVariables().containsKey("discount")) {
+                discount = request.getTemplateVariables().get("discount");
+            }
+
+            log.info("Send promotional email - Email: {}, Name: {}, Discount: {}", request.getRecipientEmail(), recipientName, discount);
+
+            MarketingEmailRequest emailRequest = MarketingEmailRequest.builder()
+                .recipientEmail(request.getRecipientEmail().trim())
+                .recipientName(recipientName.trim())
+                .templateType("promotional")
+                .subject("Special Promotional Offer - " + discount + "% Off!")
+                .build();
+
+            emailRequest.addVariable("discount", discount + "% discount on all items");
+            emailRequest.addVariable("restaurant", "Restaurant ERP");
+
+            boolean sent = emailService.sendMarketingEmail(emailRequest);
+
+            if (sent) {
+                log.info("✓ Promotional email sent successfully to: {}", request.getRecipientEmail());
+                return new ResponseEntity<>(
+                    "✓ Promotional email sent successfully to: " + request.getRecipientEmail(),
+                    HttpStatus.OK
+                );
+            } else {
+                log.error("✗ Failed to send promotional email to: {}", request.getRecipientEmail());
+                return new ResponseEntity<>(
+                    "✗ Failed to send promotional email to: " + request.getRecipientEmail(),
+                    HttpStatus.INTERNAL_SERVER_ERROR
+                );
+            }
+        } catch (Exception e) {
+            log.error("Exception in sendPromotionalEmailRequest: {}", e.getMessage(), e);
+            return new ResponseEntity<>(
+                "Error sending promotional email: " + e.getMessage(),
+                HttpStatus.INTERNAL_SERVER_ERROR
+            );
+        }
+    }
+
+    @PostMapping("/test")
+    @PreAuthorize("hasRole('ROLE_ADMIN')")
+    @Operation(summary = "Send test email",
+               description = "Send a test email to verify email configuration")
+    public ResponseEntity<?> sendTestEmail(
+            @RequestParam(required = false) String recipientEmail) {
+        try {
+            log.info("Send test email - Email: {}", recipientEmail);
+
+            if (recipientEmail == null || recipientEmail.trim().isEmpty()) {
+                log.warn("Test email request rejected: recipientEmail is missing or empty");
+                return new ResponseEntity<>(
+                    "Error: recipientEmail is required",
+                    HttpStatus.BAD_REQUEST
+                );
+            }
+
+            MarketingEmailRequest request = MarketingEmailRequest.builder()
+                .recipientEmail(recipientEmail.trim())
+                .recipientName("Test User")
+                .templateType("promotional")
+                .subject("Test Email - Restaurant ERP")
+                .build();
+
+            request.addVariable("discount", "50% OFF");
+            request.addVariable("restaurant", "Restaurant ERP");
+
+            boolean sent = emailService.sendMarketingEmail(request);
+
+            if (sent) {
+                log.info("✓ Test email sent successfully to: {}", recipientEmail);
+                return new ResponseEntity<>(
+                    "✓ Test email sent successfully to: " + recipientEmail,
+                    HttpStatus.OK
+                );
+            } else {
+                log.error("✗ emailService.sendMarketingEmail returned false for: {}", recipientEmail);
+                return new ResponseEntity<>(
+                    "✗ Failed to send test email to: " + recipientEmail,
+                    HttpStatus.INTERNAL_SERVER_ERROR
+                );
+            }
+        } catch (Exception e) {
+            log.error("Exception in sendTestEmail: {}", e.getMessage(), e);
+            return new ResponseEntity<>(
+                "Error sending test email: " + e.getMessage(),
+                HttpStatus.INTERNAL_SERVER_ERROR
+            );
+        }
+    }
+
+    @PostMapping("/test-request")
+    @PreAuthorize("hasRole('ROLE_ADMIN')")
+    @Operation(summary = "Send test email (request body)",
+               description = "Send a test email using JSON request body")
+    public ResponseEntity<?> sendTestEmailRequest(@RequestBody MarketingEmailRequest request) {
+        try {
+            if (request == null || request.getRecipientEmail() == null || request.getRecipientEmail().trim().isEmpty()) {
+                log.warn("Test email request rejected: recipientEmail is missing");
+                return new ResponseEntity<>(
+                    "Error: recipientEmail is required",
+                    HttpStatus.BAD_REQUEST
+                );
+            }
+
+            log.info("Send test email - Email: {}", request.getRecipientEmail());
+
+            MarketingEmailRequest emailRequest = MarketingEmailRequest.builder()
+                .recipientEmail(request.getRecipientEmail().trim())
+                .recipientName("Test User")
+                .templateType("promotional")
+                .subject("Test Email - Restaurant ERP")
+                .build();
+
+            emailRequest.addVariable("discount", "50% OFF");
+            emailRequest.addVariable("restaurant", "Restaurant ERP");
+
+            boolean sent = emailService.sendMarketingEmail(emailRequest);
+
+            if (sent) {
+                log.info("✓ Test email sent successfully to: {}", request.getRecipientEmail());
+                return new ResponseEntity<>(
+                    "✓ Test email sent successfully to: " + request.getRecipientEmail(),
+                    HttpStatus.OK
+                );
+            } else {
+                log.error("✗ Failed to send test email to: {}", request.getRecipientEmail());
+                return new ResponseEntity<>(
+                    "✗ Failed to send test email to: " + request.getRecipientEmail(),
+                    HttpStatus.INTERNAL_SERVER_ERROR
+                );
+            }
+        } catch (Exception e) {
+            log.error("Exception in sendTestEmailRequest: {}", e.getMessage(), e);
+            return new ResponseEntity<>(
+                "Error sending test email: " + e.getMessage(),
+                HttpStatus.INTERNAL_SERVER_ERROR
+            );
+        }
+    }
+
+    private String buildBirthdayHtml(String name, String discount, AutomatedMessage activeMsg) {
+        String template = emailTemplateService.getBirthdayEmailTemplate();
+        String message = buildMessageBody(activeMsg, name, "", LocalDate.now());
+        template = template.replace("Enjoy our exclusive {{discount}}% birthday discount on your next visit!", message);
+
+        Map<String, String> variables = new HashMap<>();
+        variables.put("name", name != null ? name : "Valued Customer");
+        String discountValue = activeMsg.hasDiscount() ? String.format("%.0f", activeMsg.getOfferValue()) : discount;
+        variables.put("discount", discountValue != null ? discountValue.replace("%", "") : "25");
+        variables.put("restaurant", "Restaurant ERP");
+        variables.put("expiryDate", LocalDate.now().plusDays(7).toString());
+
+        return emailTemplateService.renderTemplate(template, variables);
+    }
+
+    private String buildMessageBody(AutomatedMessage message, String firstName, String lastName, LocalDate eventDate) {
+        String template = message.getTemplateBody();
+        if (template == null || template.trim().isEmpty()) {
+            template = "Dear {firstName}, enjoy your special day!";
+        }
+        return template
+                .replace("{firstName}", firstName != null && !firstName.isBlank() ? firstName : "Valued Customer")
+                .replace("{lastName}", lastName != null ? lastName : "")
+                .replace("{eventDate}", eventDate != null ? eventDate.toString() : LocalDate.now().toString())
+                .replace("{offerValue}", message.getOfferValue() != null ? String.format("%.0f", message.getOfferValue()) : "");
+    }
+
+    private String buildAnniversaryHtml(String name, int yearsWithUs, String discount, AutomatedMessage activeMsg) {
+        String template = emailTemplateService.getAnniversaryEmailTemplate();
+        String message = buildMessageBody(activeMsg, name, "", LocalDate.now());
+        template = template.replace("Thank you for {{years}} wonderful years! Here's {{discount}}% off for our valued customer.", message);
+
+        Map<String, String> variables = new HashMap<>();
+        variables.put("name", name != null ? name : "Valued Customer");
+        variables.put("years", String.valueOf(yearsWithUs));
+        String discountValue = activeMsg.hasDiscount() ? String.format("%.0f", activeMsg.getOfferValue()) : discount;
+        variables.put("discount", discountValue != null ? discountValue.replace("%", "") : "20");
+        variables.put("restaurant", "Restaurant ERP");
+        variables.put("expiryDate", LocalDate.now().plusDays(7).toString());
+
+        return emailTemplateService.renderTemplate(template, variables);
     }
 }
-

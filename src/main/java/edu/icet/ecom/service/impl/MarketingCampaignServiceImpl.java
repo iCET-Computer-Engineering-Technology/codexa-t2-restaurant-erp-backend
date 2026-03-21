@@ -7,20 +7,26 @@ import edu.icet.ecom.repository.MarketingCampaignRepository;
 import edu.icet.ecom.service.MarketingCampaignService;
 import edu.icet.ecom.service.CustomerService;
 import edu.icet.ecom.service.EmailService;
+import edu.icet.ecom.service.EmailTemplateService;
 import edu.icet.ecom.service.CampaignAnalyticsService;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
+@Slf4j
 public class MarketingCampaignServiceImpl implements MarketingCampaignService {
 
     private final MarketingCampaignRepository marketingCampaignRepository;
     private final CustomerService customerService;
     private final EmailService emailService;
+    private final EmailTemplateService emailTemplateService;
     private final CampaignAnalyticsService campaignAnalyticsService;
 
     @Override
@@ -144,62 +150,69 @@ public class MarketingCampaignServiceImpl implements MarketingCampaignService {
 
     @Override
     public void sendCampaignToCustomers(Integer campaignId) {
-        // Get the campaign
+
         MarketingCampaign campaign = marketingCampaignRepository.findById(campaignId)
                 .orElseThrow(() -> new IllegalArgumentException("Campaign not found: " + campaignId));
 
-        // Get all customers
         List<CustomerDto> customers = customerService.getAllCustomers();
 
-        // Filter by segment if specified
         if (campaign.getSegmentId() != null) {
-            // In a real implementation, you might filter by segment here
-            // For now, we'll send to all customers who can receive emails
             customers = customers.stream()
                     .filter(c -> c.getCommunicationEmail() != null && c.getCommunicationEmail() == 1)
                     .collect(Collectors.toList());
         } else {
-            // Send to all customers who can receive emails
             customers = customers.stream()
                     .filter(c -> c.getCommunicationEmail() != null && c.getCommunicationEmail() == 1)
                     .collect(Collectors.toList());
         }
 
-        // Send email to each customer
         for (CustomerDto customer : customers) {
             try {
-                // Assign variant for A/B testing
                 String variant = assignVariant(campaignId, customer.getId());
-                String emailBody = "A".equals(variant) ?
-                        campaign.getBodyTemplate() : campaign.getVariantBBody();
-
-                // Send email
+                String emailBody = buildHtmlEmailBody(campaign, customer, variant);
                 emailService.sendEmailToCustomer(customer.getEmail(), campaign.getSubject(), emailBody);
-
-                // Record the sent event in analytics
                 campaignAnalyticsService.recordCampaignSent(campaignId, customer.getId(), variant);
 
             } catch (Exception e) {
-                // Log error but continue sending to other customers
-                System.err.println("Error sending email to customer " + customer.getId() + ": " + e.getMessage());
+                log.error("Error sending email to customer {}: {}", customer.getId(), e.getMessage(), e);
             }
         }
 
-        // Mark campaign as sent
         markCampaignAsSent(campaignId);
     }
 
-    /**
-     * Assign variant for A/B testing (50/50 split)
-     */
+    private String buildHtmlEmailBody(MarketingCampaign campaign, CustomerDto customer, String variant) {
+        String template = emailTemplateService.getMarketingCampaignTemplate();
+
+        Map<String, String> variables = new HashMap<>();
+        variables.put("name", customer.getFirstName() != null ? customer.getFirstName() : "Valued Customer");
+        variables.put("campaignName", campaign.getCampaignName());
+        variables.put("message", variant.equals("A") ? campaign.getBodyTemplate() : campaign.getVariantBBody());
+        variables.put("discount", extractDiscount(campaign));
+        variables.put("restaurant", "Restaurant ERP");
+        variables.put("campaignId", campaign.getId().toString());
+        return emailTemplateService.renderTemplate(template, variables);
+    }
+
+    private String extractDiscount(MarketingCampaign campaign) {
+        String body = campaign.getBodyTemplate();
+        if (body != null && body.contains("%")) {
+            // Try to extract percentage
+            int percentIndex = body.indexOf("%");
+            if (percentIndex > 0) {
+                int startIndex = Math.max(0, percentIndex - 3);
+                String discount = body.substring(startIndex, percentIndex + 1);
+                return discount.replaceAll("[^0-9%]", "");
+            }
+        }
+        return "Special Offer";
+    }
+
     private String assignVariant(Integer campaignId, Integer customerId) {
-        // Create a deterministic variant assignment based on campaign and customer ID
-        // This ensures the same customer always gets the same variant
         int hash = (campaignId.hashCode() + customerId.hashCode());
         return (hash % 2) == 0 ? "A" : "B";
     }
 
-    // ...existing code...
     private MarketingCampaignDto convertToDto(MarketingCampaign campaign) {
         MarketingCampaignDto dto = new MarketingCampaignDto();
         dto.setId(campaign.getId());

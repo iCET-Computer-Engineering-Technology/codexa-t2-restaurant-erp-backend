@@ -11,6 +11,9 @@ import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
 import java.util.List;
+import java.util.Map;
+import java.util.HashMap;
+import java.util.Optional;
 
 @Service
 @RequiredArgsConstructor
@@ -21,6 +24,7 @@ public class AutomatedMessageSchedulerService {
     private final CustomerRepositoryImpl customerRepository;
     private final NotificationService notificationService;
     private final EmailService emailService;
+    private final EmailTemplateService emailTemplateService;
 
     @Scheduled(cron = "${app.notifications.cron:0 0 8 * * *}")
     public void processAutomatedMessages() {
@@ -42,7 +46,6 @@ public class AutomatedMessageSchedulerService {
                     continue;
                 }
 
-                // Compute the target event date
                 LocalDate targetDate = today.plusDays(message.getSendDaysBeforeWithDefault());
 
                 switch (message.getTriggerType()) {
@@ -58,13 +61,24 @@ public class AutomatedMessageSchedulerService {
         }
     }
 
-    @Scheduled(cron = "0 50 22 * * *")  // change this(what time to send birthday email- wauda)
+    @Scheduled(cron = "0 47 11 * * *")
     public void sendBirthdayEmailsAutomatically() {
         try {
             log.info("Starting automatic birthday email scheduler");
 
             LocalDate today = LocalDate.now();
             LocalDate tomorrow = today.plusDays(1);
+
+            Optional<AutomatedMessage> birthdayMessage = automatedMessageRepository
+                    .findActiveMessagesByTriggerType(AutomatedMessage.TriggerType.BIRTHDAY)
+                    .stream()
+                    .filter(msg -> msg.getChannel() == null || msg.getChannel() == AutomatedMessage.Channel.EMAIL)
+                    .findFirst();
+
+            if (birthdayMessage.isEmpty()) {
+                log.debug("No active EMAIL automated message for birthday; skipping birthday scheduler run");
+                return;
+            }
 
             List<CustomerDto> birthdayCustomers = customerRepository.findCustomersWithBirthdayOn(tomorrow);
 
@@ -82,15 +96,14 @@ public class AutomatedMessageSchedulerService {
                         continue;
                     }
 
-                    // Send birthday email
-                    sendBirthdayEmail(customer);
+                    // Send HTML birthday email using automated message if available
+                    sendBirthdayEmailHtml(customer, tomorrow, birthdayMessage.orElse(null));
 
                     log.info("Birthday email sent to customer {} ({})", customer.getId(), customer.getEmail());
 
                 } catch (Exception e) {
                     log.error("Error sending birthday email to customer {} ({}): {}",
                             customer.getId(), customer.getEmail(), e.getMessage());
-                    // Continue to next customer
                 }
             }
 
@@ -101,31 +114,121 @@ public class AutomatedMessageSchedulerService {
         }
     }
 
-    /**
-     * Send birthday email to a customer
-     */
-    private void sendBirthdayEmail(CustomerDto customer) {
-        String subject = "🎂 Happy Birthday! Special Offer Inside";
-        String body = String.format(
-                "Dear %s,%n%n" +
-                "Happy Birthday! 🎉%n%n" +
-                "On your special day, we want to celebrate with you!%n%n" +
-                "We have a special birthday discount waiting for you. " +
-                "Enjoy 20%% off your next order at our restaurant.%n%n" +
-                "Use this special birthday offer to treat yourself to your favorite meal.%n%n" +
-                "Best wishes on your birthday!%n%n" +
-                "Warmly,%n" +
-                "The Restaurant Team",
-                customer.getFirstName()
-        );
+    private void sendBirthdayEmailHtml(CustomerDto customer, LocalDate birthdayDate, AutomatedMessage autoMessage) {
 
-        try {
-            emailService.sendEmailToCustomer(customer.getEmail(), subject, body);
-            log.debug("Birthday email sent successfully to {}", customer.getEmail());
-        } catch (Exception e) {
-            log.error("Failed to send birthday email to {}: {}", customer.getEmail(), e.getMessage());
-            throw new RuntimeException("Failed to send birthday email", e);
+        String template = emailTemplateService.getBirthdayEmailTemplate();
+
+        Map<String, String> variables = new HashMap<>();
+        variables.put("name", customer.getFirstName() != null ? customer.getFirstName() : "Valued Customer");
+
+        String discountValue = autoMessage != null && autoMessage.hasDiscount()
+                ? String.format("%.0f", autoMessage.getOfferValue())
+                : "25";
+        variables.put("discount", discountValue);
+        variables.put("restaurant", "Restaurant ERP");
+        variables.put("expiryDate", birthdayDate.plusDays(7).toString());
+
+        if (autoMessage != null && autoMessage.getTemplateBody() != null && !autoMessage.getTemplateBody().trim().isEmpty()) {
+            String customMessage = buildMessageBody(autoMessage, customer, "birthday", birthdayDate);
+            variables.put("offerMessage", customMessage);
+
+            template = template.replace("Enjoy our exclusive {{discount}}% birthday discount on your next visit!", "{{offerMessage}}");
         }
+
+        String htmlBody = emailTemplateService.renderTemplate(template, variables);
+
+        String subject = "🎉 Happy Birthday, " + (customer.getFirstName() != null ? customer.getFirstName() : "Valued Customer") + "!";
+        emailService.sendEmailToCustomer(customer.getEmail(), subject, htmlBody);
+
+        log.debug("Beautiful birthday email sent successfully to {}", customer.getEmail());
+    }
+
+    @Scheduled(cron = "0 09 22 * * *")
+    public void sendAnniversaryEmailsAutomatically() {
+        try {
+            log.info("Starting automatic anniversary email scheduler");
+
+            LocalDate today = LocalDate.now();
+            LocalDate tomorrow = today.plusDays(1);
+
+            Optional<AutomatedMessage> anniversaryMessage = automatedMessageRepository
+                    .findActiveMessagesByTriggerType(AutomatedMessage.TriggerType.ANNIVERSARY)
+                    .stream()
+                    .filter(msg -> msg.getChannel() == null || msg.getChannel() == AutomatedMessage.Channel.EMAIL)
+                    .findFirst();
+
+            if (anniversaryMessage.isEmpty()) {
+                log.debug("No active EMAIL automated message for anniversary; skipping anniversary scheduler run");
+                return;
+            }
+
+            List<CustomerDto> anniversaryCustomers = customerRepository.findCustomersWithAnniversaryOn(tomorrow);
+
+            if (anniversaryCustomers.isEmpty()) {
+                log.debug("No customers have anniversary tomorrow ({})", tomorrow);
+                return;
+            }
+
+            log.info("Found {} customers with anniversary tomorrow ({})", anniversaryCustomers.size(), tomorrow);
+
+            for (CustomerDto customer : anniversaryCustomers) {
+                try {
+                    if (customer.getCommunicationEmail() == null || customer.getCommunicationEmail() != 1) {
+                        log.debug("Customer {} has email communication disabled, skipping anniversary email", customer.getId());
+                        continue;
+                    }
+                    if (customer.getCreatedAt() == null) {
+                        log.debug("Customer {} missing created_at, skipping anniversary email", customer.getId());
+                        continue;
+                    }
+
+                    // Send HTML anniversary email using automated message if available
+                    sendAnniversaryEmailHtml(customer, tomorrow, anniversaryMessage.orElse(null));
+
+                    log.info("Anniversary email sent to customer {} ({})", customer.getId(), customer.getEmail());
+
+                } catch (Exception e) {
+                    log.error("Error sending anniversary email to customer {} ({}): {}",
+                            customer.getId(), customer.getEmail(), e.getMessage());
+                }
+            }
+
+            log.info("Automatic anniversary email scheduler completed successfully");
+
+        } catch (Exception e) {
+            log.error("Error during automatic anniversary email scheduling", e);
+        }
+    }
+
+    private void sendAnniversaryEmailHtml(CustomerDto customer, LocalDate anniversaryDate, AutomatedMessage autoMessage) {
+
+        String template = emailTemplateService.getAnniversaryEmailTemplate();
+
+        int yearsWithUs = Math.max(java.time.Period.between(customer.getCreatedAt(), anniversaryDate).getYears(), 1);
+
+        Map<String, String> variables = new HashMap<>();
+        variables.put("name", customer.getFirstName() != null ? customer.getFirstName() : "Valued Customer");
+        variables.put("years", String.valueOf(yearsWithUs));
+
+        String discountValue = autoMessage != null && autoMessage.hasDiscount()
+                ? String.format("%.0f", autoMessage.getOfferValue())
+                : "20";
+        variables.put("discount", discountValue);
+        variables.put("restaurant", "Restaurant ERP");
+        variables.put("expiryDate", anniversaryDate.plusDays(7).toString());
+
+        if (autoMessage != null && autoMessage.getTemplateBody() != null && !autoMessage.getTemplateBody().trim().isEmpty()) {
+            String customMessage = buildMessageBody(autoMessage, customer, "anniversary", anniversaryDate);
+            variables.put("offerMessage", customMessage);
+            // Replace the default offer message placeholder with our custom message
+            template = template.replace("Thank you for {{years}} wonderful years! Here's {{discount}}% off for our valued customer.", "{{offerMessage}}");
+        }
+
+        String htmlBody = emailTemplateService.renderTemplate(template, variables);
+        String subject = "🎉 Happy Anniversary with Restaurant ERP!";
+        emailService.sendEmailToCustomer(customer.getEmail(), subject, htmlBody);
+
+        log.debug("Beautiful anniversary email sent successfully to {}", customer.getEmail());
     }
 
     private void handleBirthdayMessages(AutomatedMessage message, LocalDate targetDate) {
@@ -175,7 +278,7 @@ public class AutomatedMessageSchedulerService {
 
     private void sendEmailToCustomer(AutomatedMessage message, CustomerDto customer,
                                       String eventType, LocalDate eventDate) {
-        // Check if customer has opted in and has valid email
+
         if (customer.getEmail() == null || customer.getEmail().isEmpty()) {
             log.debug("Customer {} has no email address", customer.getId());
             return;
@@ -187,10 +290,51 @@ public class AutomatedMessageSchedulerService {
         }
 
         String subject = buildEmailSubject(eventType);
-        String body = buildMessageBody(message, customer, eventType, eventDate);
+        String htmlBody = buildHtmlEmailBody(message, customer, eventType, eventDate);
 
-        notificationService.sendEmail(customer.getEmail(), subject, body);
+        emailService.sendEmailToCustomer(customer.getEmail(), subject, htmlBody);
         log.info("Sent {} email to customer {} ({})", eventType, customer.getId(), customer.getEmail());
+    }
+
+    private String buildHtmlEmailBody(AutomatedMessage message, CustomerDto customer,
+                                       String eventType, LocalDate eventDate) {
+        String template;
+        int yearsWithUs = 1;
+
+        if ("birthday".equalsIgnoreCase(eventType)) {
+            template = emailTemplateService.getBirthdayEmailTemplate();
+        } else if ("anniversary".equalsIgnoreCase(eventType)) {
+            template = emailTemplateService.getAnniversaryEmailTemplate();
+            if (customer.getCreatedAt() != null) {
+                yearsWithUs = Math.max(java.time.Period.between(customer.getCreatedAt(), eventDate).getYears(), 1);
+            }
+        } else {
+            template = emailTemplateService.getPromotionalEmailTemplate();
+        }
+
+        if (message != null && message.getTemplateBody() != null && !message.getTemplateBody().trim().isEmpty()) {
+            String customMessage = buildMessageBody(message, customer, eventType, eventDate);
+            if ("birthday".equalsIgnoreCase(eventType)) {
+                template = template.replace("Enjoy our exclusive {{discount}}% birthday discount on your next visit!", customMessage);
+            } else if ("anniversary".equalsIgnoreCase(eventType)) {
+                template = template.replace("Thank you for {{years}} wonderful years! Here's {{discount}}% off for our valued customer.", customMessage);
+            } else {
+                template = template.replace("{{discount}}", customMessage);
+            }
+        }
+
+        Map<String, String> variables = new HashMap<>();
+        variables.put("name", customer.getFirstName() != null ? customer.getFirstName() : "Valued Customer");
+        variables.put("discount", message != null && message.hasDiscount()
+                ? String.format("%.0f", message.getOfferValue())
+                : ("birthday".equalsIgnoreCase(eventType) ? "25" : "20"));
+        variables.put("restaurant", "Restaurant ERP");
+        if ("anniversary".equalsIgnoreCase(eventType)) {
+            variables.put("years", String.valueOf(yearsWithUs));
+        }
+        variables.put("expiryDate", eventDate.plusDays(7).toString());
+
+        return emailTemplateService.renderTemplate(template, variables);
     }
 
     private String buildEmailSubject(String eventType) {
@@ -205,12 +349,10 @@ public class AutomatedMessageSchedulerService {
                                     String eventType, LocalDate eventDate) {
         String template = message.getTemplateBody();
 
-        // Use default template if none is configured
         if (template == null || template.trim().isEmpty()) {
             template = buildDefaultTemplate(message, eventType);
         }
 
-        // Replace placeholders
         return template
                 .replace("{firstName}", sanitize(customer.getFirstName(), "Valued Customer"))
                 .replace("{lastName}", sanitize(customer.getLastName(), ""))
@@ -240,7 +382,4 @@ public class AutomatedMessageSchedulerService {
         return (value != null && !value.trim().isEmpty()) ? value : defaultValue;
     }
 }
-
-
-
 

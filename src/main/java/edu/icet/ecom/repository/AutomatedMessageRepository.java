@@ -8,6 +8,7 @@ import java.util.Optional;
 public interface AutomatedMessageRepository {
 
     List<AutomatedMessage> findActiveMessages();
+    List<AutomatedMessage> findInactiveMessages();
     List<AutomatedMessage> findActiveMessagesByTriggerType(AutomatedMessage.TriggerType triggerType);
     Optional<AutomatedMessage> findById(Integer id);
     Integer save(AutomatedMessage message);

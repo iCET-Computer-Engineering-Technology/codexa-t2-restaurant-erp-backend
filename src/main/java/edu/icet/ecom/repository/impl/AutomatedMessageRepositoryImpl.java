@@ -49,6 +49,13 @@ public class AutomatedMessageRepositoryImpl implements AutomatedMessageRepositor
     }
 
     @Override
+    public List<AutomatedMessage> findInactiveMessages() {
+        String sql = "SELECT * FROM automated_messages WHERE is_active = 0 ORDER BY trigger_type, channel";
+        log.debug("Fetching all inactive automated messages");
+        return jdbcTemplate.query(sql, ROW_MAPPER);
+    }
+
+    @Override
     public List<AutomatedMessage> findActiveMessagesByTriggerType(AutomatedMessage.TriggerType triggerType) {
         String sql = "SELECT * FROM automated_messages WHERE is_active = 1 AND trigger_type = ? ORDER BY channel";
         log.debug("Fetching active messages for trigger type: {}", triggerType);

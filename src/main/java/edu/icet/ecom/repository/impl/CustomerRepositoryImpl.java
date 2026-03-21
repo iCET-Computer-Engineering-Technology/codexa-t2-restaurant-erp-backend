@@ -33,6 +33,7 @@ public class CustomerRepositoryImpl implements CustomerRepository {
         customer.setGdprDeleted(rs.getInt("gdpr_deleted"));
         customer.setBirthday(rs.getDate("birthday") != null ? rs.getDate("birthday").toLocalDate() : null);
         customer.setLoyaltyPoints(rs.getInt("loyalty_points"));
+        customer.setCreatedAt(rs.getDate("created_at") != null ? rs.getDate("created_at").toLocalDate() : null);
         return customer;
     };
 
@@ -97,13 +98,6 @@ public class CustomerRepositoryImpl implements CustomerRepository {
         return result > 0;
     }
 
-    /**
-     * Find customers whose birthday falls on the given date (month/day match).
-     * Filters out GDPR-deleted customers and those without email communication preference.
-     *
-     * @param targetDate the date to match (month and day)
-     * @return list of customers with matching birthdays
-     */
     public List<CustomerDto> findCustomersWithBirthdayOn(LocalDate targetDate) {
         String sql = "SELECT * FROM customers " +
                 "WHERE gdpr_deleted = 0 " +
@@ -117,13 +111,7 @@ public class CustomerRepositoryImpl implements CustomerRepository {
                 targetDate.getDayOfMonth());
     }
 
-    /**
-     * Find customers whose join anniversary (created_at) falls on the given date (month/day match).
-     * Filters out GDPR-deleted customers.
-     *
-     * @param targetDate the date to match (month and day)
-     * @return list of customers with matching anniversaries
-     */
+    @Override
     public List<CustomerDto> findCustomersWithAnniversaryOn(LocalDate targetDate) {
         String sql = "SELECT * FROM customers " +
                 "WHERE gdpr_deleted = 0 " +
