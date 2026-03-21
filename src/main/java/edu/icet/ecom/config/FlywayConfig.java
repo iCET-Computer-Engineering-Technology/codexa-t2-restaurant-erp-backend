@@ -8,10 +8,6 @@ import org.springframework.context.annotation.Configuration;
 @Configuration
 public class FlywayConfig {
 
-    /**
-     * Custom FlywayMigrationInitializer that runs repair() before migrate()
-     * to automatically fix any failed migration entries in the schema history table.
-     */
     @Bean
     public FlywayMigrationInitializer flywayInitializer(Flyway flyway) {
         return new FlywayMigrationInitializer(flyway, f -> {
