@@ -33,6 +33,7 @@ public class KitchenServiceImpl implements KitchenService {
         orders.forEach(order -> order.setItems(
                 orderItemRepository.findByOrderId(order.getId())
         ));
+
         return orders;
     }
 

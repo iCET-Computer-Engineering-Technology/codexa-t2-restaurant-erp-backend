@@ -13,4 +13,6 @@ public class OrderAssignment {
     private Long orderId;
     private Long waiterId;
     private LocalDateTime assignedAt;
-}
+
+    }
+
