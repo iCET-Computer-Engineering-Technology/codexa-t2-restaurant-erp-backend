@@ -1,18 +1,20 @@
 package edu.icet.ecom.service.impl;
 
 import edu.icet.ecom.entity.Order;
-import edu.icet.ecom.entity.OrderAssignment;
 import edu.icet.ecom.entity.Waiter;
+import edu.icet.ecom.entity.WaiterNameDisplay;
 import edu.icet.ecom.repository.OrderAssignmentRepository;
 import edu.icet.ecom.repository.OrderItemRepository;
 import edu.icet.ecom.repository.OrderRepository;
 import edu.icet.ecom.repository.WaiterRepository;
 import edu.icet.ecom.service.KitchenService;
+import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
 
 @Service
+@RequiredArgsConstructor
 public class KitchenServiceImpl implements KitchenService {
 
     private final OrderRepository orderRepository;
@@ -20,12 +22,6 @@ public class KitchenServiceImpl implements KitchenService {
     private final OrderAssignmentRepository orderAssignmentRepository;
     private final OrderItemRepository orderItemRepository;
 
-    public KitchenServiceImpl(OrderRepository orderRepository, WaiterRepository waiterRepository, OrderAssignmentRepository orderAssignmentRepository, OrderItemRepository orderItemRepository) {
-        this.orderRepository = orderRepository;
-        this.waiterRepository = waiterRepository;
-        this.orderAssignmentRepository = orderAssignmentRepository;
-        this.orderItemRepository = orderItemRepository;
-    }
 
     @Override
     public List<Order> getKitchenOrders() {
@@ -46,14 +42,15 @@ public class KitchenServiceImpl implements KitchenService {
     @Override
     public void assignWaiter(Long orderId, Long waiterId) {
 
-        waiterRepository.assignWaiter(orderId, waiterId);
+        orderAssignmentRepository.assignWaiter(orderId, waiterId);
 
         orderRepository.updateStatus(orderId, "READY");
 
     }
 
     @Override
-    public List<OrderAssignment> getAssignments() {
+    public List<WaiterNameDisplay> getAssignments() {
         return orderAssignmentRepository.getAssignments();
     }
 }
+

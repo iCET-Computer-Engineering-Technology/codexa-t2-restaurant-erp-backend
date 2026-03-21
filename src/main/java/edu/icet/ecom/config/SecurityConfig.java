@@ -41,7 +41,6 @@ public class SecurityConfig {
                     .sessionManagement(sessionConfig ->
                             sessionConfig.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                     .authorizeHttpRequests(authConfig -> authConfig
-                            // Public endpoints
                             .requestMatchers("/api/auth/login").permitAll()
                             .requestMatchers("/api/auth/register").permitAll()
                             .requestMatchers("/v3/api-docs/**").permitAll()
@@ -58,6 +57,7 @@ public class SecurityConfig {
 
                             // Admin endpoints - MUST be before other patterns
                             .requestMatchers("/api/admin/**").hasAuthority("ROLE_ADMIN")
+                            .requestMatchers("/api/waiter/**").permitAll()
                             .requestMatchers("/admin/**").hasAuthority("ROLE_ADMIN")
                             .requestMatchers("/ingredient/**").hasAuthority("ROLE_ADMIN")
 
