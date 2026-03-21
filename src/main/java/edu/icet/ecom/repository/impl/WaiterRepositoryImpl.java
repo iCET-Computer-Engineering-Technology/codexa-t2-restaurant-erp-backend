@@ -1,4 +1,4 @@
-package edu.icet.ecom.repository.Impl;
+package edu.icet.ecom.repository.impl;
 import edu.icet.ecom.entity.OrderAssign;
 import edu.icet.ecom.entity.Waiter;
 import edu.icet.ecom.repository.WaiterRepository;
@@ -59,13 +59,12 @@ public class WaiterRepositoryImpl implements WaiterRepository {
 
     @Override
     public List<Waiter> findActiveWaiters() {
-
-        String sql = "SELECT * FROM waiters WHERE status='ACTIVE'";
+        String sql = "SELECT * FROM waiter WHERE status='active'";
 
         return jdbcTemplate.query(sql, (rs, rowNum) -> {
             Waiter waiter = new Waiter();
             waiter.setId(rs.getLong("id"));
-            waiter.setName(rs.getString("name"));
+            waiter.setName(rs.getString("waiter_name"));
             waiter.setStatus(rs.getString("status"));
             return waiter;
         });

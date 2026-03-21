@@ -1,6 +1,7 @@
 package edu.icet.ecom.controller;
 
 import edu.icet.ecom.dto.AssignWaiterRequest;
+import edu.icet.ecom.entity.KitchenOrder;
 import edu.icet.ecom.entity.Order;
 import edu.icet.ecom.entity.OrderAssignment;
 import edu.icet.ecom.entity.Waiter;
@@ -20,28 +21,40 @@ public class KitchenController {
     }
 
     @GetMapping("/orders")
-    public List<Order> getOrders() {
+    public List<KitchenOrder> getOrders() {
         return kitchenService.getKitchenOrders();
     }
 
     @GetMapping("/waiters")
     public List<Waiter> getWaiters(){
-
         return kitchenService.getActiveWaiters();
-
     }
+
+    @GetMapping("/open-orders")
+    public List<Order> getOpenOrders() {
+        return kitchenService.getOpenOrders();
+    }
+
+    @PostMapping("/send")
+    public void sendToKitchen(@RequestParam Long orderId) {
+        kitchenService.sendToKitchen(orderId);
+    }
+
+    @PostMapping("/ready")
+    public void markReady(@RequestParam Long orderId) {
+        kitchenService.markOrderReady(orderId);
+    }
+
 
     @PostMapping("/assign")
     public void assignWaiter(@RequestBody AssignWaiterRequest request) {
         kitchenService.assignWaiter(
-                request.getOrderId(),
+                request.getKitchenOrderId(),
                 request.getWaiterId());
     }
 
     @GetMapping("/assignments")
     public List<OrderAssignment> getAssignments(){
-
         return kitchenService.getAssignments();
-
     }
 }

@@ -38,8 +38,10 @@ public class OrderAssignmentRepositoryImpl implements OrderAssignmentRepository 
             assignment.setOrderId(rs.getLong("order_id"));
             assignment.setWaiterId(rs.getLong("waiter_id"));
 
-            return assignment;
-
-        });
+    @Override
+    public boolean existsByKitchenOrderId(Long kitchenOrderId) {
+        String sql = "SELECT COUNT(*) FROM order_assignment WHERE kitchen_order_id=?";
+        Integer count = jdbcTemplate.queryForObject(sql, Integer.class, kitchenOrderId);
+        return count != null && count > 0;
     }
 }
