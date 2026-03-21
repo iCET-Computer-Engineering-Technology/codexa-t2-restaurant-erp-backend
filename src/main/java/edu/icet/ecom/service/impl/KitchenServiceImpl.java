@@ -37,11 +37,23 @@ public class KitchenServiceImpl implements KitchenService {
 
     @Override
     public void assignWaiter(Long kitchenOrderId, Long waiterId) {
+
+        KitchenOrder ko = kitchenOrderRepository.findById(kitchenOrderId);
+
+        if (ko == null) {
+            throw new IllegalArgumentException("Kitchen order not found");
+        }
+
+        if (!"done".equals(ko.getStatus())) {
+            throw new IllegalArgumentException("Order not ready for assignment");
+        }
+
         boolean assigned = orderAssignmentRepository.existsByKitchenOrderId(kitchenOrderId);
 
         if (assigned) {
-            throw new RuntimeException("Order already assigned to a waiter");
+            throw new IllegalArgumentException("Order already assigned to a waiter");
         }
+
         orderAssignmentRepository.assignWaiter(kitchenOrderId, waiterId);
     }
 
@@ -60,7 +72,7 @@ public class KitchenServiceImpl implements KitchenService {
 
         boolean exists = kitchenOrderRepository.existsByOrderId(orderId);
         if (exists) {
-            throw new RuntimeException("Order already sent to kitchen");
+            throw new IllegalArgumentException("Order already sent to kitchen");
         }
         kitchenOrderRepository.createKitchenOrder(orderId);
         orderRepository.updateStatus(orderId, "sent_to_kitchen");
@@ -71,11 +83,11 @@ public class KitchenServiceImpl implements KitchenService {
         KitchenOrder ko = kitchenOrderRepository.findByOrderId(orderId);
 
         if (ko == null) {
-            throw new RuntimeException("Kitchen order not found");
+            throw new IllegalArgumentException("Kitchen order not found");
         }
 
         if ("done".equals(ko.getStatus())) {
-            throw new RuntimeException("Order already marked as ready");
+            throw new IllegalArgumentException("Order already marked as ready");
         }
         kitchenOrderRepository.markAsDone(orderId);
         orderRepository.updateStatus(orderId, "partially_ready");

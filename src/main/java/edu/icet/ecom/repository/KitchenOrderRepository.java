@@ -10,4 +10,5 @@ public interface KitchenOrderRepository {
     void markAsDone(Long orderId);
     boolean existsByOrderId(Long orderId);
     KitchenOrder findByOrderId(Long orderId);
+    KitchenOrder findById(Long id);
 }
