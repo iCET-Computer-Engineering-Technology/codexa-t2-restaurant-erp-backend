@@ -1,13 +1,13 @@
 package edu.icet.ecom.repository;
 
-import edu.icet.ecom.entity.WaiterNameDisplay;
+import edu.icet.ecom.entity.OrderAssignment;
 
 import java.util.List;
 
 public interface OrderAssignmentRepository {
 
-    void assignWaiter(Long orderId, Long waiterId);
-    boolean existsByKitchenOrderId(Long kitchenOrderId);
-    List<WaiterNameDisplay> getAssignments();
+    void assignWaiter(Integer orderId, Long waiterId);
+
+    List<OrderAssignment> getAssignments();
 
 }

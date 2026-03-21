@@ -8,6 +8,7 @@ import org.springframework.jdbc.support.GeneratedKeyHolder;
 import org.springframework.jdbc.support.KeyHolder;
 import org.springframework.stereotype.Repository;
 
+
 import java.sql.PreparedStatement;
 import java.sql.Statement;
 import java.util.List;
@@ -20,44 +21,47 @@ public class OrderItemRepositoryImpl implements OrderItemRepository {
     private final JdbcTemplate jdbcTemplate;
 
     @Override
-    public List<OrderItem> findByOrderId(Long orderId) {
-        String sql = "SELECT oi.*, mi.name AS item_name " +
-                "FROM order_items oi " +
-                "JOIN menu_items mi ON oi.menu_item_id = mi.id " +
-                "WHERE oi.order_id = ?";
-
-        return jdbcTemplate.query(sql, (rs, rowNum) -> {
-            OrderItem item = new OrderItem();
-            item.setId(rs.getLong("id"));
-            item.setOrderId(rs.getLong("order_id"));
-            item.setMenuItemId(rs.getLong("menu_item_id"));
-            item.setItemName(rs.getString("item_name"));
-            item.setQuantity(rs.getInt("quantity"));
-            item.setUnitPrice(rs.getBigDecimal("price"));
-            item.setCreatedAt(rs.getTimestamp("created_at").toLocalDateTime());
-            return item;
-        }, orderId);
+    public List<OrderItem> findByOrderId(Integer orderId) {
+        if (orderId == null || orderId <= 0) {
+            return List.of();
+        }
+        String sql = "SELECT id, order_id, menu_item_id, portion_id, quantity, price, status, notes, created_at " +
+                "FROM order_items WHERE order_id = ? ORDER BY id ASC";
+        try {
+            return jdbcTemplate.query(sql, (rs, rowNum) -> {
+                OrderItem item = new OrderItem();
+                item.setId(rs.getInt("id"));
+                item.setOrderId(rs.getInt("order_id"));
+                item.setMenuItemId(rs.getInt("menu_item_id"));
+                item.setPortionId(rs.getInt("portion_id"));
+                item.setQuantity(rs.getInt("quantity"));
+                item.setPrice(rs.getBigDecimal("price"));
+                item.setStatus(rs.getString("status"));
+                item.setNotes(rs.getString("notes"));
+                item.setCreatedAt(rs.getObject("created_at", java.time.LocalDateTime.class));
+                return item;
+            }, orderId);
+        } catch (Exception e) {
+            return List.of(); // Return empty list instead of null on error
+        }
     }
 
     @Override
-    public Long saveAndGetId(OrderItem orderItem) {
-        String sql = "INSERT INTO order_items (order_id, menu_item_id, quantity, unit_price, total_price, created_at) "+
-                "VALUES (?, ?, ?, ?, ?, NOW())";
+    public Integer saveAndGetId(OrderItem orderItem) {
+        String sql = "INSERT INTO order_items (order_id, menu_item_id, portion_id, quantity, price, status, notes) " +
+                "VALUES (?, ?, ?, ?, ?, ?, ?)";
         KeyHolder keyHolder = new GeneratedKeyHolder();
-
         jdbcTemplate.update(connection -> {
-            PreparedStatement ps = connection.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS);
-            ps.setLong(1, orderItem.getOrderId());
-            ps.setLong(2, orderItem.getMenuItemId());
-            ps.setInt(3, orderItem.getQuantity());
-            ps.setBigDecimal(4, orderItem.getUnitPrice());
-            ps.setBigDecimal(5, orderItem.getTotalPrice());
+            PreparedStatement ps = connection.prepareStatement(sql, PreparedStatement.RETURN_GENERATED_KEYS);
+            ps.setInt(1, orderItem.getOrderId());
+            ps.setInt(2, orderItem.getMenuItemId());
+            ps.setInt(3, orderItem.getPortionId());
+            ps.setInt(4, orderItem.getQuantity());
+            ps.setBigDecimal(5, orderItem.getPrice());
+            ps.setString(6, orderItem.getStatus());
+            ps.setString(7, orderItem.getNotes());
             return ps;
         }, keyHolder);
-
-        return Optional.ofNullable(keyHolder.getKey())
-                .map(Number::longValue)
-                .orElseThrow(()->new RuntimeException("order insert failed: no generated key returned"))
-                ;
+        return Optional.ofNullable(keyHolder.getKey()).map(Number::intValue).orElseThrow(() -> new RuntimeException("Order item insert failed - no generated key returned"));
     }
 }

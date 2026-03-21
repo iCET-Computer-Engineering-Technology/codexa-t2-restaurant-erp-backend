@@ -14,23 +14,23 @@ public class CustomerServiceImpl implements CustomerService {
     private final CustomerRepository customerRepository;
 
     @Override
-    public List<CustomerDto> getAllCustomers() {
-        return customerRepository.getAllCustomers();
+    public List<CustomerDto> getAllCustomer() {
+        return customerRepository.getAllCustomer();
     }
 
     @Override
-    public boolean saveCustomer(CustomerDto customerDto) {
-        return customerRepository.saveCustomer(customerDto);
+    public boolean addCustomer(CustomerDto customerDTO) {
+        return customerRepository.addCustomer(customerDTO);
     }
 
     @Override
     public CustomerDto searchCustomerByPhone(String phone) {
-        return customerRepository.searchCustomerByPhone(phone).orElse(null);
+        return customerRepository.searchCustomerByPhone(phone);
     }
 
     @Override
     public CustomerDto searchCustomerById(Integer id) {
-        return customerRepository.searchCustomerById(id).orElse(null);
+        return customerRepository.searchCustomerById(id);
     }
 
     @Override
