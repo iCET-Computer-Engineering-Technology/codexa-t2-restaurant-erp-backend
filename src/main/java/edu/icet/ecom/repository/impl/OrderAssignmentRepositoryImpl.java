@@ -17,30 +17,28 @@ public class OrderAssignmentRepositoryImpl implements OrderAssignmentRepository 
     }
 
     @Override
-    public void assignWaiter(Integer orderId, Long waiterId) {
-        String sql = """
-                INSERT INTO order_assignments(order_id, waiter_id)
-                VALUES (?,?)
-                """;
-
-        jdbcTemplate.update(sql, orderId, waiterId);
+    public void assignWaiter(Long kitchenOrderId, Long waiterId) {
+        String sql = "INSERT INTO order_assignment(kitchen_order_id, waiter_id, assigned_at) VALUES (?, ?, NOW())";
+        jdbcTemplate.update(sql, kitchenOrderId, waiterId);
     }
 
     @Override
     public List<OrderAssignment> getAssignments() {
-        String sql = "SELECT * FROM order_assignments";
+        String sql = "SELECT * FROM order_assignment";
 
-        return jdbcTemplate.query(sql,(rs,rowNum)->{
-
+        return jdbcTemplate.query(sql, (rs, rowNum) -> {
             OrderAssignment assignment = new OrderAssignment();
-
             assignment.setId(rs.getLong("id"));
-            assignment.setOrderId(rs.getLong("order_id"));
+            assignment.setKitchenOrderId(rs.getLong("kitchen_order_id"));
             assignment.setWaiterId(rs.getLong("waiter_id"));
+            assignment.setAssignedAt(rs.getTimestamp("assigned_at").toLocalDateTime());
+            return assignment;
+        });
+    }
 
     @Override
     public boolean existsByKitchenOrderId(Long kitchenOrderId) {
-        String sql = "SELECT COUNT(*) FROM order_assignment WHERE kitchen_order_id=?";
+        String sql = "SELECT COUNT(*) FROM order_assignment WHERE kitchen_order_id = ?";
         Integer count = jdbcTemplate.queryForObject(sql, Integer.class, kitchenOrderId);
         return count != null && count > 0;
     }

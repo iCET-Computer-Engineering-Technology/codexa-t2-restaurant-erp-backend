@@ -154,7 +154,7 @@ public class MarketingCampaignServiceImpl implements MarketingCampaignService {
         MarketingCampaign campaign = marketingCampaignRepository.findById(campaignId)
                 .orElseThrow(() -> new IllegalArgumentException("Campaign not found: " + campaignId));
 
-        List<CustomerDto> customers = customerService.getAllCustomers();
+        List<CustomerDto> customers = customerService.getAllCustomer();
 
         if (campaign.getSegmentId() != null) {
             customers = customers.stream()
@@ -231,5 +231,3 @@ public class MarketingCampaignServiceImpl implements MarketingCampaignService {
         return dto;
     }
 }
-
-

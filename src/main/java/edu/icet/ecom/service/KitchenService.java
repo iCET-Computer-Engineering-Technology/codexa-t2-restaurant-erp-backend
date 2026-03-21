@@ -10,7 +10,7 @@ import java.util.List;
 public interface KitchenService {
     List<KitchenOrder> getKitchenOrders();
     List<Waiter> getActiveWaiters();
-    void assignWaiter(Long orderId,Long waiterId);
+    void assignWaiter(Long kitchenOrderId, Long waiterId);
     List<OrderAssignment> getAssignments();
     List<Order> getOpenOrders();
     void sendToKitchen(Long orderId);

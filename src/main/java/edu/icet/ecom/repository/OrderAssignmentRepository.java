@@ -6,8 +6,9 @@ import java.util.List;
 
 public interface OrderAssignmentRepository {
 
-    void assignWaiter(Integer orderId, Long waiterId);
+    void assignWaiter(Long kitchenOrderId, Long waiterId);
 
     List<OrderAssignment> getAssignments();
 
+    boolean existsByKitchenOrderId(Long kitchenOrderId);
 }

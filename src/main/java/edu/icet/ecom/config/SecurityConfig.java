@@ -55,7 +55,7 @@ public class SecurityConfig {
                             .requestMatchers("/modifiers/**").permitAll()
                             .requestMatchers("/menu-item-modifier-group/**").permitAll()
 
-                            // Admin endpoints - MUST be before other patterns
+                            // Admin endpoints - MUST be before terminal anyRequest
                             .requestMatchers("/api/admin/**").hasAuthority("ROLE_ADMIN")
                             .requestMatchers("/api/waiter/**").permitAll()
                             .requestMatchers("/admin/**").hasAuthority("ROLE_ADMIN")
@@ -71,9 +71,8 @@ public class SecurityConfig {
                             .requestMatchers("/menu-items/**").hasAuthority("ROLE_ADMIN")
                             .requestMatchers("/portions/**").hasAuthority("ROLE_ADMIN")
                             .requestMatchers("/menu-item-price/**").hasAuthority("ROLE_ADMIN")
-                            .anyRequest().permitAll()
 
-                            // All other requests require authentication
+                            // Terminal matcher must appear only once
                             .anyRequest().authenticated()
                     )
                     .authenticationProvider(authenticationProvider())
