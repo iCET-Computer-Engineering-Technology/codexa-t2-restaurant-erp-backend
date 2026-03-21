@@ -67,6 +67,11 @@ public class SecurityConfig {
 
                             // User endpoints
                             .requestMatchers("/user/**").hasAuthority("ROLE_USER")
+                            .requestMatchers("/categories/**").hasAuthority("ROLE_ADMIN")
+                            .requestMatchers("/menu-items/**").hasAuthority("ROLE_ADMIN")
+                            .requestMatchers("/portions/**").hasAuthority("ROLE_ADMIN")
+                            .requestMatchers("/menu-item-price/**").hasAuthority("ROLE_ADMIN")
+                            .anyRequest().permitAll()
 
                             // All other requests require authentication
                             .anyRequest().authenticated()

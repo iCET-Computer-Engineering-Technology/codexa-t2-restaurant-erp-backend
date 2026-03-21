@@ -9,13 +9,14 @@ import java.sql.Timestamp;
 @AllArgsConstructor
 @NoArgsConstructor
 @ToString
-public class MenuItemVariant {
-    private Integer variantId;
-    private Integer menuItemId;
-    private Integer portionSizeId;
-    private Double price;
-    private Integer prepTimeMinutes;
+public class MenuItemsDto {
+    private Integer id;
+    private Integer categoryId;
+    private String categoryName;
+    private String name;
+    private String description;
     private Boolean isAvailable;
+    private String imageUrl;
     private Timestamp createdAt;
     private Timestamp updatedAt;
 }
