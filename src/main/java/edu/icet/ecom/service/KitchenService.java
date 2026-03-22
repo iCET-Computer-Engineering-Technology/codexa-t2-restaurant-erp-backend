@@ -11,9 +11,7 @@ public interface KitchenService {
     List<KitchenOrder> getKitchenOrders();
     List<Waiter> getActiveWaiters();
     void assignWaiter(Long kitchenOrderId, Long waiterId);
-
     List<WaiterDetails> getAssignmentsWaiter();
-
     List<Order> getOpenOrders();
     void sendToKitchen(Long orderId);
     void markOrderReady(Long orderId);

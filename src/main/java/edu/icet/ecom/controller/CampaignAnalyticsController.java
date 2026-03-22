@@ -15,7 +15,7 @@ import java.util.List;
 @RestController
 @RequestMapping("/api/campaign-analytics")
 @RequiredArgsConstructor
-@PreAuthorize("hasRole('ROLE_ADMIN')")
+@PreAuthorize("hasAuthority('ROLE_ADMIN')")
 public class CampaignAnalyticsController {
 
     private final CampaignAnalyticsService campaignAnalyticsService;

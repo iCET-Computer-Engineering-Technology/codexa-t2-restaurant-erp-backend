@@ -231,5 +231,3 @@ public class MarketingCampaignServiceImpl implements MarketingCampaignService {
         return dto;
     }
 }
-
-

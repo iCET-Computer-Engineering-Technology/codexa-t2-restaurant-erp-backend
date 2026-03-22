@@ -62,7 +62,7 @@ public class KitchenOrderRepositoryImpl implements KitchenOrderRepository {
 
     @Override
     public boolean existsByOrderId(Long orderId) {
-        String sql = "SELECT COUNT(*) FROM kitchen_order WHERE order_id=?";
+        String sql = "SELECT COUNT(*) FROM kitchen_order WHERE order_id = ?";
         Integer count = jdbcTemplate.queryForObject(sql, Integer.class, orderId);
         return count != null && count > 0;
     }
@@ -70,48 +70,40 @@ public class KitchenOrderRepositoryImpl implements KitchenOrderRepository {
     @Override
     public KitchenOrder findByOrderId(Long orderId) {
         String sql = "SELECT * FROM kitchen_order WHERE order_id = ?";
-
-        List<KitchenOrder> list = jdbcTemplate.query(sql, (rs, rowNum) -> {
-            KitchenOrder ko = new KitchenOrder();
-            ko.setId(rs.getLong("id"));
-            ko.setOrderId(rs.getLong("order_id"));
-            ko.setStatus(rs.getString("status"));
-
-            if (rs.getTimestamp(COL_GET_TIME) != null) {
+        try {
+            return jdbcTemplate.queryForObject(sql, (rs, rowNum) -> {
+                KitchenOrder ko = new KitchenOrder();
+                ko.setId(rs.getLong("id"));
+                ko.setOrderId(rs.getLong("order_id"));
+                ko.setStatus(rs.getString("status"));
                 ko.setGetTime(rs.getTimestamp(COL_GET_TIME).toLocalDateTime());
-            }
-
-            if (rs.getTimestamp("end_time") != null) {
-                ko.setEndTime(rs.getTimestamp("end_time").toLocalDateTime());
-            }
-
-            return ko;
-        }, orderId);
-
-        return list.isEmpty() ? null : list.get(0);
+                if (rs.getTimestamp("end_time") != null) {
+                    ko.setEndTime(rs.getTimestamp("end_time").toLocalDateTime());
+                }
+                return ko;
+            }, orderId);
+        } catch (org.springframework.dao.EmptyResultDataAccessException e) {
+            return null;
+        }
     }
 
     @Override
     public KitchenOrder findById(Long id) {
         String sql = "SELECT * FROM kitchen_order WHERE id = ?";
-
-        List<KitchenOrder> list = jdbcTemplate.query(sql, (rs, rowNum) -> {
-            KitchenOrder ko = new KitchenOrder();
-            ko.setId(rs.getLong("id"));
-            ko.setOrderId(rs.getLong("order_id"));
-            ko.setStatus(rs.getString("status"));
-
-            if (rs.getTimestamp("get_time") != null) {
-                ko.setGetTime(rs.getTimestamp("get_time").toLocalDateTime());
-            }
-
-            if (rs.getTimestamp("end_time") != null) {
-                ko.setEndTime(rs.getTimestamp("end_time").toLocalDateTime());
-            }
-
-            return ko;
-        }, id);
-
-        return list.isEmpty() ? null : list.get(0);
+        try {
+            return jdbcTemplate.queryForObject(sql, (rs, rowNum) -> {
+                KitchenOrder ko = new KitchenOrder();
+                ko.setId(rs.getLong("id"));
+                ko.setOrderId(rs.getLong("order_id"));
+                ko.setStatus(rs.getString("status"));
+                ko.setGetTime(rs.getTimestamp(COL_GET_TIME).toLocalDateTime());
+                if (rs.getTimestamp("end_time") != null) {
+                    ko.setEndTime(rs.getTimestamp("end_time").toLocalDateTime());
+                }
+                return ko;
+            }, id);
+        } catch (org.springframework.dao.EmptyResultDataAccessException e) {
+            return null;
+        }
     }
 }

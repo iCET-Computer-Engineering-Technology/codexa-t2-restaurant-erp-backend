@@ -1,8 +1,10 @@
 package edu.icet.ecom.repository.impl;
 
 import edu.icet.ecom.dto.MenuCategoriesDto;
+import edu.icet.ecom.exception.ResourceNotFoundException;
 import edu.icet.ecom.repository.MenuCategoriesRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.dao.EmptyResultDataAccessException;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Repository;
 
@@ -38,11 +40,15 @@ public class MenuCategoriesRepositoryImpl implements MenuCategoriesRepository {
 
     @Override
     public MenuCategoriesDto searchById(Integer id) {
-        return jdbcTemplate.queryForObject("SELECT * FROM menu_categories WHERE id = ?" , (rs, rowNum) -> new MenuCategoriesDto(
-                rs.getInt(1),
-                rs.getString(2),
-                rs.getBoolean(3)
-                ), id);
+        try {
+            return jdbcTemplate.queryForObject("SELECT * FROM menu_categories WHERE id = ?" , (rs, rowNum) -> new MenuCategoriesDto(
+                    rs.getInt(1),
+                    rs.getString(2),
+                    rs.getBoolean(3)
+                    ), id);
+        } catch (EmptyResultDataAccessException ex) {
+            throw new ResourceNotFoundException("Menu category not found: id=" + id);
+        }
     }
 
     @Override

@@ -12,4 +12,5 @@ public interface OrderAssignmentRepository {
 
     List<WaiterDetails> getAssignments();
 
+    boolean existsByKitchenOrderId(Long kitchenOrderId);
 }
