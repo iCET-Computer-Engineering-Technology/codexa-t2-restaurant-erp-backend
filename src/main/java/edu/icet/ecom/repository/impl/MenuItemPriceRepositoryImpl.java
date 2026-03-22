@@ -1,9 +1,10 @@
 package edu.icet.ecom.repository.impl;
 
 import edu.icet.ecom.dto.MenuItemPriceDto;
-import edu.icet.ecom.dto.MenuItemsDto;
+import edu.icet.ecom.exception.ResourceNotFoundException;
 import edu.icet.ecom.repository.MenuItemPriceRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.dao.EmptyResultDataAccessException;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Repository;
 
@@ -58,13 +59,17 @@ public class MenuItemPriceRepositoryImpl implements MenuItemPriceRepository {
 
     @Override
     public MenuItemPriceDto searchById(Integer id) {
-        return jdbcTemplate.queryForObject("SELECT * FROM menu_item_price WHERE id = ?", (rs, rowNum) -> new MenuItemPriceDto(
-                rs.getInt(1),
-                rs.getInt(2),
-                rs.getInt(3),
-                rs.getDouble(4),
-                rs.getBoolean(5)
-        ) , id);
+        try {
+            return jdbcTemplate.queryForObject("SELECT * FROM menu_item_price WHERE id = ?", (rs, rowNum) -> new MenuItemPriceDto(
+                    rs.getInt(1),
+                    rs.getInt(2),
+                    rs.getInt(3),
+                    rs.getDouble(4),
+                    rs.getBoolean(5)
+            ) , id);
+        } catch (EmptyResultDataAccessException ex) {
+            throw new ResourceNotFoundException("Menu item price not found: id=" + id);
+        }
     }
 
     @Override

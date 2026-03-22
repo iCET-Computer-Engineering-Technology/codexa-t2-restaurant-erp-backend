@@ -6,6 +6,7 @@ import edu.icet.ecom.entity.Order;
 import edu.icet.ecom.entity.OrderAssignment;
 import edu.icet.ecom.entity.Waiter;
 import edu.icet.ecom.service.KitchenService;
+import jakarta.validation.Valid;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -47,7 +48,7 @@ public class KitchenController {
 
 
     @PostMapping("/assign")
-    public void assignWaiter(@RequestBody AssignWaiterRequest request) {
+    public void assignWaiter(@Valid @RequestBody AssignWaiterRequest request) {
         kitchenService.assignWaiter(
                 request.getKitchenOrderId(),
                 request.getWaiterId());

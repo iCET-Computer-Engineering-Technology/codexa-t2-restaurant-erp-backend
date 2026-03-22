@@ -1,8 +1,10 @@
 package edu.icet.ecom.repository.impl;
 
 import edu.icet.ecom.dto.PortionsDto;
+import edu.icet.ecom.exception.ResourceNotFoundException;
 import edu.icet.ecom.repository.PortionsRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.dao.EmptyResultDataAccessException;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Repository;
 
@@ -35,10 +37,14 @@ public class PortionsRepositoryImpl implements PortionsRepository {
 
     @Override
     public PortionsDto searchById(Integer id) {
-        return jdbcTemplate.queryForObject("SELECT * FROM portions WHERE id = ?",(rs, rowNum) -> new PortionsDto(
-                rs.getInt(1),
-                rs.getString(2)
-        ) , id);
+        try {
+            return jdbcTemplate.queryForObject("SELECT * FROM portions WHERE id = ?",(rs, rowNum) -> new PortionsDto(
+                    rs.getInt(1),
+                    rs.getString(2)
+            ) , id);
+        } catch (EmptyResultDataAccessException ex) {
+            throw new ResourceNotFoundException("Portion not found: id=" + id);
+        }
     }
 
     @Override

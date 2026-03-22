@@ -19,6 +19,7 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
+import org.springframework.http.HttpMethod;
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
@@ -39,15 +40,7 @@ public class SecurityConfig {
             "/v3/api-docs/**",
             "/swagger-ui/**",
             "/swagger-ui.html",
-            "/api/order/**",
-            "/customers/**",
-            "/api/kitchen/**",
-            "/category/**",
-            "/item/**",
-            "/modifier-group/**",
-            "/modifiers/**",
-            "/menu-item-modifier-group/**",
-            "/api/waiter/**"
+            "/error"
     };
 
     private static final String[] ADMIN_ENDPOINTS = {
@@ -56,10 +49,18 @@ public class SecurityConfig {
             "/ingredient/**",
             "/api/campaigns/**",
             "/api/campaign-analytics/**",
+            "/api/emails/**",
             "/categories/**",
             "/menu-items/**",
             "/portions/**",
             "/menu-item-price/**"
+    };
+
+    private static final String[] STAFF_ENDPOINTS = {
+            "/api/order/**",
+            "/api/kitchen/**",
+            "/customers/**",
+            "/api/waiter/**"
     };
 
     @Bean
@@ -70,8 +71,11 @@ public class SecurityConfig {
                     .sessionManagement(sessionConfig ->
                             sessionConfig.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                     .authorizeHttpRequests(authConfig -> {
+                        authConfig.requestMatchers(HttpMethod.OPTIONS, "/**").permitAll();
                         authConfig.requestMatchers(PUBLIC_ENDPOINTS).permitAll();
                         authConfig.requestMatchers(ADMIN_ENDPOINTS).hasAuthority("ROLE_ADMIN");
+                        authConfig.requestMatchers(STAFF_ENDPOINTS)
+                                .hasAnyAuthority("ROLE_ADMIN", "ROLE_USER", "ROLE_CASHIER", "ROLE_WAITER", "ROLE_CHEF");
                         authConfig.requestMatchers("/user/**").hasAuthority("ROLE_USER");
                         authConfig.anyRequest().authenticated();
                     })

@@ -2,6 +2,7 @@ package edu.icet.ecom.service;
 
 import edu.icet.ecom.entity.UserEntity;
 import edu.icet.ecom.repository.UserRepository;
+import edu.icet.ecom.util.Role;
 import lombok.RequiredArgsConstructor;
 import org.jspecify.annotations.NullMarked;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
@@ -24,7 +25,8 @@ public class CustomUserDetailsService implements UserDetailsService {
     public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
         UserEntity entity = repository.findByUsername(username);
         if (entity == null) throw new UsernameNotFoundException("User not found: "+username);
-        SimpleGrantedAuthority authority = new SimpleGrantedAuthority(entity.getRole().name());
+        Role effectiveRole = entity.getRole() != null ? entity.getRole() : Role.ROLE_USER;
+        SimpleGrantedAuthority authority = new SimpleGrantedAuthority(effectiveRole.name());
         List<SimpleGrantedAuthority> authorities = new ArrayList<>();
         authorities.add(authority);
         return new User(
