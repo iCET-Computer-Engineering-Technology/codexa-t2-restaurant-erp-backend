@@ -46,7 +46,7 @@ public class SecurityConfig {
                             .requestMatchers("/v3/api-docs/**").permitAll()
                             .requestMatchers("/swagger-ui/**").permitAll()
                             .requestMatchers("/swagger-ui.html").permitAll()
-                            .requestMatchers("/order/**").permitAll()
+                            .requestMatchers("/api/order/**").permitAll()
                             .requestMatchers("/customers/**").permitAll()
                             .requestMatchers("/api/kitchen/**").permitAll()
                             .requestMatchers("/category/**").permitAll()
@@ -67,8 +67,10 @@ public class SecurityConfig {
 
                             // User endpoints
                             .requestMatchers("/user/**").hasAuthority("ROLE_USER")
-
-                            // All other requests require authentication
+                            .requestMatchers("/categories/**").hasAuthority("ROLE_ADMIN")
+                            .requestMatchers("/menu-items/**").hasAuthority("ROLE_ADMIN")
+                            .requestMatchers("/portions/**").hasAuthority("ROLE_ADMIN")
+                            .requestMatchers("/menu-item-price/**").hasAuthority("ROLE_ADMIN")
                             .anyRequest().authenticated()
                     )
                     .authenticationProvider(authenticationProvider())

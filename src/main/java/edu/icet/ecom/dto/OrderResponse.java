@@ -1,17 +1,15 @@
-package edu.icet.ecom.entity;
+package edu.icet.ecom.dto;
 
 import lombok.*;
-
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.List;
 
 @Getter
 @Setter
-@AllArgsConstructor
 @NoArgsConstructor
-@ToString(exclude = {"items"})
-public class Order {
+@AllArgsConstructor
+public class OrderResponse {
     private Integer id;
     private String orderNumber;
     private String orderType;
@@ -27,6 +25,6 @@ public class Order {
     private String notes;
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
-    private List<OrderItem> items;
-
+    private List<OrderItemResponse> items;
 }
+
