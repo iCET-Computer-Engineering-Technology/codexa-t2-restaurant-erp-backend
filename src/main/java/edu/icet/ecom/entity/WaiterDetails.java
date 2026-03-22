@@ -12,11 +12,11 @@ import java.time.LocalDateTime;
     @AllArgsConstructor
     @NoArgsConstructor
 
-    public class WaiterNameDisplay {
+    public class WaiterDetails {
         private String waiter_name;
-        private int id;
-        private int kitchenOrderId;
-        private int waiterId;
+        private Integer id;
+        private Integer kitchenOrderId;
+        private Integer waiterId;
         private LocalDateTime assignedAt;
     }
 

@@ -1,6 +1,6 @@
 package edu.icet.ecom.repository.impl;
 
-import edu.icet.ecom.entity.WaiterNameDisplay;
+import edu.icet.ecom.entity.WaiterDetails;
 import edu.icet.ecom.repository.OrderAssignmentRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.jdbc.core.JdbcTemplate;
@@ -23,7 +23,7 @@ public class OrderAssignmentRepositoryImpl implements OrderAssignmentRepository 
     }
 
     @Override
-    public List<WaiterNameDisplay> getAssignments() {
+    public List<WaiterDetails> getAssignments() {
         String sql = """
                 SELECT order_assignment.id, kitchen_order_id, waiter_id, assigned_at,waiter.waiter_name
                 FROM order_assignment
@@ -31,7 +31,7 @@ public class OrderAssignmentRepositoryImpl implements OrderAssignmentRepository 
                 ORDER BY assigned_at DESC; 
                 """;
         return jdbcTemplate.query(sql, (rs, rowNum) -> {
-            WaiterNameDisplay waiterNameDisplay = new WaiterNameDisplay();
+            WaiterDetails waiterNameDisplay = new WaiterDetails();
             waiterNameDisplay.setId(rs.getInt("id"));
             waiterNameDisplay.setKitchenOrderId(rs.getInt("kitchen_order_id"));
             waiterNameDisplay.setWaiterId(rs.getInt("waiter_id"));
