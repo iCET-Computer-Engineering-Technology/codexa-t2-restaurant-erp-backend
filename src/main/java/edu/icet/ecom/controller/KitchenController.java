@@ -3,8 +3,8 @@ package edu.icet.ecom.controller;
 import edu.icet.ecom.dto.AssignWaiterRequest;
 import edu.icet.ecom.entity.KitchenOrder;
 import edu.icet.ecom.entity.Order;
-import edu.icet.ecom.entity.OrderAssignment;
 import edu.icet.ecom.entity.Waiter;
+import edu.icet.ecom.entity.WaiterDetails;
 import edu.icet.ecom.service.KitchenService;
 import jakarta.validation.Valid;
 import org.springframework.web.bind.annotation.*;
@@ -28,6 +28,7 @@ public class KitchenController {
 
     @GetMapping("/waiters")
     public List<Waiter> getWaiters(){
+
         return kitchenService.getActiveWaiters();
     }
 
@@ -49,13 +50,16 @@ public class KitchenController {
 
     @PostMapping("/assign")
     public void assignWaiter(@Valid @RequestBody AssignWaiterRequest request) {
+        if (request.getKitchenOrderId() == null || request.getWaiterId() == null) {
+            throw new IllegalArgumentException("kitchenOrderId and waiterId are required");
+        }
         kitchenService.assignWaiter(
                 request.getKitchenOrderId(),
                 request.getWaiterId());
     }
 
     @GetMapping("/assignments")
-    public List<OrderAssignment> getAssignments(){
-        return kitchenService.getAssignments();
+    public List<WaiterDetails> getAssignments(){
+        return kitchenService.getAssignmentsWaiter();
     }
 }

@@ -19,11 +19,6 @@ public class CustomerServiceImpl implements CustomerService {
     }
 
     @Override
-    public List<CustomerDto> getAllCustomer() {
-        return getAllCustomers();
-    }
-
-    @Override
     public boolean addCustomer(CustomerDto customerDTO) {
         return customerRepository.saveCustomer(customerDTO);
     }

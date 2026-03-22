@@ -31,7 +31,6 @@ public class KitchenServiceImpl implements KitchenService {
     @Override
     public void assignWaiter(Long kitchenOrderId, Long waiterId) {
         KitchenOrder ko = kitchenOrderRepository.findById(kitchenOrderId);
-
         if (ko == null) {
             throw new IllegalArgumentException("Kitchen order not found");
         }
@@ -50,16 +49,18 @@ public class KitchenServiceImpl implements KitchenService {
     }
 
     @Override
-    public List<OrderAssignment> getAssignments() {
+    public List<WaiterDetails> getAssignmentsWaiter() {
         return orderAssignmentRepository.getAssignments();
     }
 
     @Override
     public List<Order> getOpenOrders() {
         List<Order> orders = orderRepository.findByStatus("open");
-        for (Order order : orders) {
-             order.setItems(orderItemRepository.findByOrderId(order.getId()));
-        }
+        orders.forEach(order ->
+                order.setItems(
+                        orderItemRepository.findByOrderId(order.getId())
+                )
+        );
         return orders;
     }
 
@@ -91,6 +92,7 @@ public class KitchenServiceImpl implements KitchenService {
         }
         
         kitchenOrderRepository.markAsDone(orderId);
+        orderRepository.updateStatus(Math.toIntExact(orderId), "partially_ready");
         orderRepository.updateStatus(orderId.intValue(), "partially_ready");
     }
 }

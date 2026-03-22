@@ -2,19 +2,28 @@ package edu.icet.ecom.repository.impl;
 
 import edu.icet.ecom.entity.KitchenOrder;
 import edu.icet.ecom.repository.KitchenOrderRepository;
+import lombok.RequiredArgsConstructor;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
 
 @Repository
+@RequiredArgsConstructor
 public class KitchenOrderRepositoryImpl implements KitchenOrderRepository {
 
     private final JdbcTemplate jdbcTemplate;
     private static final String COL_GET_TIME = "get_time";
 
-    public KitchenOrderRepositoryImpl(JdbcTemplate jdbcTemplate) {
-        this.jdbcTemplate = jdbcTemplate;
+
+    @Override
+    public void markAsDone(Integer orderId) {
+        String sql = """
+            UPDATE kitchen_order
+            SET status='done', end_time=NOW()
+            WHERE order_id=?
+        """;
+        jdbcTemplate.update(sql, orderId);
     }
 
     @Override
@@ -42,13 +51,14 @@ public class KitchenOrderRepositoryImpl implements KitchenOrderRepository {
 
     @Override
     public void markAsDone(Long orderId) {
-        String sql = """
+            String sql = """
             UPDATE kitchen_order
             SET status='done', end_time=NOW()
             WHERE order_id=?
         """;
-        jdbcTemplate.update(sql, orderId);
-    }
+
+            jdbcTemplate.update(sql, orderId);
+        }
 
     @Override
     public boolean existsByOrderId(Long orderId) {
