@@ -33,7 +33,7 @@ public class MenuItemsRepositoryImpl implements MenuItemsRepository {
                     "mi.name, mi.description, mi.is_available, mi.image_url, " +
                     "mi.created_at, mi.updated_at " +
                     "FROM menu_items mi " +
-                    "JOIN menu_categories mc ON mi.category_id = mc.id ";
+                    "LEFT JOIN menu_categories mc ON mi.category_id = mc.id ";
 
 
     @Override

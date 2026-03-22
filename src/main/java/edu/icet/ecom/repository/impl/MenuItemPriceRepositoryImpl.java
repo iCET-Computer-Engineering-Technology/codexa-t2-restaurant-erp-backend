@@ -18,7 +18,7 @@ public class MenuItemPriceRepositoryImpl implements MenuItemPriceRepository {
             "SELECT mi.name, mc.name, p.portion_name, mip.price " +
                     "FROM menu_item_price mip " +
                     "JOIN menu_items mi ON mip.item_id = mi.id " +
-                    "JOIN menu_categories mc ON mi.category_id = mc.id " +
+                    "LEFT JOIN menu_categories mc ON mi.category_id = mc.id " +
                     "JOIN portions p ON mip.portion_id = p.id ";
 
     private MenuItemPriceDto mapRow(java.sql.ResultSet rs) throws java.sql.SQLException {

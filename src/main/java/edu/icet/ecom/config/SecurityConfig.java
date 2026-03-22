@@ -33,6 +33,35 @@ public class SecurityConfig {
     private final JwtAuthFilter jwtAuthFilter;
     private final CustomUserDetailsService service;
 
+    private static final String[] PUBLIC_ENDPOINTS = {
+            "/api/auth/login",
+            "/api/auth/register",
+            "/v3/api-docs/**",
+            "/swagger-ui/**",
+            "/swagger-ui.html",
+            "/api/order/**",
+            "/customers/**",
+            "/api/kitchen/**",
+            "/category/**",
+            "/item/**",
+            "/modifier-group/**",
+            "/modifiers/**",
+            "/menu-item-modifier-group/**",
+            "/api/waiter/**"
+    };
+
+    private static final String[] ADMIN_ENDPOINTS = {
+            "/api/admin/**",
+            "/admin/**",
+            "/ingredient/**",
+            "/api/campaigns/**",
+            "/api/campaign-analytics/**",
+            "/categories/**",
+            "/menu-items/**",
+            "/portions/**",
+            "/menu-item-price/**"
+    };
+
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) {
         try {
@@ -40,41 +69,12 @@ public class SecurityConfig {
                     .cors(Customizer.withDefaults())
                     .sessionManagement(sessionConfig ->
                             sessionConfig.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
-                    .authorizeHttpRequests(authConfig -> authConfig
-                            .requestMatchers("/api/auth/login").permitAll()
-                            .requestMatchers("/api/auth/register").permitAll()
-                            .requestMatchers("/v3/api-docs/**").permitAll()
-                            .requestMatchers("/swagger-ui/**").permitAll()
-                            .requestMatchers("/swagger-ui.html").permitAll()
-                            .requestMatchers("/api/order/**").permitAll()
-                            .requestMatchers("/customers/**").permitAll()
-                            .requestMatchers("/api/kitchen/**").permitAll()
-                            .requestMatchers("/category/**").permitAll()
-                            .requestMatchers("/item/**").permitAll()
-                            .requestMatchers("/modifier-group/**").permitAll()
-                            .requestMatchers("/modifiers/**").permitAll()
-                            .requestMatchers("/menu-item-modifier-group/**").permitAll()
-
-                            // Admin endpoints - MUST be before terminal anyRequest
-                            .requestMatchers("/api/admin/**").hasAuthority("ROLE_ADMIN")
-                            .requestMatchers("/api/waiter/**").permitAll()
-                            .requestMatchers("/admin/**").hasAuthority("ROLE_ADMIN")
-                            .requestMatchers("/ingredient/**").hasAuthority("ROLE_ADMIN")
-
-                            // Marketing/Campaign Analytics endpoints - Admin only
-                            .requestMatchers("/api/campaigns/**").hasAuthority("ROLE_ADMIN")
-                            .requestMatchers("/api/campaign-analytics/**").hasAuthority("ROLE_ADMIN")
-
-                            // User endpoints
-                            .requestMatchers("/user/**").hasAuthority("ROLE_USER")
-                            .requestMatchers("/categories/**").hasAuthority("ROLE_ADMIN")
-                            .requestMatchers("/menu-items/**").hasAuthority("ROLE_ADMIN")
-                            .requestMatchers("/portions/**").hasAuthority("ROLE_ADMIN")
-                            .requestMatchers("/menu-item-price/**").hasAuthority("ROLE_ADMIN")
-
-                            // Terminal matcher must appear only once
-                            .anyRequest().authenticated()
-                    )
+                    .authorizeHttpRequests(authConfig -> {
+                        authConfig.requestMatchers(PUBLIC_ENDPOINTS).permitAll();
+                        authConfig.requestMatchers(ADMIN_ENDPOINTS).hasAuthority("ROLE_ADMIN");
+                        authConfig.requestMatchers("/user/**").hasAuthority("ROLE_USER");
+                        authConfig.anyRequest().authenticated();
+                    })
                     .authenticationProvider(authenticationProvider())
                     .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class);
             return http.build();

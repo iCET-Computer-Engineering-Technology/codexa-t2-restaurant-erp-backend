@@ -13,6 +13,13 @@ import org.springframework.stereotype.Repository;
 public class UserRepositoryImpl implements UserRepository {
     private final JdbcTemplate template;
 
+    private Role parseRole(String roleValue) {
+        if (roleValue == null || roleValue.isBlank()) {
+            return null;
+        }
+        return Role.valueOf(roleValue);
+    }
+
     @Override
     public UserEntity findByUsername(String username) {
         try {
@@ -22,7 +29,7 @@ public class UserRepositoryImpl implements UserRepository {
                             rs.getString("username"),
                             rs.getString("email"),
                             rs.getString("password"),
-                            Role.valueOf(rs.getString("role")),
+                            parseRole(rs.getString("role")),
                             rs.getBoolean("enabled"),
                             rs.getTimestamp("created_at") != null ? rs.getTimestamp("created_at").toLocalDateTime() : null
                     ), username);
@@ -40,7 +47,7 @@ public class UserRepositoryImpl implements UserRepository {
                             rs.getString("username"),
                             rs.getString("email"),
                             rs.getString("password"),
-                            Role.valueOf(rs.getString("role")),
+                            parseRole(rs.getString("role")),
                             rs.getBoolean("enabled"),
                             rs.getTimestamp("created_at") != null ? rs.getTimestamp("created_at").toLocalDateTime() : null
                     ), email);
@@ -65,7 +72,7 @@ public class UserRepositoryImpl implements UserRepository {
                 userEntity.getUsername(),
                 userEntity.getEmail(),
                 userEntity.getPassword(),
-                userEntity.getRole().name(),
+                userEntity.getRole() != null ? userEntity.getRole().name() : null,
                 userEntity.getEnabled(),
                 userEntity.getCreatedAt());
         return findByUsername(userEntity.getUsername());

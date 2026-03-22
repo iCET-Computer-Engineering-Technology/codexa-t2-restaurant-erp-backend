@@ -18,8 +18,7 @@ public class IngredientServiceImpl implements IngredientService {
     @Override
     public void add(IngredientDto ingredientDto) {
         jdbcTemplate.update(
-                "INSERT INTO ingredients(id, name, current_stock, cost_per_unit, unit) values(?,?,?,?,?)",
-                ingredientDto.getId(),
+                "INSERT INTO ingredients(name, current_stock, cost_per_unit, unit) values(?,?,?,?)",
                 ingredientDto.getName(),
                 ingredientDto.getQuantity(),
                 ingredientDto.getPrice(),
@@ -51,8 +50,8 @@ public class IngredientServiceImpl implements IngredientService {
     @Override
     public IngredientDto update(Integer id, IngredientDto dto) {
         int count = jdbcTemplate.update(
-                "UPDATE ingredients SET id = ?, name = ?, current_stock = ?, cost_per_unit = ?, unit = ? WHERE id = ?",
-                dto.getId(), dto.getName(), dto.getQuantity(), dto.getPrice(), dto.getDescription(), id
+                "UPDATE ingredients SET name = ?, current_stock = ?, cost_per_unit = ?, unit = ? WHERE id = ?",
+                dto.getName(), dto.getQuantity(), dto.getPrice(), dto.getDescription(), id
         );
         if (count == 0) {
             throw new ResourceNotFoundException("Ingredient not found id " + id);
