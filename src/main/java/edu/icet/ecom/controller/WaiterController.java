@@ -10,8 +10,6 @@ import org.springframework.web.bind.annotation.*;
 @RequestMapping("/api/waiter")
 @RequiredArgsConstructor
 public class WaiterController {
-
-
     private final WaiterServcie waiterServcie;
 
     @PostMapping("/status")

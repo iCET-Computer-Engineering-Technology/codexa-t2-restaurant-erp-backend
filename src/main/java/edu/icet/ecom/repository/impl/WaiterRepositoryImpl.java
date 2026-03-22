@@ -34,9 +34,9 @@ public class WaiterRepositoryImpl implements WaiterRepository {
                 FROM order_assignment oa
                 JOIN kitchen_order ko ON ko.id = oa.kitchen_order_id
                 LEFT JOIN order_status_updates osu
-                  ON osu.order_id = ko.order_id AND osu.waiter_id = oa.waiter_id
+                ON osu.order_id = ko.order_id AND osu.waiter_id = oa.waiter_id
                 WHERE oa.waiter_id = ?
-                  AND (osu.status IS NULL OR osu.status = 'unserved')
+                AND (osu.status IS NULL OR osu.status = 'unserved')
                 ORDER BY oa.assigned_at DESC
                 """;
 
