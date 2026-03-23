@@ -23,11 +23,12 @@ public class CampaignAnalyticsServiceImpl implements CampaignAnalyticsService {
 
     @Override
     public CampaignAnalyticsDto recordCampaignSent(Integer campaignId, Integer customerId, String variant) {
+        String normalizedVariant = normalizeVariant(variant);
         CampaignAnalytics analytics = CampaignAnalytics.builder()
                 .campaignId(campaignId)
                 .customerId(customerId)
                 .sentAt(LocalDateTime.now())
-                .variant(variant)
+                .variant(normalizedVariant)
                 .build();
 
         Integer id = campaignAnalyticsRepository.save(analytics);
@@ -226,6 +227,17 @@ public class CampaignAnalyticsServiceImpl implements CampaignAnalyticsService {
                 .stream()
                 .filter(a -> variant.equals(a.getVariant()))
                 .count();
+    }
+
+    private String normalizeVariant(String variant) {
+        if (variant == null || variant.isBlank()) {
+            return "A";
+        }
+        String normalized = variant.trim().substring(0, 1).toUpperCase();
+        if (!"A".equals(normalized) && !"B".equals(normalized)) {
+            throw new IllegalArgumentException("Variant must be A or B");
+        }
+        return normalized;
     }
 }
 

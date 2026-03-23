@@ -40,7 +40,7 @@ public class MenuItemsController {
     }
 
     @GetMapping("/category/{categoryId}")
-    public List<MenuItemsDto> getItemByCategoryId(Integer categoryId){
+    public List<MenuItemsDto> getItemByCategoryId(@PathVariable Integer categoryId){
         return menuItemsService.getItemByCategoryId(categoryId);
     }
 

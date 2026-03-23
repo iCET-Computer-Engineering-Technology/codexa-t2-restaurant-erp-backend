@@ -10,10 +10,7 @@ public class FlywayConfig {
 
     @Bean
     public FlywayMigrationInitializer flywayInitializer(Flyway flyway) {
-        return new FlywayMigrationInitializer(flyway, f -> {
-            f.repair();
-            f.migrate();
-        });
+        return new FlywayMigrationInitializer(flyway, Flyway::migrate);
     }
 }
 

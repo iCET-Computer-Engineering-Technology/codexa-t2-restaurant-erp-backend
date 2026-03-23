@@ -1,8 +1,10 @@
 package edu.icet.ecom.repository.impl;
 
 import edu.icet.ecom.dto.MenuItemsDto;
+import edu.icet.ecom.exception.ResourceNotFoundException;
 import edu.icet.ecom.repository.MenuItemsRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.dao.EmptyResultDataAccessException;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Repository;
 
@@ -33,7 +35,7 @@ public class MenuItemsRepositoryImpl implements MenuItemsRepository {
                     "mi.name, mi.description, mi.is_available, mi.image_url, " +
                     "mi.created_at, mi.updated_at " +
                     "FROM menu_items mi " +
-                    "JOIN menu_categories mc ON mi.category_id = mc.id ";
+                    "LEFT JOIN menu_categories mc ON mi.category_id = mc.id ";
 
 
     @Override
@@ -66,8 +68,12 @@ public class MenuItemsRepositoryImpl implements MenuItemsRepository {
 
     @Override
     public MenuItemsDto searchById(Integer id) {
-        return jdbcTemplate.queryForObject(BASE_SELECT + "WHERE mi.id = ?",
-                (rs, rowNum) -> mapRow(rs), id);
+        try {
+            return jdbcTemplate.queryForObject(BASE_SELECT + "WHERE mi.id = ?",
+                    (rs, rowNum) -> mapRow(rs), id);
+        } catch (EmptyResultDataAccessException ex) {
+            throw new ResourceNotFoundException("Menu item not found: id=" + id);
+        }
     }
 
     @Override

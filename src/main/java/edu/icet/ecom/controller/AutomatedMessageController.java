@@ -36,7 +36,7 @@ public class AutomatedMessageController {
     private final EmailTemplateService emailTemplateService;
 
     //automated message operations
-    @PreAuthorize("hasRole('ROLE_ADMIN')")
+    @PreAuthorize("hasAuthority('ROLE_ADMIN')")
     @GetMapping
     public ResponseEntity<List<AutomatedMessage>> getAllActiveMessages() {
         log.info("Fetching all active automated messages");
@@ -44,7 +44,7 @@ public class AutomatedMessageController {
         return ResponseEntity.ok(messages);
     }
 
-    @PreAuthorize("hasRole('ROLE_ADMIN')")
+    @PreAuthorize("hasAuthority('ROLE_ADMIN')")
     @GetMapping("/inactive")
     public ResponseEntity<List<AutomatedMessage>> getAllInactiveMessages() {
         log.info("Fetching all inactive automated messages");
@@ -52,7 +52,7 @@ public class AutomatedMessageController {
         return ResponseEntity.ok(messages);
     }
 
-    @PreAuthorize("hasRole('ROLE_ADMIN')")
+    @PreAuthorize("hasAuthority('ROLE_ADMIN')")
     @GetMapping("/{id}")
     public ResponseEntity<AutomatedMessage> getMessageById(@PathVariable Integer id) {
         log.info("Fetching automated message with ID: {}", id);
@@ -61,7 +61,7 @@ public class AutomatedMessageController {
                 .orElseGet(() -> ResponseEntity.notFound().build());
     }
 
-    @PreAuthorize("hasRole('ROLE_ADMIN')")
+    @PreAuthorize("hasAuthority('ROLE_ADMIN')")
     @GetMapping("/trigger/{triggerType}")
     public ResponseEntity<List<AutomatedMessage>> getMessagesByTriggerType(
             @PathVariable String triggerType) {
@@ -76,7 +76,7 @@ public class AutomatedMessageController {
         }
     }
 
-    @PreAuthorize("hasRole('ROLE_ADMIN')")
+    @PreAuthorize("hasAuthority('ROLE_ADMIN')")
     @PostMapping
     public ResponseEntity<Integer> createMessage(@RequestBody AutomatedMessage message) {
         log.info("Creating new automated message: trigger={}, channel={}",
@@ -91,7 +91,7 @@ public class AutomatedMessageController {
         }
     }
 
-    @PreAuthorize("hasRole('ROLE_ADMIN')")
+    @PreAuthorize("hasAuthority('ROLE_ADMIN')")
     @PutMapping("/{id}")
     public ResponseEntity<Void> updateMessage(@PathVariable Integer id,
                                                @RequestBody AutomatedMessage message) {
@@ -107,7 +107,7 @@ public class AutomatedMessageController {
         }
     }
 
-    @PreAuthorize("hasRole('ROLE_ADMIN')")
+    @PreAuthorize("hasAuthority('ROLE_ADMIN')")
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> deleteMessage(@PathVariable Integer id) {
         log.info("Deleting automated message with ID: {}", id);
@@ -116,7 +116,7 @@ public class AutomatedMessageController {
         return success ? ResponseEntity.ok().build() : ResponseEntity.notFound().build();
     }
 
-    @PreAuthorize("hasRole('ROLE_ADMIN')")
+    @PreAuthorize("hasAuthority('ROLE_ADMIN')")
     @PutMapping("/{id}/toggle")
     public ResponseEntity<Void> toggleMessageStatus(@PathVariable Integer id) {
         log.info("Toggling status of automated message with ID: {}", id);
@@ -138,7 +138,7 @@ public class AutomatedMessageController {
 
     //Email operations
     @PostMapping("/send-marketing")
-    @PreAuthorize("hasRole('ROLE_ADMIN')")
+    @PreAuthorize("hasAuthority('ROLE_ADMIN')")
     @Operation(summary = "Send marketing email with template",
                description = "Send a marketing email with dynamic template placeholders")
     public ResponseEntity<?> sendMarketingEmail(@RequestBody MarketingEmailRequest request) {
@@ -181,7 +181,7 @@ public class AutomatedMessageController {
     }
 
     @PostMapping("/send-birthday")
-    @PreAuthorize("hasRole('ROLE_ADMIN')")
+    @PreAuthorize("hasAuthority('ROLE_ADMIN')")
     @Operation(summary = "Send birthday email (unified)",
                description = "Send a birthday email - accepts query params or JSON body or both")
     public ResponseEntity<?> sendBirthdayEmailUnified(
@@ -308,7 +308,7 @@ public class AutomatedMessageController {
     }
 
     @PostMapping("/send-birthday-request")
-    @PreAuthorize("hasRole('ROLE_ADMIN')")
+    @PreAuthorize("hasAuthority('ROLE_ADMIN')")
     @Operation(summary = "Send birthday email (request body)",
                description = "Send a birthday email with special discount offer using JSON request body")
     public ResponseEntity<?> sendBirthdayEmailRequest(@RequestBody MarketingEmailRequest request) {
@@ -368,7 +368,7 @@ public class AutomatedMessageController {
     }
 
     @PostMapping("/send-anniversary")
-    @PreAuthorize("hasRole('ROLE_ADMIN')")
+    @PreAuthorize("hasAuthority('ROLE_ADMIN')")
     @Operation(summary = "Send anniversary email",
                description = "Send an anniversary email with special discount offer")
     public ResponseEntity<?> sendAnniversaryEmail(
@@ -491,7 +491,7 @@ public class AutomatedMessageController {
     }
 
     @PostMapping("/send-anniversary-request")
-    @PreAuthorize("hasRole('ROLE_ADMIN')")
+    @PreAuthorize("hasAuthority('ROLE_ADMIN')")
     @Operation(summary = "Send anniversary email (request body)",
                description = "Send an anniversary email with special discount offer using JSON request body")
     public ResponseEntity<?> sendAnniversaryEmailRequest(@RequestBody MarketingEmailRequest request) {
@@ -558,7 +558,7 @@ public class AutomatedMessageController {
     }
 
     @PostMapping("/send-promotional")
-    @PreAuthorize("hasRole('ROLE_ADMIN')")
+    @PreAuthorize("hasAuthority('ROLE_ADMIN')")
     @Operation(summary = "Send promotional email",
                description = "Send a promotional email with custom discount")
     public ResponseEntity<?> sendPromotionalEmail(
@@ -619,7 +619,7 @@ public class AutomatedMessageController {
     }
 
     @PostMapping("/send-promotional-request")
-    @PreAuthorize("hasRole('ROLE_ADMIN')")
+    @PreAuthorize("hasAuthority('ROLE_ADMIN')")
     @Operation(summary = "Send promotional email (request body)",
                description = "Send a promotional email with custom discount using JSON request body")
     public ResponseEntity<?> sendPromotionalEmailRequest(@RequestBody MarketingEmailRequest request) {
@@ -678,7 +678,7 @@ public class AutomatedMessageController {
     }
 
     @PostMapping("/test")
-    @PreAuthorize("hasRole('ROLE_ADMIN')")
+    @PreAuthorize("hasAuthority('ROLE_ADMIN')")
     @Operation(summary = "Send test email",
                description = "Send a test email to verify email configuration")
     public ResponseEntity<?> sendTestEmail(
@@ -729,7 +729,7 @@ public class AutomatedMessageController {
     }
 
     @PostMapping("/test-request")
-    @PreAuthorize("hasRole('ROLE_ADMIN')")
+    @PreAuthorize("hasAuthority('ROLE_ADMIN')")
     @Operation(summary = "Send test email (request body)",
                description = "Send a test email using JSON request body")
     public ResponseEntity<?> sendTestEmailRequest(@RequestBody MarketingEmailRequest request) {
@@ -822,7 +822,7 @@ public class AutomatedMessageController {
     }
 
     @PostMapping("/send-to-all")
-    @PreAuthorize("hasRole('ROLE_ADMIN')")
+    @PreAuthorize("hasAuthority('ROLE_ADMIN')")
     @Operation(summary = "Send email to all customers",
                description = "Send a promotional email to all customers with valid email preferences")
     public ResponseEntity<?> sendToAllCustomers() {
