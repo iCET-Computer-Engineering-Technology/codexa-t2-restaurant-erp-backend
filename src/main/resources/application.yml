@@ -32,4 +32,3 @@ app:
     businessName: "Restaurant_ERP_BETA"
     auditLogging: true
     maxRetries: 1
-

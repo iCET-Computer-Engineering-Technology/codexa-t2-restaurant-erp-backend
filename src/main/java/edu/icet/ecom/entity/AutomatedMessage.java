@@ -55,8 +55,13 @@ public class AutomatedMessage {
         }
 
         public static Channel fromDbValue(String value) {
+            if (value == null || value.isBlank()) {
+                throw new IllegalArgumentException("Unknown channel: " + value);
+            }
+            // MySQL SET columns can return comma-separated values; use the first supported value.
+            String normalized = value.contains(",") ? value.split(",")[0].trim() : value.trim();
             for (Channel ch : values()) {
-                if (ch.dbValue.equalsIgnoreCase(value)) {
+                if (ch.dbValue.equalsIgnoreCase(normalized)) {
                     return ch;
                 }
             }
