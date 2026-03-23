@@ -382,4 +382,3 @@ public class AutomatedMessageSchedulerService {
         return (value != null && !value.trim().isEmpty()) ? value : defaultValue;
     }
 }
-
