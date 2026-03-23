@@ -10,18 +10,14 @@ SET FOREIGN_KEY_CHECKS = 0;
 -- ---------------------------------------------------------------
 INSERT INTO users (id, username, email, password, role, enabled)
 VALUES (1, 'admin', 'admin@restaurant.com', '$2a$12$UELqa2vZb5llSBBvlKa1fu9VMhQyN5f7eHWy2bCLcXK4AljvFKoRK', 'ROLE_ADMIN', 1),
-       (2, 'john', 'john@restaurant.com', '$2a$12$l6xZ.LNYXbSE5ciYfyqHQOGMm09ADVwNHra4OaGLBczRcUbqMK7oC', 'ROLE_WAITER', 1),
-       (3, 'sara', 'sara@restaurant.com', '$2a$12$J3g3ocITZVtGhPxDrQeJX.Vcbg96DyCenEuDYws7DRPHtTvw76n5G', 'ROLE_ADMIN', 1),
-       (4, 'mike', 'mike@restaurant.com', '$2a$12$HNRF7LE46jWeExo/2i.Q3OT0oSzpRvpS5Y52GY6f7Od8acFIdF/aG', 'ROLE_CHEF', 1),
-       (5, 'lisa', 'lisa@restaurant.com', '$2a$12$3Iitmyjq6w53mwKBr0y10e.VtPlQsPQ3nkgQaxdLVgSVdekCgNlV.', 'ROLE_CASHIER', 1),
-       (6, 'tom', 'tom@restaurant.com', '$2a$12$NPn.ZHpq8TmMj5LiyoagXugTzcfqC62AqYgsOT9IAIrfibk1MRKjy', 'ROLE_WAITER', 1);
+       (2, 'waiter', 'waiter@restaurant.com', '$2a$12$l6xZ.LNYXbSE5ciYfyqHQOGMm09ADVwNHra4OaGLBczRcUbqMK7oC', 'ROLE_WAITER', 1),
+       (3, 'chef', 'chef@restaurant.com', '$2a$12$HNRF7LE46jWeExo/2i.Q3OT0oSzpRvpS5Y52GY6f7Od8acFIdF/aG', 'ROLE_CHEF', 1),
+       (4, 'cashier', 'cashier@restaurant.com', '$2a$12$3Iitmyjq6w53mwKBr0y10e.VtPlQsPQ3nkgQaxdLVgSVdekCgNlV.', 'ROLE_CASHIER', 1);
 
 # admin → Admin@123
-# john_waiter → Waiter@123
-# sara_manager → Manager@123
-# mike_chef → Chef@123
-# lisa_cashier → Cashier@123
-# tom_waiter → Waiter2@123
+# waiter → Waiter@123
+# chef → Chef@123
+# cashier → Cashier@123
 
 -- ---------------------------------------------------------------
 -- 2. customers

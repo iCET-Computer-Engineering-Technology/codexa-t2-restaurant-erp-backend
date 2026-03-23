@@ -53,6 +53,7 @@ public class SecurityConfig {
             "/categories/**",
             "/menu-items/**",
             "/portions/**",
+            "/api/portions/**",
             "/menu-item-price/**"
     };
 
@@ -67,7 +68,10 @@ public class SecurityConfig {
     private static final String[] STAFF_READONLY_ENDPOINTS = {
             "/menu-items/**",
             "/menu-item-price/**",
-            "/portions/**"
+            "/portions/**",
+            "/api/portions/**",
+            "/tables/**",
+            "/api/tables/**"
     };
 
     @Bean
