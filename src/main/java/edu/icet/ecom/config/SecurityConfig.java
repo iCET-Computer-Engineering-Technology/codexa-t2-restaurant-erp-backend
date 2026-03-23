@@ -63,6 +63,13 @@ public class SecurityConfig {
             "/api/waiter/**"
     };
 
+    // Staff screens need read access to menu master data, while writes remain admin-only.
+    private static final String[] STAFF_READONLY_ENDPOINTS = {
+            "/menu-items/**",
+            "/menu-item-price/**",
+            "/portions/**"
+    };
+
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) {
         try {
@@ -73,6 +80,8 @@ public class SecurityConfig {
                     .authorizeHttpRequests(authConfig -> {
                         authConfig.requestMatchers(HttpMethod.OPTIONS, "/**").permitAll();
                         authConfig.requestMatchers(PUBLIC_ENDPOINTS).permitAll();
+                        authConfig.requestMatchers(HttpMethod.GET, STAFF_READONLY_ENDPOINTS)
+                                .hasAnyAuthority("ROLE_ADMIN", "ROLE_USER", "ROLE_CASHIER", "ROLE_WAITER", "ROLE_CHEF");
                         authConfig.requestMatchers(ADMIN_ENDPOINTS).hasAuthority("ROLE_ADMIN");
                         authConfig.requestMatchers(STAFF_ENDPOINTS)
                                 .hasAnyAuthority("ROLE_ADMIN", "ROLE_USER", "ROLE_CASHIER", "ROLE_WAITER", "ROLE_CHEF");
