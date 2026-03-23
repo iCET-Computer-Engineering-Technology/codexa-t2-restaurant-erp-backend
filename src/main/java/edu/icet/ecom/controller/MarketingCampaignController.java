@@ -16,7 +16,7 @@ import java.util.List;
 @RequestMapping("/api/campaigns")
 @RequiredArgsConstructor
 @Slf4j
-@PreAuthorize("hasRole('ROLE_ADMIN')")
+@PreAuthorize("hasAuthority('ROLE_ADMIN')")
 public class MarketingCampaignController {
 
     private final MarketingCampaignService marketingCampaignService;

@@ -17,13 +17,13 @@ public class CustomerController {
     private final CustomerService customerService;
 
     @GetMapping
-    public List<CustomerDto> getAllCustomers(){
+    public List<CustomerDto> getAllCustomer(){
         return customerService.getAllCustomers();
     }
 
     @PostMapping
-    public boolean saveCustomer(@RequestBody CustomerDto customerDto){
-        return customerService.saveCustomer(customerDto);
+    public boolean addCustomer(@Valid @RequestBody CustomerDto customerDto){
+        return customerService.addCustomer(customerDto);
     }
 
     @GetMapping("/phone/{phone}")
@@ -31,7 +31,7 @@ public class CustomerController {
         return customerService.searchCustomerByPhone(phone);
     }
 
-    @GetMapping("/id/{id}")
+    @GetMapping("/{id}")
     public CustomerDto searchCustomerById(@PathVariable Integer id){
         return customerService.searchCustomerById(id);
     }

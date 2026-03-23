@@ -1,25 +1,27 @@
 package edu.icet.ecom.service.impl;
 
-import edu.icet.ecom.entity.OrderAssign;
-import edu.icet.ecom.repository.WaiterRepository;
-import edu.icet.ecom.service.WaiterService;
+import edu.icet.ecom.repository.KitchenOrderRepository;
+import edu.icet.ecom.repository.OrderStatusRepository;
+import edu.icet.ecom.service.WaiterServcie;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
-import java.util.List;
 @Service
 @RequiredArgsConstructor
-public class WaiterServiceImpl implements WaiterService {
+public class WaiterServiceImpl implements WaiterServcie {
 
-    private final WaiterRepository waiterRepository;
-
-    @Override
-    public boolean serveOrder(Long assignmentId) {
-        return waiterRepository.markOrderServed(assignmentId);
-    }
+    private final KitchenOrderRepository kitchenOrderRepository;
+    private final OrderStatusRepository orderStatusRepository;
 
     @Override
-    public List<OrderAssign> getUnservedOrders(Long waiterId) {
-        return waiterRepository.getUnservedOrders(waiterId);
+    public void updateOrderStatus(Integer orderId, Integer waiterId, String status) {
+        if (!status.equals("served") && !status.equals("unserved")) {
+            throw new IllegalArgumentException("Invalid status: " + status);
+        }
+        orderStatusRepository.updateOrderStatus(orderId, waiterId, status);
+        if (status.equals("served")) {
+            kitchenOrderRepository.markAsDone(orderId);
+        }
     }
+
 }

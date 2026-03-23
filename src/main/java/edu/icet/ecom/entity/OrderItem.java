@@ -1,23 +1,22 @@
 package edu.icet.ecom.entity;
 
 import lombok.*;
-
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
-import java.util.List;
 
 @Getter
 @Setter
-@ToString(exclude = {"modifiers"}) //prevent recursion
+@ToString
 @AllArgsConstructor
 @NoArgsConstructor
 public class OrderItem {
-    private Long id;
-    private Long orderId;
-    private Long menuItemId;
+    private Integer id;
+    private Integer orderId;
+    private Integer menuItemId;
+    private Integer portionId;
     private Integer quantity;
-    private BigDecimal unitPrice;
-    private BigDecimal totalPrice;
+    private BigDecimal price;
+    private String status;
+    private String notes;
     private LocalDateTime createdAt;
-    private List<OrderItemModifier> modifiers; // not save on DB
 }

@@ -6,7 +6,13 @@ import java.util.List;
 
 public interface CustomerService {
     List<CustomerDto> getAllCustomers();
-    boolean saveCustomer(CustomerDto customerDto);
+
+    // Backward-compatible alias for existing callers.
+    default List<CustomerDto> getAllCustomer() {
+        return getAllCustomers();
+    }
+
+    boolean addCustomer(CustomerDto customerDto);
     CustomerDto searchCustomerByPhone(String phone);
     CustomerDto searchCustomerById(Integer id);
     boolean deleteCustomerByPhone(String phone);

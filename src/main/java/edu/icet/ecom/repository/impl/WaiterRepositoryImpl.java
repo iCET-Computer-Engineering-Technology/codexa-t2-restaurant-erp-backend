@@ -1,13 +1,14 @@
-package edu.icet.ecom.repository.Impl;
-import edu.icet.ecom.entity.OrderAssign;
+package edu.icet.ecom.repository.impl;
+
+import edu.icet.ecom.entity.OrderAssignment;
 import edu.icet.ecom.entity.Waiter;
 import edu.icet.ecom.repository.WaiterRepository;
 import lombok.RequiredArgsConstructor;
-
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
+
 @Repository
 @RequiredArgsConstructor
 public class WaiterRepositoryImpl implements WaiterRepository {
@@ -15,28 +16,42 @@ public class WaiterRepositoryImpl implements WaiterRepository {
 
     @Override
     public void assignWaiter(Long orderId, Long waiterId) {
-        String sql = "INSERT INTO order_assignments (order_id, waiter_id, status) VALUES (?, ?, ?)";
-        jdbcTemplate.update(sql, orderId, waiterId, "UNSERVED");
+        String sql = """
+                INSERT INTO order_assignment (kitchen_order_id, waiter_id)
+                SELECT ko.id, ?
+                FROM kitchen_order ko
+                WHERE ko.order_id = ?
+                ORDER BY ko.id DESC
+                LIMIT 1
+                """;
+        jdbcTemplate.update(sql, waiterId, orderId);
     }
 
     @Override
-    public List<OrderAssign> getUnservedOrders(Long waiterId) {
-        String sql = "SELECT oa.id, oa.order_id, oa.waiter_id, oa.status, " +
-                "o.table_id, o.order_number " +
-                "FROM order_assignments oa " +
-                "JOIN orders o ON oa.order_id = o.id " +
-                "WHERE oa.status = 'UNSERVED' AND oa.waiter_id = ?";
+    public List<OrderAssignment> getUnservedOrders(Long waiterId) {
+        String sql = """
+                SELECT oa.id, oa.kitchen_order_id, oa.waiter_id, oa.assigned_at
+                FROM order_assignment oa
+                JOIN kitchen_order ko ON ko.id = oa.kitchen_order_id
+                LEFT JOIN order_status_updates osu
+                ON osu.order_id = ko.order_id AND osu.waiter_id = oa.waiter_id
+                WHERE oa.waiter_id = ?
+                AND (osu.status IS NULL OR osu.status = 'unserved')
+                ORDER BY oa.assigned_at DESC
+                """;
 
         return jdbcTemplate.query(
                 sql,
                 (rs, rowNum) -> {
-                    OrderAssign assignment = new OrderAssign();
+                    OrderAssignment assignment = new OrderAssignment();
                     assignment.setId(rs.getLong("id"));
-                    assignment.setOrderId(rs.getLong("order_id"));
+                    assignment.setKitchenOrderId(rs.getLong("kitchen_order_id"));
                     assignment.setWaiterId(rs.getLong("waiter_id"));
-                    assignment.setStatus(rs.getString("status"));
-                    assignment.setTableId(rs.getLong("table_id"));
-                    assignment.setOrderNumber(rs.getString("order_number"));
+                    assignment.setAssignedAt(
+                            rs.getTimestamp("assigned_at") != null
+                                    ? rs.getTimestamp("assigned_at").toLocalDateTime()
+                                    : null
+                    );
                     return assignment;
                 },
                 waiterId
@@ -44,37 +59,15 @@ public class WaiterRepositoryImpl implements WaiterRepository {
     }
 
     @Override
-    public List<OrderAssign> getAssignments() {
-        String sql = "SELECT * FROM order_assignments";
-
-        return jdbcTemplate.query(sql, (rs, rowNum) -> {
-            OrderAssign assignment = new OrderAssign();
-            assignment.setId(rs.getLong("id"));
-            assignment.setOrderId(rs.getLong("order_id"));
-            assignment.setWaiterId(rs.getLong("waiter_id"));
-            assignment.setStatus(rs.getString("status"));
-            return assignment;
-        });
-    }
-
-    @Override
     public List<Waiter> findActiveWaiters() {
-
-        String sql = "SELECT * FROM waiters WHERE status='ACTIVE'";
-
+        String sql = "SELECT * FROM waiter WHERE status = 'active'";
         return jdbcTemplate.query(sql, (rs, rowNum) -> {
             Waiter waiter = new Waiter();
             waiter.setId(rs.getLong("id"));
-            waiter.setName(rs.getString("name"));
+            waiter.setName(rs.getString("waiter_name"));
             waiter.setStatus(rs.getString("status"));
             return waiter;
         });
-    }
-
-    @Override
-    public boolean markOrderServed(Long assignmentId) {
-        String sql = "UPDATE order_assignments SET status='SERVED' WHERE id=?";
-        return jdbcTemplate.update(sql, assignmentId) > 0;
     }
 }
 

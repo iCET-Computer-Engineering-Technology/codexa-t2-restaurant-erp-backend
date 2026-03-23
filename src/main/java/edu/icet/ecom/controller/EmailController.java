@@ -21,7 +21,7 @@ public class EmailController {
     private final EmailService emailService;
 
     @PostMapping("/send-marketing")
-    @PreAuthorize("hasRole('ROLE_ADMIN')")
+    @PreAuthorize("hasAuthority('ROLE_ADMIN')")
     @Operation(summary = "Send marketing email with template",
                description = "Send a marketing email with dynamic template placeholders")
     public ResponseEntity<?> sendMarketingEmail(@RequestBody MarketingEmailRequest request) {
@@ -64,7 +64,7 @@ public class EmailController {
     }
 
     @PostMapping("/send-birthday")
-    @PreAuthorize("hasRole('ROLE_ADMIN')")
+    @PreAuthorize("hasAuthority('ROLE_ADMIN')")
     @Operation(summary = "Send birthday email",
                description = "Send a birthday email with special discount offer")
     public ResponseEntity<?> sendBirthdayEmail(
@@ -105,7 +105,7 @@ public class EmailController {
     }
 
     @PostMapping("/send-anniversary")
-    @PreAuthorize("hasRole('ROLE_ADMIN')")
+    @PreAuthorize("hasAuthority('ROLE_ADMIN')")
     @Operation(summary = "Send anniversary email",
                description = "Send an anniversary email with special discount offer")
     public ResponseEntity<?> sendAnniversaryEmail(
@@ -148,7 +148,7 @@ public class EmailController {
     }
 
     @PostMapping("/send-promotional")
-    @PreAuthorize("hasRole('ROLE_ADMIN')")
+    @PreAuthorize("hasAuthority('ROLE_ADMIN')")
     @Operation(summary = "Send promotional email",
                description = "Send a promotional email with custom discount")
     public ResponseEntity<?> sendPromotionalEmail(
@@ -189,7 +189,7 @@ public class EmailController {
     }
 
     @PostMapping("/test")
-    @PreAuthorize("hasRole('ROLE_ADMIN')")
+    @PreAuthorize("hasAuthority('ROLE_ADMIN')")
     @Operation(summary = "Send test email",
                description = "Send a test email to verify email configuration")
     public ResponseEntity<?> sendTestEmail(@RequestParam String recipientEmail) {
