@@ -19,7 +19,7 @@ public class OrderAssignmentRepositoryImpl implements OrderAssignmentRepository 
     @Override
     public void assignWaiter(Integer orderId, Long waiterId) {
         String sql = """
-                INSERT INTO order_assignments(order_id, waiter_id)
+                INSERT INTO order_assignment(order_id, waiter_id)
                 VALUES (?,?)
                 """;
 
