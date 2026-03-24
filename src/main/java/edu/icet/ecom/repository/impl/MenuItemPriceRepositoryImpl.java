@@ -1,7 +1,6 @@
 package edu.icet.ecom.repository.impl;
 
 import edu.icet.ecom.dto.MenuItemPriceDto;
-import edu.icet.ecom.dto.MenuItemsDto;
 import edu.icet.ecom.repository.MenuItemPriceRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.jdbc.core.JdbcTemplate;
@@ -58,13 +57,28 @@ public class MenuItemPriceRepositoryImpl implements MenuItemPriceRepository {
 
     @Override
     public MenuItemPriceDto searchById(Integer id) {
-        return jdbcTemplate.queryForObject("SELECT * FROM menu_item_price WHERE id = ?", (rs, rowNum) -> new MenuItemPriceDto(
-                rs.getInt(1),
-                rs.getInt(2),
-                rs.getInt(3),
-                rs.getDouble(4),
-                rs.getBoolean(5)
-        ) , id);
+        return jdbcTemplate.queryForObject("SELECT * FROM menu_item_price WHERE id = ?", (rs, rowNum) -> {
+            MenuItemPriceDto dto = new MenuItemPriceDto();
+            dto.setId(rs.getInt(1));
+            dto.setItemId(rs.getInt(2));
+            dto.setPortionId(rs.getInt(3));
+            dto.setPrice(rs.getDouble(4));
+            dto.setIsActive(rs.getBoolean(5));
+            return dto;
+        }, id);
+    }
+
+    @Override
+    public List<MenuItemPriceDto> getAll() {
+        return jdbcTemplate.query("SELECT * FROM menu_item_price", (rs, rowNum) -> {
+            MenuItemPriceDto dto = new MenuItemPriceDto();
+            dto.setId(rs.getInt(1));
+            dto.setItemId(rs.getInt(2));
+            dto.setPortionId(rs.getInt(3));
+            dto.setPrice(rs.getDouble(4));
+            dto.setIsActive(rs.getBoolean(5));
+            return dto;
+        });
     }
 
     @Override

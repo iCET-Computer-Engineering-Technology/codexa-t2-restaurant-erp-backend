@@ -56,6 +56,7 @@ public class SecurityConfig {
                             .requestMatchers("/menu-items/**").hasAuthority("ROLE_ADMIN")
                             .requestMatchers("/portions/**").hasAuthority("ROLE_ADMIN")
                             .requestMatchers("/menu-item-price/**").hasAuthority("ROLE_ADMIN")
+
                             .anyRequest().permitAll()
                     )
                     .authenticationProvider(authenticationProvider())
