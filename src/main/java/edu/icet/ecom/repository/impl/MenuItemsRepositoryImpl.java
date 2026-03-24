@@ -16,8 +16,16 @@ public class MenuItemsRepositoryImpl implements MenuItemsRepository {
 
     private final JdbcTemplate jdbcTemplate;
 
+    private static final String BASE_SELECT =
+            "SELECT mi.id, mi.category_id, mc.name, " +
+                    "mi.name, mi.description, mi.is_available, mi.image_url " +
+                    "FROM menu_items mi " +
+                    "LEFT JOIN menu_categories mc ON mi.category_id = mc.id ";
+
+
     private MenuItemsDto mapRow(java.sql.ResultSet rs) throws java.sql.SQLException {
         MenuItemsDto dto = new MenuItemsDto();
+
         dto.setId(rs.getInt(1));
         dto.setCategoryId(rs.getInt(2));
         dto.setCategoryName(rs.getString(3));
@@ -25,18 +33,9 @@ public class MenuItemsRepositoryImpl implements MenuItemsRepository {
         dto.setDescription(rs.getString(5));
         dto.setIsAvailable(rs.getBoolean(6));
         dto.setImageUrl(rs.getString(7));
-        dto.setCreatedAt(rs.getTimestamp(8));
-        dto.setUpdatedAt(rs.getTimestamp(9));
+
         return dto;
     }
-
-    private static final String BASE_SELECT =
-            "SELECT mi.id, mi.category_id, mc.name, " +
-                    "mi.name, mi.description, mi.is_available, mi.image_url, " +
-                    "mi.created_at, mi.updated_at " +
-                    "FROM menu_items mi " +
-                    "LEFT JOIN menu_categories mc ON mi.category_id = mc.id ";
-
 
     @Override
     public boolean addItem(MenuItemsDto itemDto) {
@@ -94,6 +93,4 @@ public class MenuItemsRepositoryImpl implements MenuItemsRepository {
                 (rs, rowNum) -> mapRow(rs)
         );
     }
-
 }
-
