@@ -19,4 +19,10 @@ public class UserEntity {
     private Role role;
     private Boolean enabled;
     private LocalDateTime createdAt;
+
+    public UserEntity(Long id, String username, Role role) {
+        this.id = id;
+        this.username = username;
+        this.role = role;
+    }
 }
