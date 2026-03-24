@@ -11,6 +11,7 @@ import java.util.List;
 @NoArgsConstructor
 @AllArgsConstructor
 public class OrderCreateRequest {
+    private Integer orderTypeId;
     @NotBlank(message = "orderType is required")
     private String orderType;
     private Integer tableId;

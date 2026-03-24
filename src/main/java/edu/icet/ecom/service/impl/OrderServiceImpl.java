@@ -50,6 +50,7 @@ public class OrderServiceImpl implements OrderService {
         BigDecimal totalAmount = subtotal.add(taxAmount).add(serviceCharge).subtract(discountAmount);
 
         Order order = new Order();
+        order.setOrderTypeId(request.getOrderTypeId());
         order.setOrderNumber(generateOrderNumber());
         order.setOrderType(request.getOrderType());
         order.setTableId("dine_in".equals(request.getOrderType()) ? request.getTableId() : null);
@@ -190,6 +191,7 @@ public class OrderServiceImpl implements OrderService {
     private static @NonNull OrderResponse getOrderResponse(Order order, List<OrderItemResponse> itemResponses) {
         OrderResponse response = new OrderResponse();
         response.setId(order.getId());
+        response.setOrderTypeId(order.getOrderTypeId());
         response.setOrderNumber(order.getOrderNumber());
         response.setOrderType(order.getOrderType());
         response.setTableId(order.getTableId());
