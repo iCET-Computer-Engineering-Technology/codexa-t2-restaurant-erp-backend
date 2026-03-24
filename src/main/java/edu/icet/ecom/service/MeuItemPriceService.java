@@ -9,7 +9,6 @@ public interface MeuItemPriceService {
     boolean updateItemPrice(MenuItemPriceDto menuItemPrice);
     boolean deleteById(Integer id);
     MenuItemPriceDto searchById(Integer id);
-    List<MenuItemPriceDto> getAll();
     List<MenuItemPriceDto> findByItemId(Integer itemId);
     public List<MenuItemPriceDto> getPricesByItemId(Integer itemId);
     public List<MenuItemPriceDto> getFullMenu();

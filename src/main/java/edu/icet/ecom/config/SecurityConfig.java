@@ -19,6 +19,7 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
+import org.springframework.http.HttpMethod;
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
@@ -33,6 +34,46 @@ public class SecurityConfig {
     private final JwtAuthFilter jwtAuthFilter;
     private final CustomUserDetailsService service;
 
+    private static final String[] PUBLIC_ENDPOINTS = {
+            "/api/auth/login",
+            "/api/auth/register",
+            "/v3/api-docs/**",
+            "/swagger-ui/**",
+            "/swagger-ui.html",
+            "/error"
+    };
+
+    private static final String[] ADMIN_ENDPOINTS = {
+            "/api/admin/**",
+            "/admin/**",
+            "/ingredient/**",
+            "/api/campaigns/**",
+            "/api/campaign-analytics/**",
+            "/api/emails/**",
+            "/categories/**",
+            "/menu-items/**",
+            "/portions/**",
+            "/api/portions/**",
+            "/menu-item-price/**"
+    };
+
+    private static final String[] STAFF_ENDPOINTS = {
+            "/api/order/**",
+            "/api/kitchen/**",
+            "/customers/**",
+            "/api/waiter/**"
+    };
+
+    // Staff screens need read access to menu master data, while writes remain admin-only.
+    private static final String[] STAFF_READONLY_ENDPOINTS = {
+            "/menu-items/**",
+            "/menu-item-price/**",
+            "/portions/**",
+            "/api/portions/**",
+            "/tables/**",
+            "/api/tables/**"
+    };
+
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) {
         try {
@@ -40,43 +81,17 @@ public class SecurityConfig {
                     .cors(Customizer.withDefaults())
                     .sessionManagement(sessionConfig ->
                             sessionConfig.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
-                    .authorizeHttpRequests(authConfig -> authConfig
-                            // Public endpoints
-                            .requestMatchers("/api/auth/login").permitAll()
-                            .requestMatchers("/api/auth/register").permitAll()
-                            .requestMatchers("/v3/api-docs/**").permitAll()
-                            .requestMatchers("/swagger-ui/**").permitAll()
-                            .requestMatchers("/swagger-ui.html").permitAll()
-                            .requestMatchers("/order/**").permitAll()
-                            .requestMatchers("/customers/**").permitAll()
-                            .requestMatchers("/api/kitchen/**").permitAll()
-                            .requestMatchers("/category/**").permitAll()
-                            .requestMatchers("/item/**").permitAll()
-                            .requestMatchers("/modifier-group/**").permitAll()
-                            .requestMatchers("/modifiers/**").permitAll()
-                            .requestMatchers("/menu-item-modifier-group/**").permitAll()
-
-                            // Admin endpoints - MUST be before other patterns
-                            .requestMatchers("/api/admin/**").hasAuthority("ROLE_ADMIN")
-                            .requestMatchers("/admin/**").hasAuthority("ROLE_ADMIN")
-                            .requestMatchers("/ingredient/**").hasAuthority("ROLE_ADMIN")
-
-                            // Marketing/Campaign Analytics endpoints - Admin only
-                            .requestMatchers("/api/campaigns/**").hasAuthority("ROLE_ADMIN")
-                            .requestMatchers("/api/campaign-analytics/**").hasAuthority("ROLE_ADMIN")
-
-                            // User endpoints
-                            .requestMatchers("/user/**").hasAuthority("ROLE_USER")
-                            .requestMatchers("/categories/**").hasAuthority("ROLE_ADMIN")
-                            .requestMatchers("/menu-items/**").hasAuthority("ROLE_ADMIN")
-                            .requestMatchers("/portions/**").hasAuthority("ROLE_ADMIN")
-                            .requestMatchers("/menu-item-price/**").hasAuthority("ROLE_ADMIN")
-
-                            .anyRequest().permitAll()
-
-                            // All other requests require authentication
-                            .anyRequest().authenticated()
-                    )
+                    .authorizeHttpRequests(authConfig -> {
+                        authConfig.requestMatchers(HttpMethod.OPTIONS, "/**").permitAll();
+                        authConfig.requestMatchers(PUBLIC_ENDPOINTS).permitAll();
+                        authConfig.requestMatchers(HttpMethod.GET, STAFF_READONLY_ENDPOINTS)
+                                .hasAnyAuthority("ROLE_ADMIN", "ROLE_USER", "ROLE_CASHIER", "ROLE_WAITER", "ROLE_CHEF");
+                        authConfig.requestMatchers(ADMIN_ENDPOINTS).hasAuthority("ROLE_ADMIN");
+                        authConfig.requestMatchers(STAFF_ENDPOINTS)
+                                .hasAnyAuthority("ROLE_ADMIN", "ROLE_USER", "ROLE_CASHIER", "ROLE_WAITER", "ROLE_CHEF");
+                        authConfig.requestMatchers("/user/**").hasAuthority("ROLE_USER");
+                        authConfig.anyRequest().authenticated();
+                    })
                     .authenticationProvider(authenticationProvider())
                     .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class);
             return http.build();

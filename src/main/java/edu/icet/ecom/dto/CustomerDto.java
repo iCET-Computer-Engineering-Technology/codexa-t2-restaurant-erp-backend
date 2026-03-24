@@ -21,6 +21,7 @@ public class CustomerDto {
     @NotBlank(message = "Phone number cannot e empty")
     @Pattern(regexp = "^07[01245678]\\d{7}",message = "Phone number must be exactly 10 digits and start with 0")
     private String phone;
+    private String address;
     private String preferredLanguage;
     private String dietaryNotes;
     private Integer communicationEmail;
