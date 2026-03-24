@@ -19,4 +19,5 @@ public class MenuItemsDto {
     private String imageUrl;
     private Timestamp createdAt;
     private Timestamp updatedAt;
+
 }

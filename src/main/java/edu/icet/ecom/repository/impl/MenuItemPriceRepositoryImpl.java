@@ -15,21 +15,22 @@ public class MenuItemPriceRepositoryImpl implements MenuItemPriceRepository {
 
     private final JdbcTemplate jdbcTemplate;
 
-    private static final String BASE_SELECT =
-            "SELECT mi.name, mc.name, p.portion_name, mip.price " +
-                    "FROM menu_item_price mip " +
-                    "JOIN menu_items mi ON mip.item_id = mi.id " +
-                    "LEFT JOIN menu_categories mc ON mi.category_id = mc.id " +
-                    "JOIN portions p ON mip.portion_id = p.id ";
+        private static final String BASE_SELECT =
+                "SELECT mip.id, mi.name, mc.name, p.portion_name, mip.price " +
+                        "FROM menu_item_price mip " +
+                        "JOIN menu_items mi ON mip.item_id = mi.id " +
+                        "LEFT JOIN menu_categories mc ON mi.category_id = mc.id " +
+                        "JOIN portions p ON mip.portion_id = p.id ";
 
-    private MenuItemPriceDto mapRow(java.sql.ResultSet rs) throws java.sql.SQLException {
-        MenuItemPriceDto dto = new MenuItemPriceDto();
-        dto.setItemName(rs.getString(1));
-        dto.setCategoryName(rs.getString(2));
-        dto.setPortionName(rs.getString(3));
-        dto.setPrice(rs.getDouble(4));
-        return dto;
-    }
+        private MenuItemPriceDto mapRow(java.sql.ResultSet rs) throws java.sql.SQLException {
+            MenuItemPriceDto dto = new MenuItemPriceDto();
+            dto.setId(rs.getInt(1));
+            dto.setItemName(rs.getString(2));
+            dto.setCategoryName(rs.getString(3));
+            dto.setPortionName(rs.getString(4));
+            dto.setPrice(rs.getDouble(5));
+            return dto;
+        }
 
     @Override
     public boolean addItemPrice(MenuItemPriceDto menuItemPrice) {
