@@ -100,7 +100,7 @@ PRIMARY KEY (id)
 CREATE TABLE IF NOT EXISTS orders (
 id INT NOT NULL AUTO_INCREMENT,
 order_number VARCHAR(50) NULL DEFAULT NULL,
-order_type ENUM('dine_in','takeout','delivery','online') NULL DEFAULT NULL,
+order_type ENUM('dine_in','takeout','booking') NULL DEFAULT NULL,
 table_id INT NULL DEFAULT NULL,
 customer_id INT NULL DEFAULT NULL,
 server_id INT NULL DEFAULT NULL,

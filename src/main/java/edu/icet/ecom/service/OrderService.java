@@ -13,4 +13,5 @@ public interface OrderService {
     List<OrderResponse> findByStatus(String status);
     List<OrderResponse> findAll();
     Boolean updateStatus(Integer orderId, String status);
+    Boolean updateType(Integer orderId, String type);
 }
