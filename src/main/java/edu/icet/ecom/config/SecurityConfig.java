@@ -90,7 +90,7 @@ public class SecurityConfig {
                         authConfig.requestMatchers(STAFF_ENDPOINTS)
                                 .hasAnyAuthority("ROLE_ADMIN", "ROLE_USER", "ROLE_CASHIER", "ROLE_WAITER", "ROLE_CHEF");
                         authConfig.requestMatchers("/user/**").hasAuthority("ROLE_USER");
-                        authConfig.anyRequest().permitAll();
+                        authConfig.anyRequest().authenticated();
                     })
                     .authenticationProvider(authenticationProvider())
                     .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class);
