@@ -8,8 +8,9 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 
 @RestController
-@RequestMapping("/categories")
+@RequestMapping("/api/categories")
 @RequiredArgsConstructor
+@CrossOrigin
 public class MenuCategoriesController {
 
     private final MenuCategoriesService menuCategoriesService;
@@ -34,7 +35,7 @@ public class MenuCategoriesController {
         return menuCategoriesService.searchById(id);
     }
 
-    @GetMapping
+    @GetMapping("/get-all")
     public List<MenuCategoriesDto> getAll(){
         return menuCategoriesService.getAll();
     }

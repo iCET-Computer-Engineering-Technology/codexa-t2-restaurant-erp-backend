@@ -50,11 +50,11 @@ public class SecurityConfig {
             "/api/campaigns/**",
             "/api/campaign-analytics/**",
             "/api/emails/**",
-            "/categories/**",
-            "/menu-items/**",
-            "/portions/**",
+            "/api/categories/**",
+            "/api/menu-items/**",
             "/api/portions/**",
-            "/menu-item-price/**"
+            "/api/portions/**",
+            "/api/menu-item-price/**"
     };
 
     private static final String[] STAFF_ENDPOINTS = {
@@ -66,9 +66,9 @@ public class SecurityConfig {
 
     // Staff screens need read access to menu master data, while writes remain admin-only.
     private static final String[] STAFF_READONLY_ENDPOINTS = {
-            "/menu-items/**",
-            "/menu-item-price/**",
-            "/portions/**",
+            "/api/menu-items/**",
+            "/api/menu-item-price/**",
+            "/api/portions/**",
             "/api/portions/**",
             "/tables/**",
             "/api/tables/**"
@@ -90,7 +90,7 @@ public class SecurityConfig {
                         authConfig.requestMatchers(STAFF_ENDPOINTS)
                                 .hasAnyAuthority("ROLE_ADMIN", "ROLE_USER", "ROLE_CASHIER", "ROLE_WAITER", "ROLE_CHEF");
                         authConfig.requestMatchers("/user/**").hasAuthority("ROLE_USER");
-                        authConfig.anyRequest().authenticated();
+                        authConfig.anyRequest().permitAll();
                     })
                     .authenticationProvider(authenticationProvider())
                     .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class);
