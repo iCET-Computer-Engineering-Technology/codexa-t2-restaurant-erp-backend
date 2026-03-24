@@ -47,6 +47,12 @@ VALUES ('birthday', 'email', 'Happy Birthday {{first_name}}! Enjoy a special tre
        ('lapsed', 'sms', 'Hey {{first_name}}, it\'s been a while. Visit us this week!', 'discount', 10.00, 0, 0);
 
 -- ---------------------------------------------------------------
+-- 3a. email_scheduler_config (DEFAULT SCHEDULER TIME FOR BIRTHDAYS/ANNIVERSARIES)
+-- ---------------------------------------------------------------
+INSERT INTO email_scheduler_config (id, send_time, created_at)
+VALUES (1, '08:00:00', NOW());
+
+-- ---------------------------------------------------------------
 -- 4. suppliers
 -- ---------------------------------------------------------------
 INSERT INTO suppliers (id, name, contact_name, email, phone, address)

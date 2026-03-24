@@ -89,7 +89,8 @@ public class MarketingCampaignRepositoryImpl implements MarketingCampaignReposit
             campaign.setVariantBBody(rs.getString(8));
             campaign.setScheduledAt(rs.getTimestamp(9) != null ? rs.getTimestamp(9).toLocalDateTime() : null);
             campaign.setSentAt(rs.getTimestamp(10) != null ? rs.getTimestamp(10).toLocalDateTime() : null);
-            campaign.setStatus(MarketingCampaign.Status.fromDbValue(rs.getString(11)));
+            String statusStr = rs.getString(11);
+            campaign.setStatus(statusStr != null ? MarketingCampaign.Status.fromDbValue(statusStr) : MarketingCampaign.Status.DRAFT);
             campaign.setCreatedBy(rs.getInt(12));
             campaign.setCreatedAt(rs.getTimestamp(13) != null ? rs.getTimestamp(13).toLocalDateTime() : null);
             return campaign;
@@ -115,7 +116,8 @@ public class MarketingCampaignRepositoryImpl implements MarketingCampaignReposit
             campaign.setVariantBBody(rs.getString(8));
             campaign.setScheduledAt(rs.getTimestamp(9) != null ? rs.getTimestamp(9).toLocalDateTime() : null);
             campaign.setSentAt(rs.getTimestamp(10) != null ? rs.getTimestamp(10).toLocalDateTime() : null);
-            campaign.setStatus(MarketingCampaign.Status.fromDbValue(rs.getString(11)));
+            String statusStr = rs.getString(11);
+            campaign.setStatus(statusStr != null ? MarketingCampaign.Status.fromDbValue(statusStr) : MarketingCampaign.Status.DRAFT);
             campaign.setCreatedBy(rs.getInt(12));
             campaign.setCreatedAt(rs.getTimestamp(13) != null ? rs.getTimestamp(13).toLocalDateTime() : null);
             return campaign;
@@ -205,7 +207,8 @@ public class MarketingCampaignRepositoryImpl implements MarketingCampaignReposit
             campaign.setVariantBBody(rs.getString(8));
             campaign.setScheduledAt(rs.getTimestamp(9) != null ? rs.getTimestamp(9).toLocalDateTime() : null);
             campaign.setSentAt(rs.getTimestamp(10) != null ? rs.getTimestamp(10).toLocalDateTime() : null);
-            campaign.setStatus(MarketingCampaign.Status.fromDbValue(rs.getString(11)));
+            String statusStr = rs.getString(11);
+            campaign.setStatus(statusStr != null ? MarketingCampaign.Status.fromDbValue(statusStr) : MarketingCampaign.Status.DRAFT);
             campaign.setCreatedBy(rs.getInt(12));
             campaign.setCreatedAt(rs.getTimestamp(13) != null ? rs.getTimestamp(13).toLocalDateTime() : null);
             return campaign;
