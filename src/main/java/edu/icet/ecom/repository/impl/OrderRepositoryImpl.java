@@ -23,36 +23,41 @@ public class OrderRepositoryImpl implements OrderRepository {
 
     @Override
     public Integer saveAndGetId(Order order) {
-        String sql ="INSERT INTO orders (order_number, order_type, table_id, customer_id, server_id, status, subtotal, discount_amount, " +
+        String sql ="INSERT INTO orders (order_type_id, order_number, order_type, table_id, customer_id, server_id, status, subtotal, discount_amount, " +
                 "tax_amount, service_charge, total_amount, notes) " +
-                "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
+                "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
         KeyHolder keyHolder = new GeneratedKeyHolder();
         jdbcTemplate.update(connection ->{
             PreparedStatement ps = connection.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS);
-            ps.setString(1, order.getOrderNumber());
-            ps.setString(2, order.getOrderType());
-            if(order.getTableId() != null){
-                ps.setInt(3, order.getTableId());
+            if(order.getOrderTypeId() != null){
+                ps.setInt(1, order.getOrderTypeId());
             }else{
-                ps.setNull(3, Types.INTEGER);
+                ps.setNull(1, Types.INTEGER);
             }
-            if(order.getCustomerId() != null) {
-                ps.setInt(4, order.getCustomerId());
+            ps.setString(2, order.getOrderNumber());
+            ps.setString(3, order.getOrderType());
+            if(order.getTableId() != null){
+                ps.setInt(4, order.getTableId());
             }else{
                 ps.setNull(4, Types.INTEGER);
             }
-            if(order.getServerId() != null){
-                ps.setInt(5, order.getServerId());
+            if(order.getCustomerId() != null) {
+                ps.setInt(5, order.getCustomerId());
             }else{
                 ps.setNull(5, Types.INTEGER);
             }
-            ps.setString(6, order.getStatus());
-            ps.setBigDecimal(7, order.getSubTotal());
-            ps.setBigDecimal(8, order.getDiscountAmount());
-            ps.setBigDecimal(9, order.getTaxAmount());
-            ps.setBigDecimal(10, order.getServiceCharge());
-            ps.setBigDecimal(11, order.getTotalAmount());
-            ps.setString(12, order.getNotes());
+            if(order.getServerId() != null){
+                ps.setInt(6, order.getServerId());
+            }else{
+                ps.setNull(6, Types.INTEGER);
+            }
+            ps.setString(7, order.getStatus());
+            ps.setBigDecimal(8, order.getSubTotal());
+            ps.setBigDecimal(9, order.getDiscountAmount());
+            ps.setBigDecimal(10, order.getTaxAmount());
+            ps.setBigDecimal(11, order.getServiceCharge());
+            ps.setBigDecimal(12, order.getTotalAmount());
+            ps.setString(13, order.getNotes());
             return ps;
         }, keyHolder );
         return Optional.ofNullable(keyHolder.getKey())
@@ -81,7 +86,7 @@ public class OrderRepositoryImpl implements OrderRepository {
         }
         try {
             return jdbcTemplate.queryForObject(
-                    "SELECT id, order_number, order_type, table_id, customer_id, server_id, " +
+                    "SELECT id, order_type_id, order_number, order_type, table_id, customer_id, server_id, " +
                             "status, subtotal, discount_amount, tax_amount, service_charge, " +
                             "total_amount, notes, created_at, updated_at " +
                             "FROM orders WHERE id = ?",
@@ -95,7 +100,7 @@ public class OrderRepositoryImpl implements OrderRepository {
     @Override
     public List<Order> findAll() {
         return jdbcTemplate.query(
-                "SELECT id, order_number, order_type, table_id, customer_id, server_id, " +
+                "SELECT id, order_type_id, order_number, order_type, table_id, customer_id, server_id, " +
                         "status, subtotal, discount_amount, tax_amount, service_charge, " +
                         "total_amount, notes, created_at, updated_at " +
                         "FROM orders ORDER BY created_at DESC",
@@ -106,7 +111,7 @@ public class OrderRepositoryImpl implements OrderRepository {
     @Override
     public List<Order> findByStatus(String status) {
         return jdbcTemplate.query(
-                "SELECT id, order_number, order_type, table_id, customer_id, server_id, " +
+                "SELECT id, order_type_id, order_number, order_type, table_id, customer_id, server_id, " +
                         "status, subtotal, discount_amount, tax_amount, service_charge, " +
                         "total_amount, notes, created_at, updated_at " +
                         "FROM orders WHERE status = ? ORDER BY created_at DESC",
@@ -133,6 +138,10 @@ public class OrderRepositoryImpl implements OrderRepository {
     private Order mapRow(ResultSet rs) throws SQLException {
         Order order = new Order();
         order.setId(rs.getInt("id"));
+
+        int orderTypeId = rs.getInt("order_type_id");
+        order.setOrderTypeId(rs.wasNull() ? null : orderTypeId);
+
         order.setOrderNumber(rs.getString("order_number"));
         order.setOrderType(rs.getString("order_type"));
 
