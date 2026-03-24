@@ -46,9 +46,10 @@ public class MenuItemPriceController {
         return meuItemPriceService.getPricesByItemId(itemId);
     }
 
-    @GetMapping("/get-full-menu")
+        @GetMapping("/get-full-menu")
     public List<MenuItemPriceDto> getFullMenu(){
         return meuItemPriceService.getFullMenu();
     }
+
 
 }

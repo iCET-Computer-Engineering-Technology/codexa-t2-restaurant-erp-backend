@@ -150,54 +150,98 @@ public class MarketingCampaignServiceImpl implements MarketingCampaignService {
 
     @Override
     public void sendCampaignToCustomers(Integer campaignId) {
+        log.warn("STARTING CAMPAIGN EMAIL SENDING");
+        log.warn("Campaign ID: {}", campaignId);
 
-        MarketingCampaign campaign = marketingCampaignRepository.findById(campaignId)
-                .orElseThrow(() -> new IllegalArgumentException("Campaign not found: " + campaignId));
+        try {
+            MarketingCampaign campaign = marketingCampaignRepository.findById(campaignId)
+                    .orElseThrow(() -> new IllegalArgumentException("Campaign not found: " + campaignId));
 
-        List<CustomerDto> customers = customerService.getAllCustomer();
+            log.info("✓ Campaign fetched: {} | Status: {} | Subject: {}",
+                    campaign.getCampaignName(), campaign.getStatus(), campaign.getSubject());
 
-        if (campaign.getSegmentId() != null) {
-            customers = customers.stream()
-                    .filter(c -> c.getCommunicationEmail() != null && c.getCommunicationEmail() == 1)
-                    .collect(Collectors.toList());
-        } else {
-            customers = customers.stream()
-                    .filter(c -> c.getCommunicationEmail() != null && c.getCommunicationEmail() == 1)
-                    .collect(Collectors.toList());
-        }
+            List<CustomerDto> customers = customerService.getAllCustomer();
+            log.info("✓ Total customers in system: {}", customers.size());
 
-        for (CustomerDto customer : customers) {
-            try {
-                String variant = assignVariant(campaignId, customer.getId());
-                String emailBody = buildHtmlEmailBody(campaign, customer, variant);
-                emailService.sendEmailToCustomer(customer.getEmail(), campaign.getSubject(), emailBody);
-                campaignAnalyticsService.recordCampaignSent(campaignId, customer.getId(), variant);
-
-            } catch (Exception e) {
-                log.error("Error sending email to customer {}: {}", customer.getId(), e.getMessage(), e);
+            if (campaign.getSegmentId() != null) {
+                customers = customers.stream()
+                        .filter(c -> c.getCommunicationEmail() != null && c.getCommunicationEmail() == 1)
+                        .collect(Collectors.toList());
+            } else {
+                customers = customers.stream()
+                        .filter(c -> c.getCommunicationEmail() != null && c.getCommunicationEmail() == 1)
+                        .collect(Collectors.toList());
             }
-        }
 
-        markCampaignAsSent(campaignId);
+            log.info("✓ Customers opted-in for email (communication_email=1): {}", customers.size());
+
+            if (customers.isEmpty()) {
+                log.warn("⚠️  No customers to send to!");
+            }
+
+            int successCount = 0;
+            int failureCount = 0;
+
+            for (CustomerDto customer : customers) {
+                try {
+                    String variant = assignVariant(campaignId, customer.getId());
+                    String emailBody = buildHtmlEmailBody(campaign, customer, variant);
+
+                    log.debug("Sending to: {} | Name: {} | Variant: {}",
+                            customer.getEmail(), customer.getFirstName(), variant);
+
+                    emailService.sendEmailToCustomer(customer.getEmail(), campaign.getSubject(), emailBody);
+                    campaignAnalyticsService.recordCampaignSent(campaignId, customer.getId(), variant);
+
+                    successCount++;
+                    log.info("✓ Email sent to: {}", customer.getEmail());
+
+                } catch (Exception e) {
+                    failureCount++;
+                    log.error("✗ Error sending email to customer {} ({}): {}",
+                            customer.getId(), customer.getEmail(), e.getMessage(), e);
+                }
+            }
+
+            log.warn("EMAIL SENDING SUMMARY");
+            log.warn("Total sent: {} | Failed: {}", successCount, failureCount);
+
+            markCampaignAsSent(campaignId);
+
+            log.warn("CAMPAIGN EMAIL SENDING COMPLETED");
+            log.warn("Campaign: {}", campaign.getCampaignName());
+            log.warn("tatus: SENT");
+
+        } catch (Exception e) {
+            log.error("CAMPAIGN SENDING FAILED");
+            log.error("Campaign ID: {} | Error: {}", campaignId, e.getMessage());
+            throw e;
+        }
     }
 
     private String buildHtmlEmailBody(MarketingCampaign campaign, CustomerDto customer, String variant) {
         String template = emailTemplateService.getMarketingCampaignTemplate();
+        String campaignMessage = variant.equals("A") ? campaign.getBodyTemplate() : campaign.getVariantBBody();
+        if (campaignMessage == null || campaignMessage.trim().isEmpty()) {
+            campaignMessage = campaign.getBodyTemplate();
+        }
 
         Map<String, String> variables = new HashMap<>();
         variables.put("name", customer.getFirstName() != null ? customer.getFirstName() : "Valued Customer");
         variables.put("campaignName", campaign.getCampaignName());
-        variables.put("message", variant.equals("A") ? campaign.getBodyTemplate() : campaign.getVariantBBody());
+        variables.put("message", campaignMessage);
         variables.put("discount", extractDiscount(campaign));
         variables.put("restaurant", "Restaurant ERP");
         variables.put("campaignId", campaign.getId().toString());
-        return emailTemplateService.renderTemplate(template, variables);
+
+        String renderedTemplate = emailTemplateService.renderTemplate(template, variables);
+        log.debug("Campaign email template rendered for customer: {}", customer.getEmail());
+        return renderedTemplate;
     }
 
     private String extractDiscount(MarketingCampaign campaign) {
         String body = campaign.getBodyTemplate();
         if (body != null && body.contains("%")) {
-            // Try to extract percentage
             int percentIndex = body.indexOf("%");
             if (percentIndex > 0) {
                 int startIndex = Math.max(0, percentIndex - 3);
