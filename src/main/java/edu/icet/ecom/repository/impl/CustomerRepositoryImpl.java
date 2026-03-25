@@ -1,9 +1,11 @@
 package edu.icet.ecom.repository.impl;
 
 import edu.icet.ecom.dto.CustomerDto;
+import edu.icet.ecom.dto.Visitdto;
 import edu.icet.ecom.repository.CustomerRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.jdbc.core.BeanPropertyRowMapper;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.RowMapper;
 import org.springframework.stereotype.Repository;
@@ -96,32 +98,5 @@ public class CustomerRepositoryImpl implements CustomerRepository {
                 dto.getPhone()
         );
         return result > 0;
-    }
-
-    public List<CustomerDto> findCustomersWithBirthdayOn(LocalDate targetDate) {
-        String sql = "SELECT * FROM customers " +
-                "WHERE gdpr_deleted = 0 " +
-                "AND birthday IS NOT NULL " +
-                "AND MONTH(birthday) = ? " +
-                "AND DAY(birthday) = ?";
-
-        log.debug("Finding customers with birthday on {}/{}", targetDate.getMonthValue(), targetDate.getDayOfMonth());
-        return jdbcTemplate.query(sql, rowMapper,
-                targetDate.getMonthValue(),
-                targetDate.getDayOfMonth());
-    }
-
-    @Override
-    public List<CustomerDto> findCustomersWithAnniversaryOn(LocalDate targetDate) {
-        String sql = "SELECT * FROM customers " +
-                "WHERE gdpr_deleted = 0 " +
-                "AND created_at IS NOT NULL " +
-                "AND MONTH(created_at) = ? " +
-                "AND DAY(created_at) = ?";
-
-        log.debug("Finding customers with anniversary on {}/{}", targetDate.getMonthValue(), targetDate.getDayOfMonth());
-        return jdbcTemplate.query(sql, rowMapper,
-                targetDate.getMonthValue(),
-                targetDate.getDayOfMonth());
     }
 }
