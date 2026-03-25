@@ -10,7 +10,8 @@ import java.time.LocalDateTime;
 @Setter
 public class OrderAssignment {
     private Long id;
-    private Long orderId;
+    private Long kitchenOrderId;
     private Long waiterId;
     private LocalDateTime assignedAt;
 }
+

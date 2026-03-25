@@ -3,15 +3,18 @@ package edu.icet.ecom.repository.impl;
 import edu.icet.ecom.dto.CustomerDto;
 import edu.icet.ecom.repository.CustomerRepository;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.RowMapper;
 import org.springframework.stereotype.Repository;
 
+import java.time.LocalDate;
 import java.util.List;
 import java.util.Optional;
 
 @Repository
 @RequiredArgsConstructor
+@Slf4j
 public class CustomerRepositoryImpl implements CustomerRepository {
 
     private final JdbcTemplate jdbcTemplate;
@@ -28,6 +31,9 @@ public class CustomerRepositoryImpl implements CustomerRepository {
         customer.setCommunicationEmail(rs.getInt("communication_email"));
         customer.setCommunicationSms(rs.getInt("communication_sms"));
         customer.setGdprDeleted(rs.getInt("gdpr_deleted"));
+        customer.setBirthday(rs.getDate("birthday") != null ? rs.getDate("birthday").toLocalDate() : null);
+        customer.setLoyaltyPoints(rs.getInt("loyalty_points"));
+        customer.setCreatedAt(rs.getDate("created_at") != null ? rs.getDate("created_at").toLocalDate() : null);
         return customer;
     };
 
@@ -39,13 +45,18 @@ public class CustomerRepositoryImpl implements CustomerRepository {
 
     @Override
     public boolean saveCustomer(CustomerDto dto) {
-        String sql = "INSERT INTO customers (first_name, last_name, email, phone, preferred_language, dietary_notes, communication_email, communication_sms) VALUES (?,?,?,?,?,?,?,?)";
+        String sql = "INSERT INTO customers (first_name, last_name, email, phone, preferred_language, dietary_notes, communication_email, communication_sms, birthday, loyalty_points) VALUES (?,?,?,?,?,?,?,?,?,?)";
         int result = jdbcTemplate.update(sql,
-                dto.getFirstName(), dto.getLastName(), dto.getEmail(), dto.getPhone(),
+                dto.getFirstName(), 
+                dto.getLastName(), 
+                dto.getEmail(), 
+                dto.getPhone(),
                 dto.getPreferredLanguage() != null ? dto.getPreferredLanguage() : "en",
                 dto.getDietaryNotes(),
                 dto.getCommunicationEmail() != null ? dto.getCommunicationEmail() : 1,
-                dto.getCommunicationSms() != null ? dto.getCommunicationSms() : 1
+                dto.getCommunicationSms() != null ? dto.getCommunicationSms() : 1,
+                dto.getBirthday(),
+                dto.getLoyaltyPoints() != null ? dto.getLoyaltyPoints() : 0
         );
         return result > 0;
     }
@@ -62,6 +73,7 @@ public class CustomerRepositoryImpl implements CustomerRepository {
         return jdbcTemplate.query(sql, rowMapper, id).stream().findFirst();
     }
 
+
     @Override
     public boolean deleteCustomerByPhone(String phone) {
         String sql = "UPDATE customers SET gdpr_deleted = 1 WHERE phone = ?";
@@ -70,12 +82,46 @@ public class CustomerRepositoryImpl implements CustomerRepository {
 
     @Override
     public boolean updateCustomer(CustomerDto dto) {
-        String sql = "UPDATE customers SET first_name=?, last_name=?, email=?, preferred_language=?, dietary_notes=?, communication_email=?, communication_sms=? WHERE phone=?";
+        String sql = "UPDATE customers SET first_name=?, last_name=?, email=?, preferred_language=?, dietary_notes=?, communication_email=?, communication_sms=?, birthday=?, loyalty_points=? WHERE phone=?";
         int result = jdbcTemplate.update(sql,
-                dto.getFirstName(), dto.getLastName(), dto.getEmail(),
-                dto.getPreferredLanguage(), dto.getDietaryNotes(),
-                dto.getCommunicationEmail(), dto.getCommunicationSms(), dto.getPhone()
+                dto.getFirstName(), 
+                dto.getLastName(), 
+                dto.getEmail(),
+                dto.getPreferredLanguage(), 
+                dto.getDietaryNotes(),
+                dto.getCommunicationEmail(), 
+                dto.getCommunicationSms(),
+                dto.getBirthday(),
+                dto.getLoyaltyPoints(),
+                dto.getPhone()
         );
         return result > 0;
+    }
+
+    public List<CustomerDto> findCustomersWithBirthdayOn(LocalDate targetDate) {
+        String sql = "SELECT * FROM customers " +
+                "WHERE gdpr_deleted = 0 " +
+                "AND birthday IS NOT NULL " +
+                "AND MONTH(birthday) = ? " +
+                "AND DAY(birthday) = ?";
+
+        log.debug("Finding customers with birthday on {}/{}", targetDate.getMonthValue(), targetDate.getDayOfMonth());
+        return jdbcTemplate.query(sql, rowMapper,
+                targetDate.getMonthValue(),
+                targetDate.getDayOfMonth());
+    }
+
+    @Override
+    public List<CustomerDto> findCustomersWithAnniversaryOn(LocalDate targetDate) {
+        String sql = "SELECT * FROM customers " +
+                "WHERE gdpr_deleted = 0 " +
+                "AND created_at IS NOT NULL " +
+                "AND MONTH(created_at) = ? " +
+                "AND DAY(created_at) = ?";
+
+        log.debug("Finding customers with anniversary on {}/{}", targetDate.getMonthValue(), targetDate.getDayOfMonth());
+        return jdbcTemplate.query(sql, rowMapper,
+                targetDate.getMonthValue(),
+                targetDate.getDayOfMonth());
     }
 }

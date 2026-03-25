@@ -9,11 +9,11 @@
 
 CREATE TABLE users (
                        id INT AUTO_INCREMENT PRIMARY KEY,
-                       username VARCHAR(200),
+                       full_name VARCHAR(200),
                        email VARCHAR(255),
-                       password VARCHAR(255),
                        role VARCHAR(100),
-                       enabled TINYINT DEFAULT 1,
+                       pin_hash VARCHAR(255),
+                       is_active TINYINT DEFAULT 1,
                        created_at DATETIME DEFAULT CURRENT_TIMESTAMP
 );
 

@@ -9,11 +9,10 @@ import org.springframework.jdbc.support.GeneratedKeyHolder;
 import org.springframework.jdbc.support.KeyHolder;
 import org.springframework.stereotype.Repository;
 
-import java.sql.PreparedStatement;
-import java.sql.Statement;
+import java.sql.*;
 import java.time.LocalDate;
-import java.util.Optional;
 import java.util.List;
+import java.util.Optional;
 
 @Repository
 @RequiredArgsConstructor
@@ -21,75 +20,172 @@ public class OrderRepositoryImpl implements OrderRepository {
 
     private final JdbcTemplate jdbcTemplate;
 
-    //Geeth
+
     @Override
-    public List<Order> findReceivedOrders() {
-        String sql = "SELECT id, table_id, customer_id, order_number, status, total_amount, tax, payment_status, created_at, updated_at " +
-                "FROM orders WHERE status = 'RECEIVED' " +
-                "ORDER BY created_at ASC";
-        return jdbcTemplate.query(sql, (rs, rowNum) ->{
-            Order order = new Order();
-            order.setId(rs.getLong(1));
-            order.setTableId(rs.getLong(2));
-            if (!rs.wasNull()) {
-                order.setCustomerId(rs.getLong(3));
-            } else {
-                order.setCustomerId(null);
+    public Integer saveAndGetId(Order order) {
+        String sql ="INSERT INTO orders (order_type_id, order_number, order_type, table_id, customer_id, server_id, status, subtotal, discount_amount, " +
+                "tax_amount, service_charge, total_amount, notes) " +
+                "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
+        KeyHolder keyHolder = new GeneratedKeyHolder();
+        jdbcTemplate.update(connection ->{
+            PreparedStatement ps = connection.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS);
+            if(order.getOrderTypeId() != null){
+                ps.setInt(1, order.getOrderTypeId());
+            }else{
+                ps.setNull(1, Types.INTEGER);
             }
-            order.setOrderNumber(rs.getString(4));
-            order.setStatus(rs.getString(5));
-            order.setTotalAmount(rs.getBigDecimal(6));
-            order.setTax(rs.getBigDecimal(7));
-            order.setPaymentStatus(rs.getString(8));
-            order.setCreatedAt(rs.getTimestamp(9).toLocalDateTime());
-            order.setUpdatedAt(rs.getTimestamp(10).toLocalDateTime());
-            return order;
-        });
+            ps.setString(2, order.getOrderNumber());
+            ps.setString(3, order.getOrderType());
+            if(order.getTableId() != null){
+                ps.setInt(4, order.getTableId());
+            }else{
+                ps.setNull(4, Types.INTEGER);
+            }
+            if(order.getCustomerId() != null) {
+                ps.setInt(5, order.getCustomerId());
+            }else{
+                ps.setNull(5, Types.INTEGER);
+            }
+            if(order.getServerId() != null){
+                ps.setInt(6, order.getServerId());
+            }else{
+                ps.setNull(6, Types.INTEGER);
+            }
+            ps.setString(7, order.getStatus());
+            ps.setBigDecimal(8, order.getSubTotal());
+            ps.setBigDecimal(9, order.getDiscountAmount());
+            ps.setBigDecimal(10, order.getTaxAmount());
+            ps.setBigDecimal(11, order.getServiceCharge());
+            ps.setBigDecimal(12, order.getTotalAmount());
+            ps.setString(13, order.getNotes());
+            return ps;
+        }, keyHolder );
+        return Optional.ofNullable(keyHolder.getKey())
+                .map(Number::intValue).orElseThrow(()-> new DataRetrievalFailureException("Order insert failed - no generated key returned"));
     }
 
-    //Geeth
     @Override
-    public boolean updateStatus(Long orderId, String status) {
-        String sql = "UPDATE orders SET status = ?, updated_at = NOW() WHERE id = ?";
-        return jdbcTemplate.update(sql, status, orderId)>0;
+    public boolean updateStatus(Integer orderId, String status) {
+        if (orderId == null || orderId <= 0) {
+            throw new IllegalArgumentException("Invalid orderId: " + orderId);
+        }
+        if (status == null || status.trim().isEmpty()) {
+            throw new IllegalArgumentException("Status cannot be null or empty");
+        }
+        int rowsUpdated = jdbcTemplate.update(
+                "UPDATE orders SET status = ?, updated_at = NOW() WHERE id = ?",
+                status, orderId
+        );
+        return rowsUpdated > 0;
     }
 
-    //Amila
+    @Override
+    public boolean updateType(Integer orderId, String type) {
+        if (orderId == null || orderId <= 0) {
+            throw new IllegalArgumentException("Invalid orderId: " + orderId);
+        }
+        if (type == null || type.trim().isEmpty()) {
+            throw new IllegalArgumentException("Type cannot be null or empty");
+        }
+        int rowsUpdated = jdbcTemplate.update(
+                "UPDATE orders SET order_type = ?, table_id = CASE WHEN ? = 'takeout' THEN NULL ELSE table_id END, updated_at = NOW() WHERE id = ?",
+                type, type, orderId
+        );
+        return rowsUpdated > 0;
+    }
+
+    @Override
+    public Order findById(Integer id) {
+        if (id == null || id <= 0) {
+            return null;
+        }
+        try {
+            return jdbcTemplate.queryForObject(
+                    "SELECT id, order_type_id, order_number, order_type, table_id, customer_id, server_id, " +
+                            "status, subtotal, discount_amount, tax_amount, service_charge, " +
+                            "total_amount, notes, created_at, updated_at " +
+                            "FROM orders WHERE id = ?",
+                    (rs, row) -> mapRow(rs), id
+            );
+        } catch (org.springframework.dao.EmptyResultDataAccessException e) {
+            return null;  // Order not found
+        }
+    }
+
+    @Override
+    public List<Order> findAll() {
+        return jdbcTemplate.query(
+                "SELECT id, order_type_id, order_number, order_type, table_id, customer_id, server_id, " +
+                        "status, subtotal, discount_amount, tax_amount, service_charge, " +
+                        "total_amount, notes, created_at, updated_at " +
+                        "FROM orders ORDER BY created_at DESC",
+                (rs, row) -> mapRow(rs)
+        );
+    }
+
+    @Override
+    public List<Order> findByStatus(String status) {
+        return jdbcTemplate.query(
+                "SELECT id, order_type_id, order_number, order_type, table_id, customer_id, server_id, " +
+                        "status, subtotal, discount_amount, tax_amount, service_charge, " +
+                        "total_amount, notes, created_at, updated_at " +
+                        "FROM orders WHERE status = ? ORDER BY created_at DESC",
+                (rs, row) -> mapRow(rs), status
+        );
+    }
+
+    //Get sequence for order number - uses order_sequence table to maintain daily counter
     @Override
     public int upsertAndGetSequence(LocalDate date) {
-        jdbcTemplate.update(
-                "INSERT INTO order_sequence (sequence_date, last_sequence) VALUES (?, 1) " +
-                        "ON DUPLICATE KEY UPDATE last_sequence = LAST_INSERT_ID(last_sequence + 1)", date);
-        Integer sequence = jdbcTemplate.queryForObject("SELECT LAST_INSERT_ID()", Integer.class);
-        if (sequence == null) {
-            throw new DataRetrievalFailureException("Failed to get sequence: LAST_INSERT_ID() returned null");
+        if (date == null) {
+            throw new IllegalArgumentException("Date cannot be null");
         }
-        return sequence;
+        java.sql.Date sqlDate = java.sql.Date.valueOf(date);
+        String sql = "INSERT INTO order_sequence (sequence_date, last_sequence) VALUES (?, 1) " +
+                "ON DUPLICATE KEY UPDATE last_sequence = last_sequence + 1";
+        jdbcTemplate.update(sql, sqlDate);
+
+        String selectSql = "SELECT last_sequence FROM order_sequence WHERE sequence_date = ?";
+        Integer sequence = jdbcTemplate.queryForObject(selectSql, Integer.class, sqlDate);
+        return sequence != null ? sequence : 1;
     }
 
-    //Amila
-    @Override
-    public Long saveAndGetId(Order order) {
-        String sql = "INSERT INTO orders (table_id, customer_id, order_number, status, total_amount, tax, payment_status, created_at, updated_at) "+
-                    "VALUES (?, ?, ?, ?, ?, ?, ?, NOW(), NOW())";
-        KeyHolder keyHolder =  new GeneratedKeyHolder();
-        jdbcTemplate.update(connection -> {
-            PreparedStatement ps = connection.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS);
-            ps.setLong(1, order.getTableId());
-            if(order.getCustomerId() != null) {
-                ps.setLong(2, order.getCustomerId());
-            }else {
-                ps.setNull(2, java.sql.Types.BIGINT);
-            }
-            ps.setString(3, order.getOrderNumber());
-            ps.setString(4, order.getStatus());
-            ps.setBigDecimal(5, order.getTotalAmount());
-            ps.setBigDecimal(6, order.getTax());
-            ps.setString(7, order.getPaymentStatus());
-            return ps;
-            }, keyHolder);
-        return Optional.ofNullable(keyHolder.getKey())
-                    .map(Number::longValue)
-                    .orElseThrow(() -> new DataRetrievalFailureException("Order insert failed: no generated key returned"));
+    private Order mapRow(ResultSet rs) throws SQLException {
+        Order order = new Order();
+        order.setId(rs.getInt("id"));
+
+        int orderTypeId = rs.getInt("order_type_id");
+        order.setOrderTypeId(rs.wasNull() ? null : orderTypeId);
+
+        order.setOrderNumber(rs.getString("order_number"));
+        order.setOrderType(rs.getString("order_type"));
+
+        int tableId = rs.getInt("table_id");
+        order.setTableId(rs.wasNull() ? null : tableId);
+
+        int customerId = rs.getInt("customer_id");
+        order.setCustomerId(rs.wasNull() ? null : customerId);
+
+        int serverId = rs.getInt("server_id");
+        order.setServerId(rs.wasNull() ? null : serverId);
+
+        order.setStatus(rs.getString("status"));
+        order.setSubTotal(rs.getBigDecimal("subtotal"));
+        order.setDiscountAmount(rs.getBigDecimal("discount_amount"));
+        order.setTaxAmount(rs.getBigDecimal("tax_amount"));
+        order.setServiceCharge(rs.getBigDecimal("service_charge"));
+        order.setTotalAmount(rs.getBigDecimal("total_amount"));
+        order.setNotes(rs.getString("notes"));
+
+        //Handle null timestamps to prevent NullPointerException
+        Timestamp createdTs = rs.getTimestamp("created_at");
+        if (createdTs != null) {
+            order.setCreatedAt(createdTs.toLocalDateTime());
+        }
+        Timestamp updatedTs = rs.getTimestamp("updated_at");
+        if (updatedTs != null) {
+            order.setUpdatedAt(updatedTs.toLocalDateTime());
+        }
+        return order;
     }
 }
