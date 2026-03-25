@@ -1,155 +1,56 @@
--- Table employee
-CREATE TABLE employee (
-id INT NOT NULL AUTO_INCREMENT PRIMARY KEY,
-user_id INT NULL UNIQUE,
-first_name VARCHAR(100) NOT NULL,
-last_name VARCHAR(100) NOT NULL,
-email VARCHAR(255) NULL,
-phone VARCHAR(30) NULL,
-basic_salary DOUBLE NOT NULL,
-allowance DOUBLE DEFAULT 0,
-bonus DOUBLE DEFAULT 0,
-donation DOUBLE DEFAULT 0,
-department VARCHAR(100) NULL,
-designation VARCHAR(100) NULL,
-status VARCHAR(20) DEFAULT 'ACTIVE',
-created_at DATETIME NULL DEFAULT CURRENT_TIMESTAMP,
-FOREIGN KEY (user_id)
-REFERENCES users (id)
-ON DELETE SET NULL
-ON UPDATE CASCADE
-) ENGINE = InnoDB
-DEFAULT CHARACTER SET = utf8mb4
-COLLATE = utf8mb4_0900_ai_ci;
+INSERT INTO employee
+(id, user_id, first_name, last_name, email, phone, basic_salary, allowance, bonus, donation, department, designation)
+VALUES
+(1, 1, 'John', 'Doe', 'john@example.com', '0771234567', 50000, 5000, 2000, 1000, 'IT', 'Software Engineer'),
+(2, 2, 'Jane', 'Smith', 'jane@example.com', '0779876543', 80000, 8000, 5000, 2000, 'HR', 'Manager');
 
--- Table payroll
+INSERT INTO payroll_config (id, epf_employee_rate, epf_employer_rate, etf_rate)
+VALUES (1, 0.08, 0.12, 0.03);
 
-CREATE TABLE payroll (
-id INT AUTO_INCREMENT PRIMARY KEY,
-employee_id INT NOT NULL,
-basic_salary DOUBLE NOT NULL,
-epf_employee DOUBLE DEFAULT 0,
-epf_employer DOUBLE DEFAULT 0,
-etf_employer DOUBLE DEFAULT 0,
-allowance DOUBLE DEFAULT 0,
-bonus DOUBLE DEFAULT 0,
-donation DOUBLE DEFAULT 0,
-overtime_amount DOUBLE DEFAULT 0,
-leave_days INT DEFAULT 0,
-leave_deduction DOUBLE DEFAULT 0,
-total_deduction DOUBLE DEFAULT 0,
-net_salary DOUBLE DEFAULT 0,
-employer_cost DOUBLE DEFAULT 0,
-payroll_date DATE NOT NULL,
-created_at DATETIME NULL DEFAULT CURRENT_TIMESTAMP,
-FOREIGN KEY (employee_id) REFERENCES employee(id)
-);
+INSERT INTO allowance (employee_id, type, amount) VALUES
+(1, 'Transport', 3000),
+(1, 'Meal', 2000),
+(2, 'Transport', 4000);
 
--- Table deduction
+INSERT INTO deduction (employee_id, type, amount) VALUES
+(1, 'EPF', 4000),
+(1, 'LOAN', 2000),
+(2, 'TAX', 5000);
 
-CREATE TABLE deduction (
-id INT AUTO_INCREMENT PRIMARY KEY,
-employee_id INT NOT NULL,
-type VARCHAR(50), -- EPF / TAX / LOAN / DONATION
-amount DOUBLE DEFAULT 0,
-created_at DATETIME NULL DEFAULT CURRENT_TIMESTAMP,
-FOREIGN KEY (employee_id) REFERENCES employee(id)
-);
+INSERT INTO overtime (employee_id, date, hours, rate_per_hour, total_amount) VALUES
+(1, '2026-03-01', 10, 500, 5000),
+(2, '2026-03-02', 5, 800, 4000);
 
--- Table allowance
+INSERT INTO employee_leave
+(employee_id, leave_type, start_date, end_date, total_days, status, reason)
+VALUES
+(1, 'ANNUAL', '2026-03-10', '2026-03-12', 3, 'APPROVED', 'Vacation'),
+(2, 'SICK', '2026-03-05', '2026-03-06', 2, 'APPROVED', 'Fever');
 
-CREATE TABLE allowance (
-id INT AUTO_INCREMENT PRIMARY KEY,
-employee_id INT NOT NULL,
-type VARCHAR(50), -- Transport / Meal / Other
-amount DOUBLE DEFAULT 0,
-created_at DATETIME NULL DEFAULT CURRENT_TIMESTAMP,
-FOREIGN KEY (employee_id) REFERENCES employee(id)
-);
+INSERT INTO bonus (employee_id, amount) VALUES
+(1, 3000),
+(2, 5000);
 
--- Table employee leave
+INSERT INTO basic_salary (role, amount) VALUES
+('Software Engineer', 50000),
+('Manager', 80000);
 
-CREATE TABLE employee_leave (
-id INT AUTO_INCREMENT PRIMARY KEY,
-employee_id INT NOT NULL,
-leave_type VARCHAR(50), -- ANNUAL / CASUAL / SICK
-start_date DATE NOT NULL,
-end_date DATE NOT NULL,
-total_days INT DEFAULT 0,
-status VARCHAR(20) DEFAULT 'PENDING', -- PENDING / APPROVED / REJECTED
-reason TEXT,
-created_at DATETIME NULL DEFAULT CURRENT_TIMESTAMP,
-FOREIGN KEY (employee_id) REFERENCES employee(id)
-);
+INSERT INTO salary_request (employee_id, basic_salary, donation)
+VALUES
+(1, 50000, 1000),
+(2, 80000, 2000);
 
--- Table overtime
+INSERT INTO salary_response
+(basic_salary, epf_employee, epf_employer, etf_employer, donation, total_deduction, net_salary, employer_cost)
+VALUES
+(50000, 4000, 6000, 1500, 1000, 5000, 57000, 61500),
+(80000, 6400, 9600, 2400, 2000, 10400, 86600, 92000);
 
-CREATE TABLE overtime (
-id INT AUTO_INCREMENT PRIMARY KEY,
-employee_id INT NOT NULL,
-date DATE NOT NULL,
-hours DOUBLE DEFAULT 0,
-rate_per_hour DOUBLE DEFAULT 0,
-total_amount DOUBLE DEFAULT 0,
-created_at DATETIME NULL DEFAULT CURRENT_TIMESTAMP,
-FOREIGN KEY (employee_id) REFERENCES employee(id)
-);
-
--- Table payroll config
-
-CREATE TABLE payroll_config (
-id INT AUTO_INCREMENT PRIMARY KEY,
-epf_employee_rate DOUBLE DEFAULT 0.08,
-epf_employer_rate DOUBLE DEFAULT 0.12,
-etf_rate DOUBLE DEFAULT 0.03,
-created_at DATETIME NULL DEFAULT CURRENT_TIMESTAMP
-);
-
--- Table basic salary
-
-CREATE TABLE basic_salary (
-id INT AUTO_INCREMENT PRIMARY KEY,
-role VARCHAR(100) NOT NULL,
-amount DOUBLE DEFAULT 0,
-created_at DATETIME NULL DEFAULT CURRENT_TIMESTAMP
-);
-
--- Table salary request
-
-CREATE TABLE salary_request (
-id INT AUTO_INCREMENT PRIMARY KEY,
-employee_id INT,
-basic_salary DOUBLE,
-donation DOUBLE,
-created_at DATETIME NULL DEFAULT CURRENT_TIMESTAMP,
-FOREIGN KEY (employee_id) REFERENCES employee(id)
-);
-
--- Table salary response
-
-CREATE TABLE IF NOT EXISTS salary_response (
-id INT AUTO_INCREMENT PRIMARY KEY,
-basic_salary DOUBLE,
-epf_employee DOUBLE,
-epf_employer DOUBLE,
-etf_employer DOUBLE,
-donation DOUBLE,
-total_deduction DOUBLE,
-net_salary DOUBLE,
-employer_cost DOUBLE,
-created_at DATETIME NULL DEFAULT CURRENT_TIMESTAMP
-);
-
--- Table bonus
-
-CREATE TABLE bonus (
-id INT AUTO_INCREMENT PRIMARY KEY,
-employee_id INT NOT NULL,
-amount DOUBLE DEFAULT 0,
-created_at DATETIME NULL DEFAULT CURRENT_TIMESTAMP,
-FOREIGN KEY (employee_id) REFERENCES employee(id)
-);
-
-
-
-
+INSERT INTO payroll (
+employee_id, basic_salary, epf_employee, epf_employer, etf_employer,
+allowance, bonus, donation, overtime_amount, leave_days,
+leave_deduction, total_deduction, net_salary, employer_cost, payroll_date
+)
+VALUES
+(1, 50000, 4000, 6000, 1500, 5000, 2000, 1000, 5000, 3, 1500, 6500, 55500, 61500, '2026-03-31'),
+(2, 80000, 6400, 9600, 2400, 8000, 5000, 2000, 4000, 2, 2000, 10400, 86600, 92000, '2026-03-31');
