@@ -15,22 +15,28 @@ public class MenuItemPriceRepositoryImpl implements MenuItemPriceRepository {
 
     private final JdbcTemplate jdbcTemplate;
 
-        private static final String BASE_SELECT =
-                "SELECT mip.id, mi.name, mc.name, p.portion_name, mip.price " +
-                        "FROM menu_item_price mip " +
-                        "JOIN menu_items mi ON mip.item_id = mi.id " +
-                        "LEFT JOIN menu_categories mc ON mi.category_id = mc.id " +
-                        "JOIN portions p ON mip.portion_id = p.id ";
+    private static final String BASE_SELECT =
+            "SELECT mip.id, mip.item_id, mi.name, mc.name, mip.portion_id, p.portion_name, mip.price, mip.is_active " +
+                    "FROM menu_item_price mip " +
+                    "JOIN menu_items mi ON mip.item_id = mi.id " +
+                    "LEFT JOIN menu_categories mc ON mi.category_id = mc.id " +
+                    "JOIN portions p ON mip.portion_id = p.id ";
 
-        private MenuItemPriceDto mapRow(java.sql.ResultSet rs) throws java.sql.SQLException {
-            MenuItemPriceDto dto = new MenuItemPriceDto();
-            dto.setId(rs.getInt(1));
-            dto.setItemName(rs.getString(2));
-            dto.setCategoryName(rs.getString(3));
-            dto.setPortionName(rs.getString(4));
-            dto.setPrice(rs.getDouble(5));
-            return dto;
-        }
+
+    private MenuItemPriceDto mapRow(java.sql.ResultSet rs) throws java.sql.SQLException {
+        MenuItemPriceDto dto = new MenuItemPriceDto();
+
+        dto.setId(rs.getInt(1));
+        dto.setItemId(rs.getInt(2));
+        dto.setItemName(rs.getString(3));
+        dto.setCategoryName(rs.getString(4));
+        dto.setPortionId(rs.getInt(5));
+        dto.setPortionName(rs.getString(6));
+        dto.setPrice(rs.getDouble(7));
+        dto.setIsActive(rs.getBoolean(8));
+
+        return dto;
+    }
 
     @Override
     public boolean addItemPrice(MenuItemPriceDto menuItemPrice) {
@@ -44,7 +50,10 @@ public class MenuItemPriceRepositoryImpl implements MenuItemPriceRepository {
 
     @Override
     public boolean updateItemPrice(MenuItemPriceDto menuItemPrice) {
-        return jdbcTemplate.update("UPDATE menu_item_price SET price = ?, is_active = ? WHERE id = ?",
+        return jdbcTemplate.update(
+                "UPDATE menu_item_price SET item_id = ?, portion_id = ?, price = ?, is_active = ? WHERE id = ?",
+                menuItemPrice.getItemId(),
+                menuItemPrice.getPortionId(),
                 menuItemPrice.getPrice(),
                 menuItemPrice.getIsActive(),
                 menuItemPrice.getId()
