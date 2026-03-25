@@ -1,6 +1,7 @@
 package edu.icet.ecom.service.impl;
 
 import edu.icet.ecom.dto.SupplierDto;
+import edu.icet.ecom.entity.Supplier;
 import edu.icet.ecom.repository.SupplierRepository;
 import edu.icet.ecom.service.SupplierService;
 import lombok.RequiredArgsConstructor;
@@ -16,7 +17,18 @@ public class SupplierServiceImpl implements SupplierService {
 
     @Override
     public List<SupplierDto> getAllSuppliers() {
-        return supplierRepository.getAllSuppliers();
+        List<Supplier> suppliers = supplierRepository.getAllSuppliers();
+
+        return suppliers.stream().map(supplier -> {
+            SupplierDto dto = new SupplierDto();
+            dto.setId(supplier.getId());
+            dto.setName(supplier.getName());
+            dto.setContactName(supplier.getContactName());
+            dto.setEmail(supplier.getEmail());
+            dto.setPhone(supplier.getPhone());
+            dto.setAddress(supplier.getAddress());
+            return dto;
+        }).collect(Collectors.toList());
     }
 
     @Override

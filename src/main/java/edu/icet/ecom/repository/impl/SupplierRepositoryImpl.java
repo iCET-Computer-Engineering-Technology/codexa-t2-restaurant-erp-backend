@@ -69,7 +69,7 @@ public class SupplierRepositoryImpl implements SupplierRepository {
                 supplierDto.getAddress(),
                 supplierDto.getId()
         );
-        return supplierDto;
+        return rowsAffected > 0 ? supplierDto : null;
     }
 
 
@@ -77,6 +77,6 @@ public class SupplierRepositoryImpl implements SupplierRepository {
     @Override
     public boolean deleteSupplier(Integer id) {
         String deleteSql = "DELETE FROM suppliers WHERE id=?";
-        return jdbcTemplate.update(deleteSql, id)>0;
+        return jdbcTemplate.update(deleteSql, id) > 0;
     }
 }
