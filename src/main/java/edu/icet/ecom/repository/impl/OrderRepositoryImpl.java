@@ -80,6 +80,21 @@ public class OrderRepositoryImpl implements OrderRepository {
     }
 
     @Override
+    public boolean updateType(Integer orderId, String type) {
+        if (orderId == null || orderId <= 0) {
+            throw new IllegalArgumentException("Invalid orderId: " + orderId);
+        }
+        if (type == null || type.trim().isEmpty()) {
+            throw new IllegalArgumentException("Type cannot be null or empty");
+        }
+        int rowsUpdated = jdbcTemplate.update(
+                "UPDATE orders SET order_type = ?, table_id = CASE WHEN ? = 'takeout' THEN NULL ELSE table_id END, updated_at = NOW() WHERE id = ?",
+                type, type, orderId
+        );
+        return rowsUpdated > 0;
+    }
+
+    @Override
     public Order findById(Integer id) {
         if (id == null || id <= 0) {
             return null;

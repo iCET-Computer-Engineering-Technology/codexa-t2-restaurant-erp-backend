@@ -17,6 +17,8 @@ import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Locale;
+import java.util.Map;
 import java.util.Set;
 
 @Service
@@ -27,7 +29,22 @@ public class OrderServiceImpl implements OrderService {
     private final OrderItemRepository orderItemRepository;
 
     // Valid order types matching the DB ENUM
-    private static final Set<String> VALID_ORDER_TYPES = Set.of("dine_in", "takeout", "delivery", "online");
+    private static final Set<String> VALID_ORDER_TYPES = Set.of("dine_in", "takeout", "booking");
+
+    private static final String ORDER_TYPE_DINE_IN = "dine_in";
+    private static final String ORDER_TYPE_TAKEOUT = "takeout";
+    private static final String ORDER_TYPE_BOOKING = "booking";
+
+    private static final Map<String, String> ORDER_TYPE_ALIASES = Map.ofEntries(
+            Map.entry("dine_in", ORDER_TYPE_DINE_IN),
+            Map.entry("dine-in", ORDER_TYPE_DINE_IN),
+            Map.entry("dinein", ORDER_TYPE_DINE_IN),
+            Map.entry("takeout", ORDER_TYPE_TAKEOUT),
+            Map.entry("take_out", ORDER_TYPE_TAKEOUT),
+            Map.entry("booking", ORDER_TYPE_BOOKING),
+            Map.entry("online", ORDER_TYPE_BOOKING),
+            Map.entry("call", ORDER_TYPE_BOOKING)
+    );
 
     // Valid statuses matching the DB ENUM
     private static final Set<String> VALID_STATUSES = Set.of("open", "sent_to_kitchen", "partially_ready", "ready", "paid", "voided");
@@ -38,7 +55,8 @@ public class OrderServiceImpl implements OrderService {
     @Override
     @Transactional
     public OrderResponse createOrder(OrderCreateRequest request) {
-        validateCreateRequest(request);
+        String normalizedOrderType = normalizeOrderType(request == null ? null : request.getOrderType());
+        validateCreateRequest(request, normalizedOrderType);
 
         BigDecimal subtotal = request.getItems().stream()
                 .map(i -> i.getPrice().multiply(BigDecimal.valueOf(i.getQuantity())))
@@ -52,8 +70,8 @@ public class OrderServiceImpl implements OrderService {
         Order order = new Order();
         order.setOrderTypeId(request.getOrderTypeId());
         order.setOrderNumber(generateOrderNumber());
-        order.setOrderType(request.getOrderType());
-        order.setTableId("dine_in".equals(request.getOrderType()) ? request.getTableId() : null);
+        order.setOrderType(normalizedOrderType);
+        order.setTableId(ORDER_TYPE_TAKEOUT.equals(normalizedOrderType) ? null : request.getTableId());
         order.setCustomerId(request.getCustomerId());
         order.setServerId(request.getServerId());
         order.setStatus("open");
@@ -137,16 +155,34 @@ public class OrderServiceImpl implements OrderService {
         return true;
     }
 
-    private void validateCreateRequest(OrderCreateRequest request) {
+    @Override
+    public Boolean updateType(Integer orderId, String type) {
+        if (orderId == null || orderId <= 0) {
+            throw new IllegalArgumentException("Invalid orderId: " + orderId);
+        }
+
+        Order existing = orderRepository.findById(orderId);
+        if (existing == null) {
+            throw new ResourceNotFoundException("Order not found: id=" + orderId);
+        }
+
+        String normalizedType = normalizeOrderType(type);
+        validateOrderTypeRequirements(normalizedType, existing.getTableId(), existing.getCustomerId(), existing.getServerId());
+
+        boolean updated = orderRepository.updateType(orderId, normalizedType);
+        if (!updated) {
+            throw new ResourceNotFoundException("Order not found: id=" + orderId);
+        }
+        return true;
+    }
+
+    private void validateCreateRequest(OrderCreateRequest request, String normalizedOrderType) {
         if (request == null) {
             throw new IllegalArgumentException("Request body is required");
         }
-        if (request.getOrderType() == null || !VALID_ORDER_TYPES.contains(request.getOrderType())) {
-            throw new IllegalArgumentException("Invalid orderType. Must be one of: " + VALID_ORDER_TYPES);
-        }
-        if ("dine_in".equals(request.getOrderType()) && request.getTableId() == null) {
-            throw new IllegalArgumentException("tableId is required for dine_in orders");
-        }
+
+        validateOrderTypeRequirements(normalizedOrderType, request.getTableId(), request.getCustomerId(), request.getServerId());
+
         if (request.getItems() == null || request.getItems().isEmpty()) {
             throw new IllegalArgumentException("Order must have at least one item");
         }
@@ -157,6 +193,38 @@ public class OrderServiceImpl implements OrderService {
             if (item.getQuantity() == null || item.getQuantity() <= 0) throw new IllegalArgumentException("quantity must be >= 1");
             if (item.getPrice() == null || item.getPrice().compareTo(BigDecimal.ZERO) <= 0) throw new IllegalArgumentException("price must be > 0");
         }
+    }
+
+    private void validateOrderTypeRequirements(String normalizedOrderType, Integer tableId, Integer customerId, Integer serverId) {
+        if (!VALID_ORDER_TYPES.contains(normalizedOrderType)) {
+            throw new IllegalArgumentException("Invalid orderType. Must be one of: " + VALID_ORDER_TYPES);
+        }
+
+        if (serverId == null || serverId <= 0) {
+            throw new IllegalArgumentException("serverId is required");
+        }
+
+        if (ORDER_TYPE_DINE_IN.equals(normalizedOrderType) || ORDER_TYPE_BOOKING.equals(normalizedOrderType)) {
+            if (tableId == null || tableId <= 0) {
+                throw new IllegalArgumentException("tableId is required for dine_in and booking orders");
+            }
+        }
+
+        if (ORDER_TYPE_TAKEOUT.equals(normalizedOrderType) && tableId != null) {
+            throw new IllegalArgumentException("tableId must be omitted for takeout orders");
+        }
+
+        if (ORDER_TYPE_BOOKING.equals(normalizedOrderType) && (customerId == null || customerId <= 0)) {
+            throw new IllegalArgumentException("customerId is required for booking orders");
+        }
+    }
+
+    private String normalizeOrderType(String rawType) {
+        if (rawType == null || rawType.trim().isEmpty()) {
+            throw new IllegalArgumentException("orderType is required");
+        }
+        String normalized = rawType.trim().toLowerCase(Locale.ROOT);
+        return ORDER_TYPE_ALIASES.getOrDefault(normalized, normalized);
     }
 
     //Generate order num : ORD-20260318-0001

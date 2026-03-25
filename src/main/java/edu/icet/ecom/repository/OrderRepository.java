@@ -8,6 +8,7 @@ import java.util.List;
 public interface OrderRepository {
     Integer saveAndGetId(Order order);
     boolean updateStatus(Integer orderId,String status);
+    boolean updateType(Integer orderId, String type);
     Order findById(Integer id);
     List<Order> findAll();
     List<Order> findByStatus(String status);
