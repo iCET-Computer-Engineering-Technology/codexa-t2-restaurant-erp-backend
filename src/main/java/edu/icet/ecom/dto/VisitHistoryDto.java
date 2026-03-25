@@ -1,17 +1,18 @@
 package edu.icet.ecom.dto;
 
 import lombok.*;
+
+import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
 @Getter
 @Setter
 @AllArgsConstructor
 @NoArgsConstructor
-@ToString
-public class Visitdto {
-    private Integer id;
-    private Integer customerId;
+public class VisitHistoryDto {
     private LocalDateTime visitDate;
-    private Double spendAmount;
+    private BigDecimal spendAmount;
+    private String orderType;
     private String notes;
+    private String orderNumber;
 }

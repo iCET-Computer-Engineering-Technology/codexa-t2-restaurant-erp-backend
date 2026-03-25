@@ -11,11 +11,14 @@ import java.util.List;
 @ToString
 public class CustomerProfileDto {
     private Integer customerId;
-    private String fullName;
+    private String firstName;
+    private String lastName;
+    private String email;
     private String phone;
     private String dietaryNotes;
     private Integer loyaltyPoints;
     private Double lifetimeSpend;
-    private List<String> favoriteItems;
-    private List<Visitdto> last10Visits;
+    private List<VisitHistoryDto> favoriteItems;
+    private List<FavoriteItemDto> last10Visits;
+    private List<VisitHistoryDto> recentVisits;
 }

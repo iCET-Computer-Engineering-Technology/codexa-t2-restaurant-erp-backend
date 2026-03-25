@@ -8,6 +8,7 @@ import java.util.List;
 public interface CustomerService {
     List<CustomerDto> getAllCustomers();
 
+    // Backward-compatible alias for existing callers.
     default List<CustomerDto> getAllCustomer() {
         return getAllCustomers();
     }
@@ -17,4 +18,5 @@ public interface CustomerService {
     CustomerDto searchCustomerById(Integer id);
     boolean deleteCustomerByPhone(String phone);
     boolean updateCustomer(CustomerDto customerDTO);
+    CustomerProfileDto getCustomerProfile(Integer customerId);
 }
