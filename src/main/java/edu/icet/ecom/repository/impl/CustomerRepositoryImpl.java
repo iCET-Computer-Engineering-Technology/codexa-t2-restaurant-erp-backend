@@ -82,18 +82,19 @@ public class CustomerRepositoryImpl implements CustomerRepository {
 
     @Override
     public boolean updateCustomer(CustomerDto dto) {
-        String sql = "UPDATE customers SET first_name=?, last_name=?, email=?, preferred_language=?, dietary_notes=?, communication_email=?, communication_sms=?, birthday=?, loyalty_points=? WHERE phone=?";
+        String sql = "UPDATE customers SET first_name=?, last_name=?, email=?, phone=?, preferred_language=?, dietary_notes=?, communication_email=?, communication_sms=?, birthday=?, loyalty_points=? WHERE id = ?";
         int result = jdbcTemplate.update(sql,
                 dto.getFirstName(), 
                 dto.getLastName(), 
                 dto.getEmail(),
+                dto.getPhone(),
                 dto.getPreferredLanguage(), 
                 dto.getDietaryNotes(),
                 dto.getCommunicationEmail(), 
                 dto.getCommunicationSms(),
                 dto.getBirthday(),
                 dto.getLoyaltyPoints(),
-                dto.getPhone()
+                dto.getId()
         );
         return result > 0;
     }
