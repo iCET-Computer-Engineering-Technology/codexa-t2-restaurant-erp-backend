@@ -138,6 +138,11 @@ public class OrderServiceImpl implements OrderService {
     }
 
     @Override
+    public List<OrderWithItemNameResponse> getAllOrdersWithItemNames() {
+        return orderRepository.findAllOrdersWithItemNames();
+    }
+
+    @Override
     public Boolean updateStatus(Integer orderId, String status) {
         if (orderId == null || orderId <= 0) {
             throw new IllegalArgumentException("Invalid orderId: " + orderId);

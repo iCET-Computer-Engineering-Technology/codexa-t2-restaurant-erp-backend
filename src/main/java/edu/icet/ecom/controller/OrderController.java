@@ -3,6 +3,7 @@ package edu.icet.ecom.controller;
 import edu.icet.ecom.dto.OrderCreateRequest;
 import edu.icet.ecom.dto.OrderResponse;
 import edu.icet.ecom.dto.OrderStatusUpdateRequest;
+import edu.icet.ecom.dto.OrderWithItemNameResponse;
 import edu.icet.ecom.service.OrderService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -55,5 +56,10 @@ public class OrderController {
     @GetMapping("/find-by-id/{id}")
     public ResponseEntity<OrderResponse> findById(@PathVariable Integer id){
         return ResponseEntity.ok(orderService.findById(id));
+    }
+
+    @GetMapping("/find-all-with-item-names")
+    public ResponseEntity<List<OrderWithItemNameResponse>> getAllOrdersWithItemNames() {
+        return ResponseEntity.ok(orderService.getAllOrdersWithItemNames());
     }
 }
