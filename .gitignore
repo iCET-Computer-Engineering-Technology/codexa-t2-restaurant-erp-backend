@@ -21,6 +21,8 @@ target/
 .springBeans
 .sts4-cache
 
+.yml
+
 ### NetBeans ###
 /nbproject/private/
 /nbbuild/
@@ -36,3 +38,8 @@ build/
 
 ### Mac OS ###
 .DS_Store
+
+application.yml
+
+.idea/
+src/main/resources/application.yml
