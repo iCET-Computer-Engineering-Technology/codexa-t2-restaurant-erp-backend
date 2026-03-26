@@ -9,8 +9,9 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 
 @RestController
-@RequestMapping("/supplier")
+@RequestMapping("/api/supplier")
 @RequiredArgsConstructor
+@CrossOrigin
 public class SupplierController {
 
     private final SupplierService supplierService;
