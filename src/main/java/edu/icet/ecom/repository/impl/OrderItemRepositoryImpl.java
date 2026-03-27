@@ -46,6 +46,9 @@ public class OrderItemRepositoryImpl implements OrderItemRepository {
         }
     }
 
+
+
+
     @Override
     public Integer saveAndGetId(OrderItem orderItem) {
         String sql = "INSERT INTO order_items (order_id, menu_item_id, portion_id, quantity, price, status, notes) " +

@@ -29,5 +29,4 @@ public class Order {
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
     private List<OrderItem> items;
-
 }
