@@ -38,7 +38,7 @@ public class OrderServiceImpl implements OrderService {
     private static final Map<String, String> ORDER_TYPE_ALIASES = Map.ofEntries(
             Map.entry("dine_in", ORDER_TYPE_DINE_IN),
             Map.entry("dine-in", ORDER_TYPE_DINE_IN),
-            Map.entry("dinein", ORDER_TYPE_DINE_IN),
+            Map.entry("dine in", ORDER_TYPE_DINE_IN),
             Map.entry("takeout", ORDER_TYPE_TAKEOUT),
             Map.entry("take_out", ORDER_TYPE_TAKEOUT),
             Map.entry("booking", ORDER_TYPE_BOOKING),
@@ -138,6 +138,23 @@ public class OrderServiceImpl implements OrderService {
     }
 
     @Override
+    public List<OrderWithItemNameResponse> getAllOrdersWithItemNames() {
+        return orderRepository.findAllOrdersWithItemNames();
+    }
+
+    @Override
+    public OrderWithItemNameResponse getOrderWithItemNamesById(Integer id) {
+        if (id == null || id <= 0) {
+            throw new IllegalArgumentException("Invalid id: " + id);
+        }
+        OrderWithItemNameResponse order = orderRepository.findOrderWithItemNamesById(id);
+        if (order == null) {
+            throw new ResourceNotFoundException("Order not found: id=" + id);
+        }
+        return order;
+    }
+
+    @Override
     public Boolean updateStatus(Integer orderId, String status) {
         if (orderId == null || orderId <= 0) {
             throw new IllegalArgumentException("Invalid orderId: " + orderId);
@@ -200,9 +217,6 @@ public class OrderServiceImpl implements OrderService {
             throw new IllegalArgumentException("Invalid orderType. Must be one of: " + VALID_ORDER_TYPES);
         }
 
-        if (serverId == null || serverId <= 0) {
-            throw new IllegalArgumentException("serverId is required");
-        }
 
         if (ORDER_TYPE_DINE_IN.equals(normalizedOrderType) || ORDER_TYPE_BOOKING.equals(normalizedOrderType)) {
             if (tableId == null || tableId <= 0) {
