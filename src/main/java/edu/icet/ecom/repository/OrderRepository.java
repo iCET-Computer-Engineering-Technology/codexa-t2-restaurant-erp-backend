@@ -13,7 +13,8 @@ public interface OrderRepository {
     Order findById(Integer id);
     List<Order> findAll();
     List<Order> findByStatus(String status);
-    int upsertAndGetSequence(LocalDate date); //for generate order num
+    int upsertAndGetSequence(LocalDate date);
     List<OrderWithItemNameResponse> findAllOrdersWithItemNames();
+    OrderWithItemNameResponse findOrderWithItemNamesById(Integer id);
 }
 

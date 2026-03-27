@@ -62,4 +62,9 @@ public class OrderController {
     public ResponseEntity<List<OrderWithItemNameResponse>> getAllOrdersWithItemNames() {
         return ResponseEntity.ok(orderService.getAllOrdersWithItemNames());
     }
+
+    @GetMapping("/find-with-item-names/{id}")
+    public ResponseEntity<OrderWithItemNameResponse> findOrderWithItemNamesById(@PathVariable Integer id) {
+        return ResponseEntity.ok(orderService.getOrderWithItemNamesById(id));
+    }
 }

@@ -153,6 +153,7 @@ public class OrderRepositoryImpl implements OrderRepository {
         return sequence != null ? sequence : 1;
     }
 
+
     @Override
     public List<OrderWithItemNameResponse> findAllOrdersWithItemNames() {
         String sql = "SELECT " +
@@ -170,6 +171,30 @@ public class OrderRepositoryImpl implements OrderRepository {
 
         List<Map<String, Object>> rows = jdbcTemplate.queryForList(sql);
         return mapOrdersWithItems(rows);
+    }
+
+    @Override
+    public OrderWithItemNameResponse findOrderWithItemNamesById(Integer id) {
+        if (id == null || id <= 0) {
+            return null;
+        }
+        String sql = "SELECT " +
+                "o.id, o.order_type_id, o.order_number, o.order_type, o.table_id, " +
+                "o.customer_id, o.server_id, o.status, o.subtotal, o.discount_amount, " +
+                "o.tax_amount, o.service_charge, o.total_amount, o.notes, " +
+                "o.created_at, o.updated_at, " +
+                "oi.id as item_id, oi.order_id, oi.menu_item_id, mi.name as item_name, " +
+                "oi.portion_id, oi.quantity, oi.price, oi.status as item_status, " +
+                "oi.notes as item_notes, oi.created_at as item_created_at " +
+                "FROM orders o " +
+                "LEFT JOIN order_items oi ON o.id = oi.order_id " +
+                "LEFT JOIN menu_items mi ON oi.menu_item_id = mi.id " +
+                "WHERE o.id = ? " +
+                "ORDER BY oi.id";
+
+        List<Map<String, Object>> rows = jdbcTemplate.queryForList(sql, id);
+        List<OrderWithItemNameResponse> results = mapOrdersWithItems(rows);
+        return results.isEmpty() ? null : results.get(0);
     }
 
     private List<OrderWithItemNameResponse> mapOrdersWithItems(List<Map<String, Object>> rows) {

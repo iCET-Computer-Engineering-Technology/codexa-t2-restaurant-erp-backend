@@ -16,4 +16,5 @@ public interface OrderService {
     Boolean updateStatus(Integer orderId, String status);
     Boolean updateType(Integer orderId, String type);
     List<OrderWithItemNameResponse> getAllOrdersWithItemNames();
+    OrderWithItemNameResponse getOrderWithItemNamesById(Integer id);
 }
