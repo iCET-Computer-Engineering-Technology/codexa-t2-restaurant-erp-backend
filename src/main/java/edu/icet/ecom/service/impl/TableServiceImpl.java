@@ -4,7 +4,6 @@ import edu.icet.ecom.dto.TableDto;
 import edu.icet.ecom.repository.TableRepository;
 import edu.icet.ecom.service.TableService;
 import lombok.RequiredArgsConstructor;
-import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
