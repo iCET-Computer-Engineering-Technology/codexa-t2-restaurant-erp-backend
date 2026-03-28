@@ -10,6 +10,7 @@ import java.util.List;
 @RestController
 @RequestMapping({"/portions", "/api/portions"})
 @RequiredArgsConstructor
+@CrossOrigin
 public class PortionsController {
 
     private final PortionsService portionsService;

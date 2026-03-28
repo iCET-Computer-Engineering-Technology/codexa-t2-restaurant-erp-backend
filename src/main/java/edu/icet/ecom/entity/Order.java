@@ -13,6 +13,7 @@ import java.util.List;
 @ToString(exclude = {"items"})
 public class Order {
     private Integer id;
+    private Integer orderTypeId;
     private String orderNumber;
     private String orderType;
     private Integer tableId;

@@ -11,6 +11,7 @@ import java.util.List;
 @AllArgsConstructor
 public class OrderResponse {
     private Integer id;
+    private Integer orderTypeId;
     private String orderNumber;
     private String orderType;
     private Integer tableId;

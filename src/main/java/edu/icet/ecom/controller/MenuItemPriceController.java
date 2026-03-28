@@ -9,8 +9,9 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 
 @RestController
-@RequestMapping("/menu-item-price")
+@RequestMapping("/api/menu-item-price")
 @RequiredArgsConstructor
+@CrossOrigin
 public class MenuItemPriceController {
 
     private final MeuItemPriceService meuItemPriceService;
@@ -45,9 +46,10 @@ public class MenuItemPriceController {
         return meuItemPriceService.getPricesByItemId(itemId);
     }
 
-    @GetMapping("/get-full-menu")
+        @GetMapping("/get-full-menu")
     public List<MenuItemPriceDto> getFullMenu(){
         return meuItemPriceService.getFullMenu();
     }
+
 
 }

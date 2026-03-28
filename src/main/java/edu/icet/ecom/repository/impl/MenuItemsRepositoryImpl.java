@@ -4,9 +4,11 @@ import edu.icet.ecom.dto.MenuItemsDto;
 import edu.icet.ecom.exception.ResourceNotFoundException;
 import edu.icet.ecom.repository.MenuItemsRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.dao.EmptyResultDataAccessException;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Repository;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 
@@ -16,8 +18,16 @@ public class MenuItemsRepositoryImpl implements MenuItemsRepository {
 
     private final JdbcTemplate jdbcTemplate;
 
+    private static final String BASE_SELECT =
+            "SELECT mi.id, mi.category_id, mc.name, " +
+                    "mi.name, mi.description, mi.is_available, mi.image_url " +
+                    "FROM menu_items mi " +
+                    "LEFT JOIN menu_categories mc ON mi.category_id = mc.id ";
+
+
     private MenuItemsDto mapRow(java.sql.ResultSet rs) throws java.sql.SQLException {
         MenuItemsDto dto = new MenuItemsDto();
+
         dto.setId(rs.getInt(1));
         dto.setCategoryId(rs.getInt(2));
         dto.setCategoryName(rs.getString(3));
@@ -25,18 +35,9 @@ public class MenuItemsRepositoryImpl implements MenuItemsRepository {
         dto.setDescription(rs.getString(5));
         dto.setIsAvailable(rs.getBoolean(6));
         dto.setImageUrl(rs.getString(7));
-        dto.setCreatedAt(rs.getTimestamp(8));
-        dto.setUpdatedAt(rs.getTimestamp(9));
+
         return dto;
     }
-
-    private static final String BASE_SELECT =
-            "SELECT mi.id, mi.category_id, mc.name, " +
-                    "mi.name, mi.description, mi.is_available, mi.image_url, " +
-                    "mi.created_at, mi.updated_at " +
-                    "FROM menu_items mi " +
-                    "LEFT JOIN menu_categories mc ON mi.category_id = mc.id ";
-
 
     @Override
     public boolean addItem(MenuItemsDto itemDto) {
@@ -62,8 +63,26 @@ public class MenuItemsRepositoryImpl implements MenuItemsRepository {
     }
 
     @Override
+    @Transactional
     public boolean deleteById(Integer id) {
-        return jdbcTemplate.update("DELETE FROM menu_items WHERE id = ?", id) > 0;
+        Integer count = jdbcTemplate.queryForObject(
+                "SELECT COUNT(*) FROM menu_items WHERE id = ?",
+                Integer.class,
+                id
+        );
+
+        if (count == null || count == 0) {
+            return false;
+        }
+
+        try {
+            return jdbcTemplate.update("DELETE FROM menu_items WHERE id = ?", id) > 0;
+        } catch (DataIntegrityViolationException ex) {
+            // Keep historical FK data intact: mark item unavailable instead of hard delete.
+            jdbcTemplate.update("UPDATE menu_item_price SET is_active = 0 WHERE item_id = ?", id);
+            jdbcTemplate.update("UPDATE menu_items SET is_available = 0, updated_at = NOW() WHERE id = ?", id);
+            return true;
+        }
     }
 
     @Override
@@ -94,6 +113,4 @@ public class MenuItemsRepositoryImpl implements MenuItemsRepository {
                 (rs, rowNum) -> mapRow(rs)
         );
     }
-
 }
-

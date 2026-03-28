@@ -35,6 +35,14 @@ created_at DATETIME NULL DEFAULT CURRENT_TIMESTAMP,
 PRIMARY KEY (id)
 ) ENGINE = InnoDB DEFAULT CHARACTER SET = utf8mb4 COLLATE = utf8mb4_0900_ai_ci;
 
+-- automated_time
+CREATE TABLE email_scheduler_config (
+id INT AUTO_INCREMENT PRIMARY KEY,
+send_time TIME NOT NULL,
+created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+);
+
 -- Table customers
 
 CREATE TABLE IF NOT EXISTS customers (
@@ -92,7 +100,7 @@ PRIMARY KEY (id)
 CREATE TABLE IF NOT EXISTS orders (
 id INT NOT NULL AUTO_INCREMENT,
 order_number VARCHAR(50) NULL DEFAULT NULL,
-order_type ENUM('dine_in','takeout','delivery','online') NULL DEFAULT NULL,
+order_type ENUM('dine_in','takeout','booking') NULL DEFAULT NULL,
 table_id INT NULL DEFAULT NULL,
 customer_id INT NULL DEFAULT NULL,
 server_id INT NULL DEFAULT NULL,
