@@ -10,4 +10,6 @@ public interface BonusService {
     Boolean addBonus(Bonus bonus);
     Boolean updateBonus(Bonus bonus);
     void deleteBonus(Integer id);
+
+    List<Bonus> searchBonusById(Integer id);
 }

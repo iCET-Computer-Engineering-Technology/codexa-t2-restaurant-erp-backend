@@ -32,4 +32,9 @@ public class BonusController {
     public void delete(@PathVariable Integer id){
         service.deleteBonus(id);
     }
+
+    @GetMapping("/search/{id}")
+    public List<Bonus> searchByName(@PathVariable Integer id) {
+        return service.searchBonusById(id);
+    }
 }

@@ -30,4 +30,9 @@ public class BonusServiceImpl implements BonusService {
     public void deleteBonus(Integer id) {
         repository.deleteBonus(id);
     }
+
+    @Override
+    public List<Bonus> searchBonusById(Integer id) {
+            return repository.searchBonusById(id);
+    }
 }

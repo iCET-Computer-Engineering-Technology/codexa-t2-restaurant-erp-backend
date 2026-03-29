@@ -4,31 +4,22 @@ spring:
     username: root
     password: admin@123
 
+  flyway:
+    baseline-on-migrate: true
+
   mail:
     host: smtp.gmail.com
     port: 587
-    username: put your email here
-    password: put your app password here(you can get app from google account settings -> security -> app passwords)
+    username: geesarasahan0123@gmail.com
+    password: qcwp szmv hvar ukez
     properties:
       mail:
         smtp:
           auth: true
           starttls:
             enable: true
-            required: true
-
-  flyway:
-    baseline-on-migrate: true
 
 app:
   jwt:
-    #92da2bdb9d08a28eaafd4d43b55db3e823362611c326ce2dd183d55e1820ce2f - secret key(im wasuda,im make this comment bcz our team members are using AI to make there coding parts validate,so im scared about this key,crazy AI is some time changing this)
     secret: 92da2bdb9d08a28eaafd4d43b55db3e823362611c326ce2dd183d55e1820ce2f
     expiration: 86400000
-
-  notifications:
-    enabled: true
-    cron: "0 0 8 * * *"
-    businessName: "Restaurant_ERP_BETA"
-    auditLogging: true
-    maxRetries: 1

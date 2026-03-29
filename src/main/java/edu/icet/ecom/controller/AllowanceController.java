@@ -33,4 +33,9 @@ public class AllowanceController {
     public void delete(@PathVariable Integer id){
         service.deleteAllowance(id);
     }
+
+    @GetMapping("/get-allowance/{type}")
+    public List<Allowance> getByAllowanceType(@PathVariable String type) {
+        return service.getAllowanceByType(type);
+    }
 }

@@ -41,4 +41,15 @@ public class BonusRepositoryImpl implements BonusRepository {
         String sql = "DELETE FROM bonus WHERE id=?";
         jdbcTemplate.update(sql,id);
     }
+
+    @Override
+    public List<Bonus> searchBonusById(Integer id) {
+        String sql = "SELECT * FROM bonus WHERE id = ?";
+
+        return jdbcTemplate.query(sql, (rs, rowNum) -> new Bonus(
+                rs.getInt(1),
+                rs.getInt(2),
+                rs.getDouble(3)
+        ),id);
+    }
 }

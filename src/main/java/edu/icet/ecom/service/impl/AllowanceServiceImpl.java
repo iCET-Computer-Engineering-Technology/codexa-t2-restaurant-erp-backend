@@ -33,4 +33,9 @@ public class AllowanceServiceImpl implements AllowanceService {
     public void deleteAllowance(Integer id) {
         repository.deleteAllowance(id);
     }
+
+    @Override
+    public List<Allowance> getAllowanceByType(String type) {
+        return repository.getAllowanceByType(type);
+    }
 }

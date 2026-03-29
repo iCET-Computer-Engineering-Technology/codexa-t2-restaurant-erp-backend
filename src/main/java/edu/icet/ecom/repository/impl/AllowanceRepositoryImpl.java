@@ -3,10 +3,13 @@ package edu.icet.ecom.repository.impl;
 import edu.icet.ecom.entity.Allowance;
 import edu.icet.ecom.repository.AllowanceRepository;
 import lombok.AllArgsConstructor;
+import org.springframework.dao.EmptyResultDataAccessException;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
+
+import static java.util.Arrays.stream;
 
 
 @Repository
@@ -47,7 +50,26 @@ public class AllowanceRepositoryImpl implements AllowanceRepository {
 
     @Override
     public void deleteAllowance(Integer id) {
-        String sql = "DELETE FROM allowance WHERE id = ?";
-        jdbcTemplate.update(sql, id);
+        try {
+            String sql = "DELETE FROM allowance WHERE id = ?";
+            jdbcTemplate.update(sql, id);
+        }catch (Exception e){
+            // Log the exception or handle it as needed
+            System.out.println("Error deleting allowance with id " + id + ": " + e.getMessage());
+        }
+
+    }
+
+    @Override
+    public List<Allowance> getAllowanceByType(String type) {
+        // Try wrapping type in backticks just in case it's a reserved keyword
+        String sql = "SELECT * FROM allowance WHERE `type` = ?";
+
+        return jdbcTemplate.query(sql, (rs, rowNum) -> new Allowance(
+                rs.getInt("id"),
+                rs.getInt("employee_id"),
+                rs.getString("type"),
+                rs.getDouble("amount")
+        ), type);
     }
 }
