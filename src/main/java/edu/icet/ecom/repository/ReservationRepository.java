@@ -21,4 +21,14 @@ public interface ReservationRepository {
     List<Reservation> findUpcomingReservations();
     boolean existsConflict(Integer tableId, LocalDate date, LocalTime time);
     String generateConfirmationCode();
+
+    /**
+     * Find all reservations for a given date where reminder_24h_sent = 0
+     */
+    List<Reservation> findFor24hReminder(LocalDate date);
+
+    /**
+     * Mark the 24h reminder as sent for a reservation
+     */
+    void mark24hReminderSent(Integer reservationId);
 }

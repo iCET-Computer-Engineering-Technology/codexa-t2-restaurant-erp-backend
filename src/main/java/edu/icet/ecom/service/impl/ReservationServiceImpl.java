@@ -13,6 +13,7 @@ import edu.icet.ecom.service.EmailTemplateService;
 import edu.icet.ecom.service.ReservationService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
@@ -478,6 +479,30 @@ public class ReservationServiceImpl implements ReservationService {
                     log.error("Reservation: {}, Email: {}", reservation.getId(), reservation.getEmail());
                     log.error("The email will be retried automatically by the background service.");
                 }
+            }
+        }
+    }
+
+    @Scheduled(cron = "0 26 23 * * *")
+    public void send24hReminders() {
+        send24hReminders(null);
+    }
+
+    // Remove @Scheduled from this method, as it does not exist in the interface
+    public void send24hReminders(LocalDate date) {
+        LocalDate reminderDate = (date != null) ? date : LocalDate.now().plusDays(1);
+        List<Reservation> reservations = reservationRepository.findFor24hReminder(reminderDate);
+        for (Reservation reservation : reservations) {
+            try {
+                if (reservation.getEmail() != null && !reservation.getEmail().isBlank()) {
+                    String subject = "Reservation Reminder - " + reservation.getReservationDate();
+                    String body = buildReservationEmailBody(reservation, emailTemplateService.getReservationReminderEmailTemplate());
+                    emailService.sendEmailToCustomer(reservation.getEmail(), subject, body);
+                    reservationRepository.mark24hReminderSent(reservation.getId());
+                    log.info("24h reminder sent for reservation {} to {}", reservation.getId(), reservation.getEmail());
+                }
+            } catch (Exception e) {
+                log.error("Failed to send 24h reminder for reservation {}: {}", reservation.getId(), e.getMessage());
             }
         }
     }

@@ -57,6 +57,74 @@ public class EmailTemplateServiceImpl implements EmailTemplateService {
     }
 
     @Override
+    public String getReservationReminderEmailTemplate() {
+        // More eye-catching, modern HTML design for reservation reminders
+        return """
+<!DOCTYPE html>
+<html lang=\"en\">
+<head>
+    <meta charset=\"UTF-8\">
+    <meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0\">
+    <title>Reservation Reminder</title>
+    <style>
+        body { background: linear-gradient(135deg, #f8fafc 0%, #e0e7ff 100%); font-family: 'Segoe UI', Arial, sans-serif; margin: 0; padding: 0; }
+        .container { max-width: 540px; margin: 40px auto; background: #fff; border-radius: 18px; box-shadow: 0 8px 32px rgba(44,62,80,0.13); overflow: hidden; }
+        .header { background: linear-gradient(90deg, #ff6b35 0%, #f7931e 100%); color: #fff; padding: 36px 0 18px 0; text-align: center; position: relative; }
+        .header img { height: 70px; margin-bottom: 10px; filter: drop-shadow(0 2px 8px rgba(0,0,0,0.12)); }
+        .header h1 { margin: 0; font-size: 2.3rem; letter-spacing: 1px; font-weight: 700; text-shadow: 0 2px 8px rgba(0,0,0,0.10); }
+        .confetti { position: absolute; left: 0; right: 0; top: 0; height: 100%; pointer-events: none; z-index: 1; }
+        .content { padding: 36px 36px 24px 36px; text-align: left; }
+        .greeting { font-size: 1.15rem; color: #ff6b35; margin-bottom: 16px; font-weight: 500; }
+        .reminder-box { background: #fff7ed; border-left: 6px solid #ff6b35; padding: 20px 22px; border-radius: 8px; margin-bottom: 22px; box-shadow: 0 2px 8px rgba(255,107,53,0.07); }
+        .reminder-title { font-size: 1.25rem; font-weight: bold; color: #ff6b35; margin-bottom: 8px; }
+        .details { margin: 22px 0; }
+        .details-row { margin-bottom: 10px; }
+        .details-label { font-weight: 600; color: #f7931e; display: inline-block; width: 120px; }
+        .details-value { color: #333; font-weight: 500; }
+        .cta-btn { display: inline-block; background: linear-gradient(90deg, #ff6b35 0%, #f7931e 100%); color: #fff; text-decoration: none; padding: 14px 38px; border-radius: 32px; font-size: 1.08rem; font-weight: bold; margin: 22px 0; transition: background 0.2s, box-shadow 0.2s; box-shadow: 0 4px 16px rgba(255,107,53,0.13); letter-spacing: 0.5px; }
+        .cta-btn:hover { background: linear-gradient(90deg, #f7931e 0%, #ff6b35 100%); box-shadow: 0 6px 24px rgba(255,107,53,0.18); }
+        .footer { background: #f8fafc; color: #888; text-align: center; font-size: 1rem; padding: 20px 0 14px 0; border-top: 1px solid #f3f3f3; }
+        .footer a { color: #ff6b35; text-decoration: none; }
+        .footer a:hover { text-decoration: underline; }
+        @media (max-width: 600px) { .container { border-radius: 0; } .content { padding: 18px 8px; } }
+    </style>
+</head>
+<body>
+    <div class=\"container\">
+        <div class=\"header\">
+            <img src=\"https://cdn-icons-png.flaticon.com/512/2922/2922506.png\" alt=\"Reservation\">
+            <h1>Reservation Reminder</h1>
+            <div class=\"confetti\">
+                <img src=\"https://cdn.pixabay.com/photo/2013/07/12/13/58/confetti-147615_1280.png\" alt=\"confetti\" style=\"width:100%;opacity:0.13;\">
+            </div>
+        </div>
+        <div class=\"content\">
+            <div class=\"greeting\">Hello {{customerName}},</div>
+            <div class=\"reminder-box\">
+                <div class=\"reminder-title\">🎉 Your reservation is almost here!</div>
+                <div>We're excited to welcome you at <b>Restaurant ERP</b>. Get ready for a great experience!</div>
+            </div>
+            <div class=\"details\">
+                <div class=\"details-row\"><span class=\"details-label\">Date:</span> <span class=\"details-value\">{{reservationDate}}</span></div>
+                <div class=\"details-row\"><span class=\"details-label\">Time:</span> <span class=\"details-value\">{{reservationTime}}</span></div>
+                <div class=\"details-row\"><span class=\"details-label\">Table:</span> <span class=\"details-value\">{{tableNumber}}</span></div>
+                <div class=\"details-row\"><span class=\"details-label\">Party Size:</span> <span class=\"details-value\">{{partySize}} {{partyLabel}}</span></div>
+                <div class=\"details-row\"><span class=\"details-label\">Confirmation:</span> <span class=\"details-value\">{{confirmationCode}}</span></div>
+            </div>
+            {{notesSection}}
+            <a href=\"https://www.restauranterp.com/reservations/view\" class=\"cta-btn\">View Reservation</a>
+        </div>
+        <div class=\"footer\">
+            For questions, contact us at <a href=\"mailto:support@restauranterp.com\">support@restauranterp.com</a> or call +1 (555) 123-4567.<br>
+            &copy; 2026 Restaurant ERP. All rights reserved.
+        </div>
+    </div>
+</body>
+</html>
+""";
+    }
+
+    @Override
     public String renderTemplate(String template, Map<String, String> placeholders) {
         String rendered = template;
         if (placeholders != null && !placeholders.isEmpty()) {
@@ -331,6 +399,3 @@ public class EmailTemplateServiceImpl implements EmailTemplateService {
         return baseTemplate;
     }
 }
-
-
-

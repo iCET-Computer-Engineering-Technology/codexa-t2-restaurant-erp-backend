@@ -193,4 +193,16 @@ public class ReservationRepositoryImpl implements ReservationRepository {
     public String generateConfirmationCode() {
         return "RES-" + UUID.randomUUID().toString().substring(0, 8).toUpperCase();
     }
+
+    @Override
+    public List<Reservation> findFor24hReminder(LocalDate date) {
+        String sql = "SELECT * FROM reservations WHERE reservation_date = ? AND reminder_24h_sent = 0 AND status = 'confirmed'";
+        return jdbcTemplate.query(sql, rowMapper, java.sql.Date.valueOf(date));
+    }
+
+    @Override
+    public void mark24hReminderSent(Integer reservationId) {
+        String sql = "UPDATE reservations SET reminder_24h_sent = 1, updated_at = NOW() WHERE id = ?";
+        jdbcTemplate.update(sql, reservationId);
+    }
 }
