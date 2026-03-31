@@ -15,6 +15,7 @@ public class PaymentDto {
     private String paymentMethod;
     private Double amount;
     private Double tipAmount;
+    private String referenceNumber;
     private Integer processedBy;
     private Timestamp processedAt;
 }
