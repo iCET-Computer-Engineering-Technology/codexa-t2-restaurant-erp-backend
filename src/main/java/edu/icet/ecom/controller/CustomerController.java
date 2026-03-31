@@ -1,6 +1,7 @@
 package edu.icet.ecom.controller;
 
 import edu.icet.ecom.dto.CustomerDto;
+import edu.icet.ecom.dto.CustomerProfileDto;
 import edu.icet.ecom.service.CustomerService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -44,5 +45,10 @@ public class CustomerController {
     @PutMapping
     public boolean updateCustomer(@Valid @RequestBody CustomerDto customerDto){
         return customerService.updateCustomer(customerDto);
+    }
+
+    @GetMapping("/{id}/profile")
+    public CustomerProfileDto getCustomerProfile(@PathVariable Integer id) {
+        return customerService.getCustomerProfile(id);
     }
 }
