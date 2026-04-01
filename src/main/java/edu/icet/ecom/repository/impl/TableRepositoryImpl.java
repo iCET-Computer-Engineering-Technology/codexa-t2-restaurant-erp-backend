@@ -7,6 +7,7 @@ import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
+import java.util.Optional;
 
 @Repository
 @RequiredArgsConstructor
@@ -22,5 +23,16 @@ public class TableRepositoryImpl implements TableRepository {
                 rs.getInt("capacity"),
                 rs.getString("status")
         ));
+    }
+
+    @Override
+    public Optional<TableDto> findById(Integer id) {
+        String sql = "SELECT id, table_number, capacity, status FROM `tables` WHERE id = ?";
+        return jdbcTemplate.query(sql, (rs, rowNum) -> new TableDto(
+                rs.getInt("id"),
+                rs.getString("table_number"),
+                rs.getInt("capacity"),
+                rs.getString("status")
+        ), id).stream().findFirst();
     }
 }
