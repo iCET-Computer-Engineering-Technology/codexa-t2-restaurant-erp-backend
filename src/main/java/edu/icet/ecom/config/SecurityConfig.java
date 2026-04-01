@@ -67,6 +67,7 @@ public class SecurityConfig {
 
     // Staff screens need read access to menu master data, while writes remain admin-only.
     private static final String[] STAFF_READONLY_ENDPOINTS = {
+            "/api/categories/**",
             "/api/menu-items/**",
             "/api/menu-item-price/**",
             "/api/portions/**",
@@ -83,6 +84,7 @@ public class SecurityConfig {
                     .sessionManagement(sessionConfig ->
                             sessionConfig.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                     .authorizeHttpRequests(authConfig -> {
+                        authConfig.requestMatchers("/ws/**").permitAll();
                         authConfig.requestMatchers(HttpMethod.OPTIONS, "/**").permitAll();
                         authConfig.requestMatchers(PUBLIC_ENDPOINTS).permitAll();
                         authConfig.requestMatchers(HttpMethod.GET, STAFF_READONLY_ENDPOINTS)
