@@ -29,6 +29,7 @@ public class KitchenServiceImpl implements KitchenService {
     private final OrderAssignmentRepository orderAssignmentRepository;
     private final KitchenOrderRepository kitchenOrderRepository;
     private final OrderItemRepository orderItemRepository;
+    private final ChefRepository chefRepository;
 
     @Override
     public List<KitchenOrder> getKitchenOrders() {
@@ -87,10 +88,11 @@ public class KitchenServiceImpl implements KitchenService {
         if (!VALID_ORDER_TYPES.contains(normalizedType)) {
             throw new IllegalArgumentException("Unsupported order type for kitchen routing: " + order.getOrderType());
         }
-        
+
+        // prevent duplicate
         boolean exists = kitchenOrderRepository.existsByOrderId(orderId);
         if (exists) {
-            throw new IllegalArgumentException("Order already sent to kitchen");
+            return; // already sent → ignore
         }
 
         orderRepository.updateStatus(orderId.intValue(), "sent_to_kitchen");
@@ -114,9 +116,48 @@ public class KitchenServiceImpl implements KitchenService {
         orderRepository.updateStatus(Math.toIntExact(orderId), "partially_ready");
 
         Order order = orderRepository.findById(orderId.intValue());
+        if (order != null && order.getChefId() != null) {
+            chefRepository.decreaseTaskLoad(order.getChefId().longValue());
+        }
+
         if (order != null) {
             log.info("{}", buildLabel(order, "READY_FOR_FULFILLMENT", normalize(order.getOrderType())));
         }
+    }
+
+    @Override
+    public List<Chef> getAvailableChefs() {
+        return chefRepository.findAvailableChefs();
+    }
+
+    @Override
+    public void assignChef(Long orderId, Long chefId) {
+        Order order = orderRepository.findById(orderId.intValue());
+
+        if(order == null){
+            throw new IllegalArgumentException("Order not found");
+        }
+
+        Chef chef = chefRepository.findById(chefId);
+
+        if(chef == null){
+            throw new IllegalArgumentException("Chef not found");
+        }
+
+        if(!"available".equalsIgnoreCase(chef.getAvailability())){
+            throw new IllegalArgumentException("Chef not available");
+        }
+
+        // save chef to order (also updates status -> sent_to_kitchen)
+        orderRepository.assignChef(orderId.intValue(), chefId.intValue());
+
+        // prevent duplicate kitchen order
+        boolean exists = kitchenOrderRepository.existsByOrderId(orderId);
+        if (!exists) {
+            kitchenOrderRepository.createKitchenOrder(orderId);
+        }
+        // increase chef load
+        chefRepository.increaseTaskLoad(chefId);
     }
 
     private String normalize(String value) {

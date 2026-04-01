@@ -19,5 +19,4 @@ public class OrderItem {
     private String status;
     private String notes;
     private LocalDateTime createdAt;
-    private String menuItemName;
 }

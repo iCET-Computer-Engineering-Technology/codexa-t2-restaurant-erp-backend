@@ -1,10 +1,7 @@
 package edu.icet.ecom.controller;
 
 import edu.icet.ecom.dto.AssignWaiterRequest;
-import edu.icet.ecom.entity.KitchenOrder;
-import edu.icet.ecom.entity.Order;
-import edu.icet.ecom.entity.Waiter;
-import edu.icet.ecom.entity.WaiterDetails;
+import edu.icet.ecom.entity.*;
 import edu.icet.ecom.service.KitchenService;
 import jakarta.validation.Valid;
 import org.springframework.web.bind.annotation.*;
@@ -32,16 +29,6 @@ public class KitchenController {
         return kitchenService.getActiveWaiters();
     }
 
-    @GetMapping("/open-orders")
-    public List<Order> getOpenOrders() {
-        return kitchenService.getOpenOrders();
-    }
-
-    @PostMapping("/send")
-    public void sendToKitchen(@RequestParam Long orderId) {
-        kitchenService.sendToKitchen(orderId);
-    }
-
     @PostMapping("/ready")
     public void markReady(@RequestParam Long orderId) {
         kitchenService.markOrderReady(orderId);
@@ -61,5 +48,16 @@ public class KitchenController {
     @GetMapping("/assignments")
     public List<WaiterDetails> getAssignments(){
         return kitchenService.getAssignmentsWaiter();
+    }
+
+    @GetMapping("/chefs")
+    public List<Chef> getAvailableChefs(){
+        return kitchenService.getAvailableChefs();
+    }
+
+    @PostMapping("/assign-chef")
+    public void assignChef(@RequestParam Long orderId,
+                           @RequestParam Long chefId){
+        kitchenService.assignChef(orderId,chefId);
     }
 }

@@ -1,9 +1,6 @@
 package edu.icet.ecom.service;
 
-import edu.icet.ecom.entity.KitchenOrder;
-import edu.icet.ecom.entity.Order;
-import edu.icet.ecom.entity.Waiter;
-import edu.icet.ecom.entity.WaiterDetails;
+import edu.icet.ecom.entity.*;
 
 import java.util.List;
 
@@ -15,4 +12,6 @@ public interface KitchenService {
     List<Order> getOpenOrders();
     void sendToKitchen(Long orderId);
     void markOrderReady(Long orderId);
+    List<Chef> getAvailableChefs();
+    void assignChef(Long orderId, Long chefId);
 }

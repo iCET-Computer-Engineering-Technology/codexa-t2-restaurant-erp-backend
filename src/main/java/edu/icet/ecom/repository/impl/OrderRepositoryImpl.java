@@ -105,11 +105,13 @@ public class OrderRepositoryImpl implements OrderRepository {
         try {
             return jdbcTemplate.queryForObject(
                     "SELECT id, order_type_id, order_number, order_type, table_id, customer_id, server_id, " +
+                            "chef_id, " +
                             "status, subtotal, discount_amount, tax_amount, service_charge, " +
                             "total_amount, notes, created_at, updated_at " +
                             "FROM orders WHERE id = ?",
                     (rs, row) -> mapRow(rs), id
             );
+
         } catch (org.springframework.dao.EmptyResultDataAccessException e) {
             return null;  // Order not found
         }
@@ -119,6 +121,7 @@ public class OrderRepositoryImpl implements OrderRepository {
     public List<Order> findAll() {
         return jdbcTemplate.query(
                 "SELECT id, order_type_id, order_number, order_type, table_id, customer_id, server_id, " +
+                        "chef_id, " +
                         "status, subtotal, discount_amount, tax_amount, service_charge, " +
                         "total_amount, notes, created_at, updated_at " +
                         "FROM orders ORDER BY created_at DESC",
@@ -130,6 +133,7 @@ public class OrderRepositoryImpl implements OrderRepository {
     public List<Order> findByStatus(String status) {
         return jdbcTemplate.query(
                 "SELECT id, order_type_id, order_number, order_type, table_id, customer_id, server_id, " +
+                        "chef_id, " +
                         "status, subtotal, discount_amount, tax_amount, service_charge, " +
                         "total_amount, notes, created_at, updated_at " +
                         "FROM orders WHERE status = ? ORDER BY created_at DESC",
@@ -195,6 +199,14 @@ public class OrderRepositoryImpl implements OrderRepository {
         List<Map<String, Object>> rows = jdbcTemplate.queryForList(sql, id);
         List<OrderWithItemNameResponse> results = mapOrdersWithItems(rows);
         return results.isEmpty() ? null : results.get(0);
+    }
+
+    @Override
+    public void assignChef(Integer orderId, Integer chefId) {
+        jdbcTemplate.update(
+                "UPDATE orders SET chef_id=?, status='sent_to_kitchen' WHERE id=?",
+                chefId, orderId
+        );
     }
 
     private List<OrderWithItemNameResponse> mapOrdersWithItems(List<Map<String, Object>> rows) {
@@ -302,6 +314,9 @@ public class OrderRepositoryImpl implements OrderRepository {
 
         int serverId = rs.getInt("server_id");
         order.setServerId(rs.wasNull() ? null : serverId);
+
+        int chefId = rs.getInt("chef_id");
+        order.setChefId(rs.wasNull() ? null : chefId);
 
         order.setStatus(rs.getString("status"));
         order.setSubTotal(rs.getBigDecimal("subtotal"));
