@@ -12,7 +12,6 @@ import java.util.List;
 
 @Service
 @AllArgsConstructor
-@RequiredArgsConstructor
 public class SupplierIngredientServiceImpl implements SupplierIngredientService {
 
     private final SupplierIngredientRepository supplierIngredientRepository;
