@@ -34,12 +34,11 @@ public class OrderServiceImpl implements OrderService {
     private final WebSocketNotificationService webSocketNotificationService;
 
     // Valid order types matching the DB ENUM
-    private static final Set<String> VALID_ORDER_TYPES = Set.of("dine_in", "takeout", "booking", "table_order");
+    private static final Set<String> VALID_ORDER_TYPES = Set.of("dine_in", "takeout", "booking");
 
     private static final String ORDER_TYPE_DINE_IN = "dine_in";
     private static final String ORDER_TYPE_TAKEOUT = "takeout";
     private static final String ORDER_TYPE_BOOKING = "booking";
-    private static final String ORDER_TYPE_TABLE_ORDER = "table_order";
 
     private static final Map<String, String> ORDER_TYPE_ALIASES = Map.ofEntries(
             Map.entry("dine_in", ORDER_TYPE_DINE_IN),
@@ -48,7 +47,7 @@ public class OrderServiceImpl implements OrderService {
             Map.entry("takeout", ORDER_TYPE_TAKEOUT),
             Map.entry("take_out", ORDER_TYPE_TAKEOUT),
             Map.entry("booking", ORDER_TYPE_BOOKING),
-            Map.entry("table_order", ORDER_TYPE_TABLE_ORDER),
+            Map.entry("table_order", ORDER_TYPE_DINE_IN),
             Map.entry("online", ORDER_TYPE_BOOKING),
             Map.entry("call", ORDER_TYPE_BOOKING)
     );
@@ -75,7 +74,7 @@ public class OrderServiceImpl implements OrderService {
         BigDecimal totalAmount = subtotal.add(taxAmount).add(serviceCharge).subtract(discountAmount);
 
         Order order = new Order();
-        order.setOrderTypeId(request.getOrderTypeId());
+        order.setOrderTypeId(null);
         order.setOrderNumber(generateOrderNumber());
         order.setOrderType(normalizedOrderType);
         order.setTableId(ORDER_TYPE_TAKEOUT.equals(normalizedOrderType) ? null : request.getTableId());
@@ -133,7 +132,7 @@ public class OrderServiceImpl implements OrderService {
         String normalizedOrderType = normalizeOrderType(request.getOrderType());
         validateTabletOrderRequest(request);
 
-        // Create order with TABLET source and table_order type
+        // Create order with TABLET source and dine_in type
         BigDecimal subtotal = request.getItems().stream()
                 .map(i -> i.getPrice().multiply(BigDecimal.valueOf(i.getQuantity())))
                 .reduce(BigDecimal.ZERO, BigDecimal::add);
@@ -144,10 +143,10 @@ public class OrderServiceImpl implements OrderService {
         BigDecimal totalAmount = subtotal.add(taxAmount).add(serviceCharge).subtract(discountAmount);
 
         Order order = new Order();
-        order.setOrderTypeId(1);
+        order.setOrderTypeId(null);
         order.setOrderNumber(generateOrderNumber());
         order.setOrderType(normalizedOrderType);
-        order.setTableId(request.getTableId());
+        order.setTableId(ORDER_TYPE_TAKEOUT.equals(normalizedOrderType) ? null : request.getTableId());
         order.setCustomerId(request.getCustomerId());
         order.setServerId(request.getServerId());
         order.setStatus("open");

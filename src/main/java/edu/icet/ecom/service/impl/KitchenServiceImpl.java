@@ -12,6 +12,8 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Set;
 
+import static java.util.stream.Collectors.toList;
+
 @Service
 @RequiredArgsConstructor
 public class KitchenServiceImpl implements KitchenService {
@@ -29,10 +31,22 @@ public class KitchenServiceImpl implements KitchenService {
     private final OrderAssignmentRepository orderAssignmentRepository;
     private final KitchenOrderRepository kitchenOrderRepository;
     private final OrderItemRepository orderItemRepository;
+    private final UserRepository userRepository;
 
     @Override
     public List<KitchenOrder> getKitchenOrders() {
-        return kitchenOrderRepository.getKitchenOrders();
+        List<KitchenOrder> allOrders = kitchenOrderRepository.getKitchenOrders();
+        org.springframework.security.core.Authentication auth = org.springframework.security.core.context.SecurityContextHolder.getContext().getAuthentication();
+        
+        if (auth != null && auth.getAuthorities().stream().anyMatch(a -> a.getAuthority().equals("ROLE_CHEF"))) {
+            UserEntity chef = userRepository.findByUsername(auth.getName());
+            if (chef != null) {
+                return allOrders.stream()
+                        .filter(ko -> chef.getId().equals(ko.getChefId()))
+                        .collect(toList());
+            }
+        }
+        return allOrders;
     }
 
     @Override
@@ -144,5 +158,28 @@ public class KitchenServiceImpl implements KitchenService {
                 + " destination=" + destination
                 + " customerId=" + (order.getCustomerId() == null ? "N/A" : order.getCustomerId());
     }
-}
 
+    @Override
+    public void assignChef(Long kitchenOrderId, Long chefId) {
+        KitchenOrder ko = kitchenOrderRepository.findById(kitchenOrderId);
+        if (ko == null) {
+            throw new IllegalArgumentException("Kitchen Order not found");
+        }
+        
+        int activeCount = kitchenOrderRepository.countActiveOrdersByChefId(chefId);
+        if (activeCount >= 5) {
+            throw new IllegalStateException("Chef cannot be assigned to more than 5 active orders");
+        }
+        
+        kitchenOrderRepository.assignChef(kitchenOrderId, chefId);
+    }
+
+    @Override
+    public List<edu.icet.ecom.dto.AvailableChefDto> getAvailableChefs() {
+        return userRepository.findByRole("ROLE_CHEF").stream()
+                .filter(chef -> Boolean.TRUE.equals(chef.getIsOnline()))
+                .map(chef -> new edu.icet.ecom.dto.AvailableChefDto(chef, kitchenOrderRepository.countActiveOrdersByChefId(chef.getId())))
+                .filter(dto -> dto.getActiveOrdersCount() < 5)
+                .collect(toList());
+    }
+}

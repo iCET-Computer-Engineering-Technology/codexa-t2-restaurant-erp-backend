@@ -183,16 +183,24 @@ VALUES (1, 'John Silva', 'active'),
        (6, 'Dilani Mendis', 'inactive');
 
 -- ---------------------------------------------------------------
+-- 13a. order_types
+-- ---------------------------------------------------------------
+INSERT INTO order_types (id, type_name, description, is_active)
+VALUES (1, 'dine_in', 'Dine-in orders at restaurant tables', 1),
+       (2, 'takeout', 'Takeout orders for customer pickup', 1),
+       (3, 'booking', 'Pre-booked table reservation orders', 1);
+
+-- ---------------------------------------------------------------
 -- 14. orders
 -- ---------------------------------------------------------------
-INSERT INTO orders (id, order_number, order_type, table_id, customer_id, server_id, status, subtotal, discount_amount,
+INSERT INTO orders (id, order_number, order_type_id, table_id, customer_id, server_id, status, subtotal, discount_amount,
                     tax_amount, service_charge, total_amount, notes)
-VALUES (1, 'ORD-20240601-001', 'dine_in', 2, 1, 2, 'paid', 1450.00, 0.00, 152.25, 72.50, 1674.75, NULL),
-       (2, 'ORD-20240601-002', 'dine_in', 3, 2, 2, 'paid', 2200.00, 110.00, 217.35, 104.50, 2511.85, 'No spicy food'),
-       (3, 'ORD-20240602-001', 'takeout', NULL, 3, 5, 'paid', 630.00, 0.00, 66.15, 31.50, 727.65, NULL),
-       (4, 'ORD-20240602-002', 'dine_in', 4, 4, 6, 'open', 1900.00, 0.00, 199.50, 95.00, 2194.50, 'VIP customer'),
-       (5, 'ORD-20240603-001', 'takeout', NULL, 5, 5, 'paid', 950.00, 47.50, 95.41, 47.50, 1045.41, 'Pickup order'),
-       (6, 'ORD-20240603-002', 'dine_in', 6, 6, 2, 'sent_to_kitchen', 1600.00, 0.00, 168.00, 80.00, 1848.00,
+VALUES (1, 'ORD-20240601-001', 1, 2, 1, 2, 'paid', 1450.00, 0.00, 152.25, 72.50, 1674.75, NULL),
+       (2, 'ORD-20240601-002', 1, 3, 2, 2, 'paid', 2200.00, 110.00, 217.35, 104.50, 2511.85, 'No spicy food'),
+       (3, 'ORD-20240602-001', 2, NULL, 3, 5, 'paid', 630.00, 0.00, 66.15, 31.50, 727.65, NULL),
+       (4, 'ORD-20240602-002', 1, 4, 4, 6, 'open', 1900.00, 0.00, 199.50, 95.00, 2194.50, 'VIP customer'),
+       (5, 'ORD-20240603-001', 2, NULL, 5, 5, 'paid', 950.00, 47.50, 95.41, 47.50, 1045.41, 'Pickup order'),
+       (6, 'ORD-20240603-002', 1, 6, 6, 2, 'sent_to_kitchen', 1600.00, 0.00, 168.00, 80.00, 1848.00,
         'Halal only');
 
 -- ---------------------------------------------------------------

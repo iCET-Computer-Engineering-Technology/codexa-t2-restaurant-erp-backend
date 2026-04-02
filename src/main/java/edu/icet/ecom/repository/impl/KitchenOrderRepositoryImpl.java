@@ -43,8 +43,14 @@ public class KitchenOrderRepositoryImpl implements KitchenOrderRepository {
             KitchenOrder ko = new KitchenOrder();
             ko.setId(rs.getLong("id"));
             ko.setOrderId(rs.getLong("order_id"));
+            ko.setChefId(rs.getObject("chef_id") != null ? rs.getLong("chef_id") : null);
             ko.setStatus(rs.getString("status"));
-            ko.setGetTime(rs.getTimestamp(COL_GET_TIME).toLocalDateTime());
+            if (rs.getTimestamp(COL_GET_TIME) != null) {
+                ko.setGetTime(rs.getTimestamp(COL_GET_TIME).toLocalDateTime());
+            }
+            if (rs.getTimestamp("end_time") != null) {
+                ko.setEndTime(rs.getTimestamp("end_time").toLocalDateTime());
+            }
             return ko;
         });
     }
@@ -75,8 +81,11 @@ public class KitchenOrderRepositoryImpl implements KitchenOrderRepository {
                 KitchenOrder ko = new KitchenOrder();
                 ko.setId(rs.getLong("id"));
                 ko.setOrderId(rs.getLong("order_id"));
+                ko.setChefId(rs.getObject("chef_id") != null ? rs.getLong("chef_id") : null);
                 ko.setStatus(rs.getString("status"));
-                ko.setGetTime(rs.getTimestamp(COL_GET_TIME).toLocalDateTime());
+                if (rs.getTimestamp(COL_GET_TIME) != null) {
+                    ko.setGetTime(rs.getTimestamp(COL_GET_TIME).toLocalDateTime());
+                }
                 if (rs.getTimestamp("end_time") != null) {
                     ko.setEndTime(rs.getTimestamp("end_time").toLocalDateTime());
                 }
@@ -95,8 +104,11 @@ public class KitchenOrderRepositoryImpl implements KitchenOrderRepository {
                 KitchenOrder ko = new KitchenOrder();
                 ko.setId(rs.getLong("id"));
                 ko.setOrderId(rs.getLong("order_id"));
+                ko.setChefId(rs.getObject("chef_id") != null ? rs.getLong("chef_id") : null);
                 ko.setStatus(rs.getString("status"));
-                ko.setGetTime(rs.getTimestamp(COL_GET_TIME).toLocalDateTime());
+                if (rs.getTimestamp(COL_GET_TIME) != null) {
+                    ko.setGetTime(rs.getTimestamp(COL_GET_TIME).toLocalDateTime());
+                }
                 if (rs.getTimestamp("end_time") != null) {
                     ko.setEndTime(rs.getTimestamp("end_time").toLocalDateTime());
                 }
@@ -105,5 +117,18 @@ public class KitchenOrderRepositoryImpl implements KitchenOrderRepository {
         } catch (org.springframework.dao.EmptyResultDataAccessException e) {
             return null;
         }
+    }
+
+    @Override
+    public void assignChef(Long kitchenOrderId, Long chefId) {
+        String sql = "UPDATE kitchen_order SET chef_id = ? WHERE id = ?";
+        jdbcTemplate.update(sql, chefId, kitchenOrderId);
+    }
+
+    @Override
+    public int countActiveOrdersByChefId(Long chefId) {
+        String sql = "SELECT COUNT(*) FROM kitchen_order WHERE chef_id = ? AND status IN ('pending', 'in_progress')";
+        Integer count = jdbcTemplate.queryForObject(sql, Integer.class, chefId);
+        return count != null ? count : 0;
     }
 }

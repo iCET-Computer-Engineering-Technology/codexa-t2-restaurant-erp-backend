@@ -15,4 +15,6 @@ public interface KitchenService {
     List<Order> getOpenOrders();
     void sendToKitchen(Long orderId);
     void markOrderReady(Long orderId);
+    void assignChef(Long kitchenOrderId, Long chefId);
+    List<edu.icet.ecom.dto.AvailableChefDto> getAvailableChefs();
 }

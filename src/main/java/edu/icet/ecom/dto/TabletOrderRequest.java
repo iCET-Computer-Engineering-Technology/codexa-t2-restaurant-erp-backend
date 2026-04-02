@@ -12,7 +12,7 @@ import java.util.List;
 @AllArgsConstructor
 public class TabletOrderRequest {
     @NotBlank(message = "orderType is required")
-    private String orderType; // "table_order"
+    private String orderType; // "dine_in"
 
     private Integer tableId;
     private Integer customerId;
@@ -26,4 +26,3 @@ public class TabletOrderRequest {
     @NotEmpty(message = "items must contain at least 1 item")
     private List<OrderItemCreateRequest> items;
 }
-

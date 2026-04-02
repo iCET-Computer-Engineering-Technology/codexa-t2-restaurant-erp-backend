@@ -13,4 +13,6 @@ public interface KitchenOrderRepository {
     boolean existsByOrderId(Long orderId);
     KitchenOrder findByOrderId(Long orderId);
     KitchenOrder findById(Long id);
+    void assignChef(Long kitchenOrderId, Long chefId);
+    int countActiveOrdersByChefId(Long chefId);
 }
