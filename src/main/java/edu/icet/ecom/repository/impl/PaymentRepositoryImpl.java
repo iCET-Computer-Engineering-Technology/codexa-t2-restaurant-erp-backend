@@ -18,8 +18,8 @@ public class PaymentRepositoryImpl implements PaymentRepository {
     public boolean addPayment(PaymentDto paymentDto) {
         return jdbcTemplate.update("INSERT INTO payments (order_id , payment_method , amount , tip_amount , reference_number , processed_by , processed_at) VALUES (?,?,?,?,?,?,?)",
                 paymentDto.getOrderId(),
+                paymentDto.getPaymentMethod(),
                 paymentDto.getAmount(),
-                paymentDto.getTipAmount(),
                 paymentDto.getTipAmount(),
                 paymentDto.getReferenceNumber(),
                 paymentDto.getProcessedBy(),
