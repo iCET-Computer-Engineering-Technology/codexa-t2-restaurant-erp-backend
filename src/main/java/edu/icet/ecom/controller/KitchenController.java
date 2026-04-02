@@ -62,6 +62,7 @@ public class KitchenController {
 
 
     @PostMapping("/assign")
+    @PreAuthorize("hasAuthority('ROLE_CHEF')")
     public void assignWaiter(@Valid @RequestBody AssignWaiterRequest request) {
         if (request.getKitchenOrderId() == null || request.getWaiterId() == null) {
             throw new IllegalArgumentException("kitchenOrderId and waiterId are required");

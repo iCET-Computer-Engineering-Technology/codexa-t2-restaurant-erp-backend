@@ -12,7 +12,13 @@ INSERT INTO users (id, username, email, password, role, enabled)
 VALUES (1, 'admin', 'admin@restaurant.com', '$2a$12$UELqa2vZb5llSBBvlKa1fu9VMhQyN5f7eHWy2bCLcXK4AljvFKoRK', 'ROLE_ADMIN', 1),
        (2, 'waiter', 'waiter@restaurant.com', '$2a$12$l6xZ.LNYXbSE5ciYfyqHQOGMm09ADVwNHra4OaGLBczRcUbqMK7oC', 'ROLE_WAITER', 1),
        (3, 'chef', 'chef@restaurant.com', '$2a$12$HNRF7LE46jWeExo/2i.Q3OT0oSzpRvpS5Y52GY6f7Od8acFIdF/aG', 'ROLE_CHEF', 1),
-       (4, 'cashier', 'cashier@restaurant.com', '$2a$12$3Iitmyjq6w53mwKBr0y10e.VtPlQsPQ3nkgQaxdLVgSVdekCgNlV.', 'ROLE_CASHIER', 1);
+       (4, 'cashier', 'cashier@restaurant.com', '$2a$12$3Iitmyjq6w53mwKBr0y10e.VtPlQsPQ3nkgQaxdLVgSVdekCgNlV.', 'ROLE_CASHIER', 1),
+       (5, 'chef1', 'chef1@restaurant.com', '$2a$12$HNRF7LE46jWeExo/2i.Q3OT0oSzpRvpS5Y52GY6f7Od8acFIdF/aG', 'ROLE_CHEF', 1),
+       (6, 'chef2', 'chef2@restaurant.com', '$2a$12$HNRF7LE46jWeExo/2i.Q3OT0oSzpRvpS5Y52GY6f7Od8acFIdF/aG', 'ROLE_CHEF', 1),
+       (7, 'waiter1', 'waiter1@restaurant.com', '$2a$12$l6xZ.LNYXbSE5ciYfyqHQOGMm09ADVwNHra4OaGLBczRcUbqMK7oC', 'ROLE_WAITER', 1),
+       (8, 'waiter2', 'waiter2@restaurant.com', '$2a$12$l6xZ.LNYXbSE5ciYfyqHQOGMm09ADVwNHra4OaGLBczRcUbqMK7oC', 'ROLE_WAITER', 1),
+       (9, 'cashier1', 'cashier1@restaurant.com', '$2a$12$3Iitmyjq6w53mwKBr0y10e.VtPlQsPQ3nkgQaxdLVgSVdekCgNlV.', 'ROLE_CASHIER', 1),
+       (10, 'cashier2', 'cashier2@restaurant.com', '$2a$12$3Iitmyjq6w53mwKBr0y10e.VtPlQsPQ3nkgQaxdLVgSVdekCgNlV.', 'ROLE_CASHIER', 1);
 
 # admin → Admin@123
 # waiter → Waiter@123
@@ -180,7 +186,9 @@ VALUES (1, 'John Silva', 'active'),
        (3, 'Kamal Perera', 'active'),
        (4, 'Nadeeka Raj', 'on_break'),
        (5, 'Saman Wickrama', 'active'),
-       (6, 'Dilani Mendis', 'inactive');
+       (6, 'Dilani Mendis', 'inactive'),
+       (7, 'Waiter One', 'active'),
+       (8, 'Waiter Two', 'active');
 
 -- ---------------------------------------------------------------
 -- 13a. order_types
