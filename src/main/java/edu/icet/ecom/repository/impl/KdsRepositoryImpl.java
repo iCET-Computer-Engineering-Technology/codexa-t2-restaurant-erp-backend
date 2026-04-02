@@ -21,32 +21,30 @@ public class KdsRepositoryImpl implements KdsRepository {
 
     @Override
     public Integer saveAndGetId(KdsOrder kdsOrder) {
-        String sql = "INSERT INTO kds_orders (order_id, is_rush, is_vip, color_status) VALUES (?, ?, ?, ?)";
-        KeyHolder keyHolder = new GeneratedKeyHolder();
+        String sql = "INSERT INTO kds_orders (id, order_id, is_rush, is_vip, color_status) VALUES (?, ?, ?, ?, ?)";
         jdbcTemplate.update(connection -> {
-            PreparedStatement ps = connection.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS);
+            PreparedStatement ps = connection.prepareStatement(sql);
             ps.setInt(1, kdsOrder.getOrderId());
-            ps.setBoolean(2, kdsOrder.getIsRush() != null ? kdsOrder.getIsRush() : false);
-            ps.setBoolean(3, kdsOrder.getIsVip() != null ? kdsOrder.getIsVip() : false);
-            ps.setString(4, kdsOrder.getColorStatus() != null ? kdsOrder.getColorStatus() : "green");
+            ps.setInt(2, kdsOrder.getOrderId());
+            ps.setBoolean(3, kdsOrder.getIsRush() != null ? kdsOrder.getIsRush() : false);
+            ps.setBoolean(4, kdsOrder.getIsVip() != null ? kdsOrder.getIsVip() : false);
+            ps.setString(5, kdsOrder.getColorStatus() != null ? kdsOrder.getColorStatus() : "green");
             return ps;
-        }, keyHolder);
-        return Optional.ofNullable(keyHolder.getKey()).map(Number::intValue)
-                .orElseThrow(() -> new RuntimeException("KDS order insert failed - no generated key"));
+        });
+        return kdsOrder.getOrderId();
     }
 
     @Override
     public Integer saveKdsOrderItem(Integer kdsOrderId, Integer orderItemId) {
-        String sql = "INSERT INTO kds_order_items (kds_order_id, order_item_id, status) VALUES (?, ?, 'pending')";
-        KeyHolder keyHolder = new GeneratedKeyHolder();
+        String sql = "INSERT INTO kds_order_items (id, kds_order_id, order_item_id, status) VALUES (?, ?, ?, 'pending')";
         jdbcTemplate.update(connection -> {
-            PreparedStatement ps = connection.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS);
-            ps.setInt(1, kdsOrderId);
-            ps.setInt(2, orderItemId);
+            PreparedStatement ps = connection.prepareStatement(sql);
+            ps.setInt(1, orderItemId);
+            ps.setInt(2, kdsOrderId);
+            ps.setInt(3, orderItemId);
             return ps;
-        }, keyHolder);
-        return Optional.ofNullable(keyHolder.getKey()).map(Number::intValue)
-                .orElseThrow(() -> new RuntimeException("KDS order item insert failed"));
+        });
+        return orderItemId;
     }
 
     @Override

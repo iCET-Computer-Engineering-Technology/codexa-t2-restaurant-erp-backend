@@ -16,6 +16,7 @@ public class WebSocketNotificationService {
     private static final String POS_UPDATES_TOPIC = "/topic/pos-updates";
     private static final String KDS_UPDATES_TOPIC = "/topic/kds-updates";
     private static final String TABLET_RESPONSE_TOPIC = "/topic/tablet-response";
+    private static final String INVENTORY_UPDATES_TOPIC = "/topic/inventory-updates";
 
     private final SimpMessagingTemplate messagingTemplate;
 
@@ -94,6 +95,19 @@ public class WebSocketNotificationService {
     }
 
     /**
+     * Broadcast inventory stock change to connected clients
+     */
+    public void notifyInventoryStockUpdate(Integer ingredientId, java.math.BigDecimal newStock, String unit) {
+        Map<String, Object> payload = new HashMap<>();
+        payload.put("event", "INVENTORY_DEDUCTED");
+        payload.put("ingredientId", ingredientId);
+        payload.put("newStock", newStock);
+        payload.put("unit", unit);
+        payload.put("timestamp", LocalDateTime.now());
+        messagingTemplate.convertAndSend(INVENTORY_UPDATES_TOPIC, (Object) payload);
+    }
+
+    /**
      * Broadcast all KDS pending orders to Kitchen
      */
     public void notifyKDSOrdersSnapshot(List<?> orders) {
@@ -104,5 +118,4 @@ public class WebSocketNotificationService {
         messagingTemplate.convertAndSend(KDS_UPDATES_TOPIC, (Object) payload);
     }
 }
-
 

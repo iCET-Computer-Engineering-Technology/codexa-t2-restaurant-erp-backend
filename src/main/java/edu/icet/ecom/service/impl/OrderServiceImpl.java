@@ -5,11 +5,10 @@ import edu.icet.ecom.entity.Order;
 import edu.icet.ecom.entity.OrderItem;
 import edu.icet.ecom.entity.KdsOrder;
 import edu.icet.ecom.exception.ResourceNotFoundException;
-import edu.icet.ecom.repository.OrderItemRepository;
-import edu.icet.ecom.repository.OrderRepository;
-import edu.icet.ecom.repository.KdsRepository;
+import edu.icet.ecom.repository.*;
 import edu.icet.ecom.service.OrderService;
 import edu.icet.ecom.service.WebSocketNotificationService;
+import edu.icet.ecom.service.IngredientService;
 import lombok.RequiredArgsConstructor;
 import org.jspecify.annotations.NonNull;
 import org.springframework.stereotype.Service;
@@ -30,8 +29,10 @@ public class OrderServiceImpl implements OrderService {
 
     private final OrderRepository orderRepository;
     private final OrderItemRepository orderItemRepository;
+    private final OrderTypeRepository orderTypeRepository;
     private final KdsRepository kdsRepository;
     private final WebSocketNotificationService webSocketNotificationService;
+    private final IngredientService ingredientService;
 
     // Valid order types matching the DB ENUM
     private static final Set<String> VALID_ORDER_TYPES = Set.of("dine_in", "takeout", "booking");
@@ -55,7 +56,7 @@ public class OrderServiceImpl implements OrderService {
     // Valid statuses matching the DB ENUM
     private static final Set<String> VALID_STATUSES = Set.of("open", "sent_to_kitchen", "partially_ready", "ready", "paid", "voided");
 
-    private static final BigDecimal TAX_RATE     = new BigDecimal("0.00");
+    private static final BigDecimal TAX_RATE     = new BigDecimal("0.10");
     private static final BigDecimal SERVICE_RATE = new BigDecimal("0.00");
 
     @Override
@@ -107,6 +108,10 @@ public class OrderServiceImpl implements OrderService {
             item.setId(orderItemRepository.saveAndGetId(item));
             savedItems.add(item);
         }
+
+        // Deduct inventory for these items based on recipe
+        ingredientService.deductInventoryForOrderItems(savedItems);
+
         return mapToResponse(order, savedItems);
     }
 
@@ -188,6 +193,9 @@ public class OrderServiceImpl implements OrderService {
             // Add to KDS
             kdsRepository.saveKdsOrderItem(kdsOrderId, orderItemId);
         }
+        
+        // Deduct inventory for these items based on recipe
+        ingredientService.deductInventoryForOrderItems(savedItems);
 
         // Build response
         TabletOrderResponse response = new TabletOrderResponse();
