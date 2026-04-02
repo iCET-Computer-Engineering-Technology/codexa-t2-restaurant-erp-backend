@@ -29,6 +29,15 @@ public class PaymentRepositoryImpl implements PaymentRepository {
 
     @Override
     public List<PaymentDto> getAllPayment() {
-        return List.of();
+        return jdbcTemplate.query("SELECT * FROM payments" , (rs, rowNum) -> new PaymentDto (
+                rs.getInt(1),
+                rs.getInt(2),
+                rs.getString(3),
+                rs.getDouble(4),
+                rs.getDouble(5),
+                rs.getString(6),
+                rs.getInt(7),
+                rs.getTimestamp(8)
+        ));
     }
 }
