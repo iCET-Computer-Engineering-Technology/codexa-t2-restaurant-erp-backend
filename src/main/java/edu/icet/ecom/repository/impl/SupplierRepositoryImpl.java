@@ -18,6 +18,8 @@ import java.util.List;
 public class SupplierRepositoryImpl implements SupplierRepository {
     private final JdbcTemplate jdbcTemplate;
 
+
+
     @Override
     public List<Supplier> getAllSuppliers() {
         String query = "SELECT * FROM suppliers";

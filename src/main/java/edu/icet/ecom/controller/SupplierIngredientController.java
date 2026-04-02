@@ -2,8 +2,7 @@ package edu.icet.ecom.controller;
 
 import edu.icet.ecom.dto.IngredientForSupplierDto;
 import edu.icet.ecom.dto.SupplierWithIngredientsDto;
-import edu.icet.ecom.service.impl.SupplierIngredientService;
-import lombok.AllArgsConstructor;
+import edu.icet.ecom.service.SupplierIngredientService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
 

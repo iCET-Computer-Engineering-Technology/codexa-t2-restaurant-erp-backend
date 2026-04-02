@@ -1,4 +1,4 @@
-package edu.icet.ecom.service.impl;
+package edu.icet.ecom.service;
 
 import edu.icet.ecom.dto.IngredientForSupplierDto;
 import edu.icet.ecom.dto.SupplierWithIngredientsDto;

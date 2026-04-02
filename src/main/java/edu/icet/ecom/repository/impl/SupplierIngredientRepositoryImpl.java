@@ -3,6 +3,7 @@ package edu.icet.ecom.repository.impl;
 import edu.icet.ecom.dto.IngredientForSupplierDto;
 import edu.icet.ecom.dto.SupplierWithIngredientsDto;
 import edu.icet.ecom.repository.SupplierIngredientRepository;
+import lombok.RequiredArgsConstructor;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.RowMapper;
 import org.springframework.stereotype.Repository;
@@ -11,13 +12,10 @@ import java.util.ArrayList;
 import java.util.List;
 
 @Repository
+@RequiredArgsConstructor
 public class SupplierIngredientRepositoryImpl implements SupplierIngredientRepository {
 
     private final JdbcTemplate jdbcTemplate;
-
-    public SupplierIngredientRepositoryImpl(JdbcTemplate jdbcTemplate) {
-        this.jdbcTemplate = jdbcTemplate;
-    }
 
     private final RowMapper<IngredientForSupplierDto> ingredientMapper = (rs, rowNum) ->
             new IngredientForSupplierDto(
