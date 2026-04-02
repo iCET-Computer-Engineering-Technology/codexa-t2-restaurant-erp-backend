@@ -3,6 +3,7 @@ package edu.icet.ecom.service.impl;
 import edu.icet.ecom.entity.*;
 import edu.icet.ecom.repository.*;
 import edu.icet.ecom.service.KitchenService;
+import edu.icet.ecom.service.WebSocketNotificationService;
 import lombok.RequiredArgsConstructor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -32,6 +33,7 @@ public class KitchenServiceImpl implements KitchenService {
     private final KitchenOrderRepository kitchenOrderRepository;
     private final OrderItemRepository orderItemRepository;
     private final UserRepository userRepository;
+    private final WebSocketNotificationService webSocketNotificationService;
 
     @Override
     public List<KitchenOrder> getKitchenOrders() {
@@ -72,6 +74,9 @@ public class KitchenServiceImpl implements KitchenService {
         }
 
         orderAssignmentRepository.assignWaiter(kitchenOrderId, waiterId);
+        waiterRepository.updateWaiterStatus(waiterId, "busy");
+        
+        broadcastSnapshot();
     }
 
     @Override
@@ -81,7 +86,9 @@ public class KitchenServiceImpl implements KitchenService {
 
     @Override
     public List<Order> getOpenOrders() {
-        List<Order> orders = orderRepository.findByStatus("open");
+        List<Order> orders = orderRepository.findAll().stream()
+                .filter(o -> "open".equals(o.getStatus()) || "sent_to_kitchen".equals(o.getStatus()) || "partially_ready".equals(o.getStatus()))
+                .collect(toList());
         orders.forEach(order ->
                 order.setItems(
                         orderItemRepository.findByOrderId(order.getId())
@@ -111,6 +118,8 @@ public class KitchenServiceImpl implements KitchenService {
         kitchenOrderRepository.createKitchenOrder(orderId);
 
         log.info("{}", buildLabel(order, "KITCHEN_RECEIVED", normalizedType));
+        
+        broadcastSnapshot();
     }
 
     @Override
@@ -131,32 +140,24 @@ public class KitchenServiceImpl implements KitchenService {
         if (order != null) {
             log.info("{}", buildLabel(order, "READY_FOR_FULFILLMENT", normalize(order.getOrderType())));
         }
+        
+        broadcastSnapshot();
     }
 
     private String normalize(String value) {
         return value == null ? "" : value.trim().toLowerCase(Locale.ROOT);
     }
 
-    private String buildLabel(Order order, String stage, String type) {
-        String route = switch (type) {
-            case ORDER_TYPE_DINE_IN -> "KDS_DINE_IN";
-            case ORDER_TYPE_TAKEOUT -> "KDS_TAKEOUT";
-            case ORDER_TYPE_BOOKING -> "KDS_BOOKING";
-            default -> "KDS_UNKNOWN";
-        };
-
-        String destination = switch (type) {
-            case ORDER_TYPE_DINE_IN, ORDER_TYPE_BOOKING -> "TABLE-" + (order.getTableId() == null ? "UNASSIGNED" : order.getTableId());
-            case ORDER_TYPE_TAKEOUT -> "TAKEOUT-PICKUP";
-            default -> "UNASSIGNED";
-        };
-
-        return "[" + stage + "] order=" + order.getId()
-                + " orderNumber=" + order.getOrderNumber()
-                + " type=" + type
-                + " route=" + route
-                + " destination=" + destination
-                + " customerId=" + (order.getCustomerId() == null ? "N/A" : order.getCustomerId());
+    private String buildLabel(Order order, String status, String type) {
+        return String.format("[%s][%s] Order #%s", status, type.toUpperCase(Locale.ROOT), order.getOrderNumber());
+    }
+    
+    private void broadcastSnapshot() {
+        try {
+            webSocketNotificationService.notifyKDSOrdersSnapshot(getOpenOrders());
+        } catch (Exception e) {
+            log.error("Failed to broadcast KDS snapshot", e);
+        }
     }
 
     @Override
@@ -172,6 +173,7 @@ public class KitchenServiceImpl implements KitchenService {
         }
         
         kitchenOrderRepository.assignChef(kitchenOrderId, chefId);
+        broadcastSnapshot();
     }
 
     @Override
@@ -180,6 +182,15 @@ public class KitchenServiceImpl implements KitchenService {
                 .filter(chef -> Boolean.TRUE.equals(chef.getIsOnline()))
                 .map(chef -> new edu.icet.ecom.dto.AvailableChefDto(chef, kitchenOrderRepository.countActiveOrdersByChefId(chef.getId())))
                 .filter(dto -> dto.getActiveOrdersCount() < 5)
+                .collect(toList());
+    }
+
+    @Override
+    public List<edu.icet.ecom.dto.AvailableWaiterDto> getAvailableWaiters() {
+        return userRepository.findByRole("ROLE_WAITER").stream()
+                .filter(waiter -> Boolean.TRUE.equals(waiter.getIsOnline()))
+                .map(waiter -> new edu.icet.ecom.dto.AvailableWaiterDto(waiter, orderAssignmentRepository.countActiveOrdersByWaiterId(waiter.getId())))
+                .filter(dto -> dto.getActiveOrdersCount() < 5)  // Assuming max 5 active orders similar to chefs
                 .collect(toList());
     }
 }

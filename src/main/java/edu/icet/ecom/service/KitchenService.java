@@ -1,5 +1,7 @@
 package edu.icet.ecom.service;
 
+import edu.icet.ecom.dto.AvailableChefDto;
+import edu.icet.ecom.dto.AvailableWaiterDto;
 import edu.icet.ecom.entity.KitchenOrder;
 import edu.icet.ecom.entity.Order;
 import edu.icet.ecom.entity.Waiter;
@@ -16,5 +18,6 @@ public interface KitchenService {
     void sendToKitchen(Long orderId);
     void markOrderReady(Long orderId);
     void assignChef(Long kitchenOrderId, Long chefId);
-    List<edu.icet.ecom.dto.AvailableChefDto> getAvailableChefs();
+    List<AvailableChefDto> getAvailableChefs();
+    List<AvailableWaiterDto> getAvailableWaiters();
 }

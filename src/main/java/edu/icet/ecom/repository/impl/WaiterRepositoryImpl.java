@@ -78,4 +78,10 @@ public class WaiterRepositoryImpl implements WaiterRepository {
             return waiter;
         });
     }
+
+    @Override
+    public void updateWaiterStatus(Long waiterId, String status) {
+        String sql = "UPDATE waiter SET status = ? WHERE id = ?";
+        jdbcTemplate.update(sql, status, waiterId);
+    }
 }

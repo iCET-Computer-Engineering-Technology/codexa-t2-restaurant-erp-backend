@@ -29,10 +29,10 @@ public class KitchenOrderRepositoryImpl implements KitchenOrderRepository {
     @Override
     public void createKitchenOrder(Long orderId) {
         String sql = """
-            INSERT INTO kitchen_order(order_id, status, get_time)
-            VALUES (?, 'in_progress', NOW())
+            INSERT INTO kitchen_order(id, order_id, status, get_time)
+            VALUES (?, ?, 'in_progress', NOW())
         """;
-        jdbcTemplate.update(sql, orderId);
+        jdbcTemplate.update(sql, orderId, orderId);
     }
 
     @Override

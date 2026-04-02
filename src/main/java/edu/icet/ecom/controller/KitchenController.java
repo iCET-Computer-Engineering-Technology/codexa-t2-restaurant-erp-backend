@@ -60,6 +60,12 @@ public class KitchenController {
         return kitchenService.getAvailableChefs();
     }
 
+    @GetMapping("/available-waiters")
+    @PreAuthorize("hasAnyAuthority('ROLE_CASHIER', 'ROLE_CHEF')")
+    public List<edu.icet.ecom.dto.AvailableWaiterDto> getAvailableWaiters() {
+        return kitchenService.getAvailableWaiters();
+    }
+
 
     @PostMapping("/assign")
     @PreAuthorize("hasAuthority('ROLE_CHEF')")
