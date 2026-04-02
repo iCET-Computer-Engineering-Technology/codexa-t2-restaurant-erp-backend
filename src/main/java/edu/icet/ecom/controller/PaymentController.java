@@ -6,7 +6,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
-@RequestMapping({"/payment" ,"/api/payment"})
+@RequestMapping({"/payments" ,"/api/payments"})
 @RequiredArgsConstructor
 public class PaymentController {
 
@@ -14,6 +14,6 @@ public class PaymentController {
 
     @PostMapping
     public boolean addPayment(@RequestBody PaymentDto paymentDto){
-        return addPayment(paymentDto);
+        return paymentService.addPayment(paymentDto);
     }
 }
