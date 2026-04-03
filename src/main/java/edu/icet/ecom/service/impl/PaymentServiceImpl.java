@@ -19,7 +19,6 @@ public class PaymentServiceImpl implements PaymentService {
 
     private final PaymentRepository paymentRepository;
 
-
     @Override
     public boolean addPayment(PaymentDto paymentDto) {
         paymentDto.setReferenceNumber(generateReferenceNumber());
