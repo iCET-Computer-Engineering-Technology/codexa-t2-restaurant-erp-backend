@@ -36,7 +36,14 @@ public class PaymentController {
     }
 
     @GetMapping
-    public List<PaymentDto> getAll(){
-        return paymentService.getAllPayment();
+    public ResponseEntity<?> getAll(){
+        try{
+            List<PaymentDto> payments = paymentService.getAllPayment();
+            return ResponseEntity.ok(payments);
+        } catch (Exception e) {
+            return ResponseEntity
+                    .internalServerError()
+                    .body("Failed to fetch payments: " + e.getMessage());
+        }
     }
 }

@@ -10,6 +10,7 @@ import org.springframework.stereotype.Service;
 import java.sql.Timestamp;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
+import java.util.Collections;
 import java.util.List;
 import java.util.UUID;
 
@@ -32,11 +33,19 @@ public class PaymentServiceImpl implements PaymentService {
         return saved;
     }
 
-
-
     @Override
     public List<PaymentDto> getAllPayment() {
-        return paymentRepository.getAllPayment();
+        try{
+            List<PaymentDto> payments = paymentRepository.getAllPayment();
+            if(payments.isEmpty()){
+                return Collections.emptyList();
+            }
+            return payments;
+        }catch(Exception e){
+            throw new RuntimeException(
+                    "Failed to fetch payments: " + e.getMessage()
+            );
+        }
     }
 
     @Override

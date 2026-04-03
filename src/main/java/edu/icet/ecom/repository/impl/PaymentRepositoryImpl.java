@@ -52,15 +52,17 @@ public class PaymentRepositoryImpl implements PaymentRepository {
     @Override
     public List<PaymentDto> getAllPayment() {
         try {
-            return jdbcTemplate.query("SELECT * FROM payments", (rs, rowNum) -> new PaymentDto(
-                    rs.getInt(1),
-                    rs.getInt(2),
-                    rs.getString(3),
-                    rs.getDouble(4),
-                    rs.getDouble(5),
-                    rs.getString(6),
-                    rs.getInt(7),
-                    rs.getTimestamp(8)
+            return jdbcTemplate.query(
+                    "SELECT * FROM payments",
+                    (rs, rowNum) -> new PaymentDto(
+                            rs.getInt("id"),
+                            rs.getInt("order_id"),
+                            rs.getString("payment_method"),
+                            rs.getDouble("amount"),
+                            rs.getDouble("tip_amount"),
+                            rs.getString("reference_number"),
+                            rs.getInt("processed_by"),
+                            rs.getTimestamp("processed_at")
             ));
         } catch (Exception e) {
             throw new RuntimeException("Failed to save payment : "+ e.getMessage());
