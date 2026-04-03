@@ -20,7 +20,7 @@ public class UserEntity {
     private Boolean isOnline;
     private LocalDateTime lastActiveAt;
     private LocalDateTime createdAt;
-    
+   
     // Add compatible constructor for usages that didn't know about isOnline
     public UserEntity(Long id, String username, String email, String password, Role role, Boolean enabled, LocalDateTime createdAt) {
         this.id = id;

@@ -9,5 +9,5 @@ public interface EmailTemplateService {
     String getAnniversaryEmailTemplate();
     String renderTemplate(String template, Map<String, String> placeholders);
     String getMarketingCampaignTemplate();
+    String getReservationReminderEmailTemplate();
 }
-

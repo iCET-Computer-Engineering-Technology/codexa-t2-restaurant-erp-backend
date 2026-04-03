@@ -19,11 +19,14 @@ VALUES (1, 'admin', 'admin@restaurant.com', '$2a$12$UELqa2vZb5llSBBvlKa1fu9VMhQy
        (8, 'waiter2', 'waiter2@restaurant.com', '$2a$12$l6xZ.LNYXbSE5ciYfyqHQOGMm09ADVwNHra4OaGLBczRcUbqMK7oC', 'ROLE_WAITER', 1),
        (9, 'cashier1', 'cashier1@restaurant.com', '$2a$12$3Iitmyjq6w53mwKBr0y10e.VtPlQsPQ3nkgQaxdLVgSVdekCgNlV.', 'ROLE_CASHIER', 1),
        (10, 'cashier2', 'cashier2@restaurant.com', '$2a$12$3Iitmyjq6w53mwKBr0y10e.VtPlQsPQ3nkgQaxdLVgSVdekCgNlV.', 'ROLE_CASHIER', 1);
+       (11, 'manager', 'manager@restaurant.com', '$2a$12$1WxWyFCfGsvQZb9dR.WJyO1z4s6wTWZKWUaxB1jGx/sDk3.yL/Gbe', 'ROLE_MANAGER', 1);
+       (12, 'manager1', 'manager@restaurant.com', '$2a$12$1WxWyFCfGsvQZb9dR.WJyO1z4s6wTWZKWUaxB1jGx/sDk3.yL/Gbe', 'ROLE_MANAGER', 1);
 
 # admin → Admin@123
-# waiter → Waiter@123
-# chef → Chef@123
-# cashier → Cashier@123
+# waiter → Waiter@123 (Same as waiter1 and waiter2)
+# chef → Chef@123 (Same as chef1 and chef2)
+# cashier → Cashier@123 (Same as cashier1 and cashier2)
+# manager → Manager@123 (Same as manager1)
 
 -- ---------------------------------------------------------------
 -- 2. customers
