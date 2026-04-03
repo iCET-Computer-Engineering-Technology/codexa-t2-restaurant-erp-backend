@@ -1,6 +1,8 @@
 package edu.icet.ecom.repository;
 
 import edu.icet.ecom.dto.CustomerDto;
+import edu.icet.ecom.dto.CustomerProfileDto;
+
 import java.util.List;
 import java.util.Optional;
 import java.time.LocalDate;
@@ -13,4 +15,6 @@ public interface CustomerRepository {
     boolean deleteCustomerByPhone(String phone);
     boolean updateCustomer(CustomerDto customerDTO);
     List<CustomerDto> findCustomersWithAnniversaryOn(LocalDate targetDate);
+    CustomerProfileDto getCustomerProfile(Integer customerId);
+
 }

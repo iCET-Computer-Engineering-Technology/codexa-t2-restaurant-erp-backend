@@ -10,4 +10,5 @@ public interface IngredientService {
     List<IngredientDto> getAll(int page, int size);
     IngredientDto update(Integer id, IngredientDto ingredientDto);
     void delete(Integer id);
+    void deductInventoryForOrderItems(List<edu.icet.ecom.entity.OrderItem> orderItems);
 }

@@ -11,6 +11,7 @@ import java.util.List;
 @AllArgsConstructor
 public class OrderResponse {
     private Integer id;
+    private Integer orderTypeId;
     private String orderNumber;
     private String orderType;
     private Integer tableId;
@@ -23,6 +24,7 @@ public class OrderResponse {
     private BigDecimal serviceCharge;
     private BigDecimal totalAmount;
     private String notes;
+    private String source;
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
     private List<OrderItemResponse> items;

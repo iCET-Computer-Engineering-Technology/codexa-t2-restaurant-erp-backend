@@ -11,5 +11,7 @@ import java.util.Collection;
 public interface AuthService {
     AuthResponse register(RegisterRequestDto request);
     AuthResponse login(LoginRequestDto request);
+    void logout(String username);
+    void heartbeat(String username);
     Role getRoleFromAuthorities(Collection<? extends GrantedAuthority> authorities);
 }

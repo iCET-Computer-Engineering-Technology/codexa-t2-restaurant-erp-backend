@@ -4,9 +4,11 @@ import edu.icet.ecom.dto.MenuItemsDto;
 import edu.icet.ecom.exception.ResourceNotFoundException;
 import edu.icet.ecom.repository.MenuItemsRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.dao.EmptyResultDataAccessException;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Repository;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 
@@ -61,8 +63,26 @@ public class MenuItemsRepositoryImpl implements MenuItemsRepository {
     }
 
     @Override
+    @Transactional
     public boolean deleteById(Integer id) {
-        return jdbcTemplate.update("DELETE FROM menu_items WHERE id = ?", id) > 0;
+        Integer count = jdbcTemplate.queryForObject(
+                "SELECT COUNT(*) FROM menu_items WHERE id = ?",
+                Integer.class,
+                id
+        );
+
+        if (count == null || count == 0) {
+            return false;
+        }
+
+        try {
+            return jdbcTemplate.update("DELETE FROM menu_items WHERE id = ?", id) > 0;
+        } catch (DataIntegrityViolationException ex) {
+            // Keep historical FK data intact: mark item unavailable instead of hard delete.
+            jdbcTemplate.update("UPDATE menu_item_price SET is_active = 0 WHERE item_id = ?", id);
+            jdbcTemplate.update("UPDATE menu_items SET is_available = 0, updated_at = NOW() WHERE id = ?", id);
+            return true;
+        }
     }
 
     @Override

@@ -49,4 +49,16 @@ public class OrderAssignmentRepositoryImpl implements OrderAssignmentRepository 
             return waiterNameDisplay;
         });
     }
+
+    @Override
+    public int countActiveOrdersByWaiterId(Long waiterId) {
+        String sql = """
+                SELECT COUNT(*) FROM order_assignment oa
+                INNER JOIN kitchen_order ko ON oa.kitchen_order_id = ko.id
+                LEFT JOIN order_status_updates osu ON ko.order_id = osu.order_id AND osu.waiter_id = oa.waiter_id
+                WHERE oa.waiter_id = ? AND (osu.status IS NULL OR osu.status = 'unserved')
+                """;
+        Integer count = jdbcTemplate.queryForObject(sql, Integer.class, waiterId);
+        return count != null ? count : 0;
+    }
 }
