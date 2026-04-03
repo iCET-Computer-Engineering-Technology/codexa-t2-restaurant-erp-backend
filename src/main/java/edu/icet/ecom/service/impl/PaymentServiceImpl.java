@@ -35,17 +35,11 @@ public class PaymentServiceImpl implements PaymentService {
 
     @Override
     public List<PaymentDto> getAllPayment() {
-        try{
-            List<PaymentDto> payments = paymentRepository.getAllPayment();
-            if(payments.isEmpty()){
-                return Collections.emptyList();
-            }
-            return payments;
-        }catch(Exception e){
-            throw new RuntimeException(
-                    "Failed to fetch payments: " + e.getMessage()
-            );
+        List<PaymentDto> payments = paymentRepository.getAllPayment();
+        if (payments.isEmpty()) {
+            throw new RuntimeException("No payments found");
         }
+        return payments;
     }
 
     @Override
