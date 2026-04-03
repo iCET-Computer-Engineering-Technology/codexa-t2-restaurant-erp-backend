@@ -50,11 +50,11 @@ public class SecurityConfig {
             "/api/campaigns/**",
             "/api/campaign-analytics/**",
             "/api/emails/**",
-            "/categories/**",
-            "/menu-items/**",
-            "/portions/**",
+            "/api/categories/**",
+            "/api/menu-items/**",
             "/api/portions/**",
-            "/menu-item-price/**"
+            "/api/portions/**",
+            "/api/menu-item-price/**"
     };
     private static final String[] MANAGER_ENDPOINTS = {
             "/allowance/**",
@@ -73,14 +73,15 @@ public class SecurityConfig {
             "/api/order/**",
             "/api/kitchen/**",
             "/customers/**",
-            "/api/waiter/**"
+            "/api/waiter/**",
+            "/api/supplier/**"
     };
 
     // Staff screens need read access to menu master data, while writes remain admin-only.
     private static final String[] STAFF_READONLY_ENDPOINTS = {
-            "/menu-items/**",
-            "/menu-item-price/**",
-            "/portions/**",
+            "/api/menu-items/**",
+            "/api/menu-item-price/**",
+            "/api/portions/**",
             "/api/portions/**",
             "/tables/**",
             "/api/tables/**"

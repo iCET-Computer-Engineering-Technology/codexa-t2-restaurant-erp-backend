@@ -3,6 +3,7 @@ package edu.icet.ecom.controller;
 import edu.icet.ecom.dto.OrderCreateRequest;
 import edu.icet.ecom.dto.OrderResponse;
 import edu.icet.ecom.dto.OrderStatusUpdateRequest;
+import edu.icet.ecom.dto.OrderWithItemNameResponse;
 import edu.icet.ecom.service.OrderService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -46,8 +47,24 @@ public class OrderController {
         return ResponseEntity.ok("Order status updated successfully");
     }
 
+    @PutMapping("/{id}/type")
+    public ResponseEntity<String> updateOrderType(@PathVariable Integer id, @RequestParam String type) {
+        orderService.updateType(id, type);
+        return ResponseEntity.ok("Order type successfully updated to: " + type);
+    }
+
     @GetMapping("/find-by-id/{id}")
     public ResponseEntity<OrderResponse> findById(@PathVariable Integer id){
         return ResponseEntity.ok(orderService.findById(id));
+    }
+
+    @GetMapping("/find-all-with-item-names")
+    public ResponseEntity<List<OrderWithItemNameResponse>> getAllOrdersWithItemNames() {
+        return ResponseEntity.ok(orderService.getAllOrdersWithItemNames());
+    }
+
+    @GetMapping("/find-with-item-names/{id}")
+    public ResponseEntity<OrderWithItemNameResponse> findOrderWithItemNamesById(@PathVariable Integer id) {
+        return ResponseEntity.ok(orderService.getOrderWithItemNamesById(id));
     }
 }

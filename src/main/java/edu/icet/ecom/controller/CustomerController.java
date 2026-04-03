@@ -1,6 +1,7 @@
 package edu.icet.ecom.controller;
 
 import edu.icet.ecom.dto.CustomerDto;
+import edu.icet.ecom.dto.CustomerProfileDto;
 import edu.icet.ecom.service.CustomerService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -16,33 +17,38 @@ public class CustomerController {
 
     private final CustomerService customerService;
 
-    @GetMapping("/get-all")
+    @GetMapping
     public List<CustomerDto> getAllCustomer(){
         return customerService.getAllCustomers();
     }
 
-    @PostMapping("/add")
+    @PostMapping
     public boolean addCustomer(@Valid @RequestBody CustomerDto customerDto){
         return customerService.addCustomer(customerDto);
     }
 
-    @GetMapping("/search/phone/{phone}")
+    @GetMapping("/phone/{phone}")
     public CustomerDto searchCustomerByPhone(@PathVariable String phone){
         return customerService.searchCustomerByPhone(phone);
     }
 
-    @GetMapping("/search/id/{id}")
+    @GetMapping("/{id}")
     public CustomerDto searchCustomerById(@PathVariable Integer id){
         return customerService.searchCustomerById(id);
     }
 
-    @DeleteMapping("/delete/{phone}")
+    @DeleteMapping("/{phone}")
     public boolean deleteCustomerByPhone(@PathVariable String phone){
         return customerService.deleteCustomerByPhone(phone);
     }
 
-    @PutMapping("/update")
+    @PutMapping
     public boolean updateCustomer(@Valid @RequestBody CustomerDto customerDto){
         return customerService.updateCustomer(customerDto);
+    }
+
+    @GetMapping("/{id}/profile")
+    public CustomerProfileDto getCustomerProfile(@PathVariable Integer id) {
+        return customerService.getCustomerProfile(id);
     }
 }

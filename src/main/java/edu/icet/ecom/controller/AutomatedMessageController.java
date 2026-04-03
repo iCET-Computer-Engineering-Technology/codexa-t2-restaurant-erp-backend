@@ -2,11 +2,13 @@ package edu.icet.ecom.controller;
 
 import edu.icet.ecom.dto.CustomerDto;
 import edu.icet.ecom.dto.MarketingEmailRequest;
+import edu.icet.ecom.dto.EmailSchedulerConfigDto;
 import edu.icet.ecom.entity.AutomatedMessage;
 import edu.icet.ecom.service.EmailTemplateService;
 import edu.icet.ecom.repository.AutomatedMessageRepository;
 import edu.icet.ecom.repository.CustomerRepository;
 import edu.icet.ecom.service.EmailService;
+import edu.icet.ecom.service.EmailSchedulerConfigService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
@@ -34,6 +36,7 @@ public class AutomatedMessageController {
     private final EmailService emailService;
     private final CustomerRepository customerRepository;
     private final EmailTemplateService emailTemplateService;
+    private final EmailSchedulerConfigService emailSchedulerConfigService;
 
     //automated message operations
     @PreAuthorize("hasAuthority('ROLE_ADMIN')")
@@ -819,6 +822,33 @@ public class AutomatedMessageController {
         variables.put("expiryDate", LocalDate.now().plusDays(7).toString());
 
         return emailTemplateService.renderTemplate(template, variables);
+    }
+
+    // ========== Scheduler Config Endpoints ==========
+    @GetMapping("/scheduler")
+    @PreAuthorize("hasAuthority('ROLE_ADMIN')")
+    public ResponseEntity<?> getSchedulerConfig() {
+        try {
+            return ResponseEntity.ok(emailSchedulerConfigService.getCurrentConfig());
+        } catch (Exception e) {
+            log.error("Error fetching scheduler config", e);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Error fetching scheduler config");
+        }
+    }
+
+    @PutMapping("/scheduler")
+    @PreAuthorize("hasAuthority('ROLE_ADMIN')")
+    public ResponseEntity<?> updateSchedulerConfig(@RequestBody EmailSchedulerConfigDto request) {
+        try {
+            if (request.getSendTime() == null) {
+                return ResponseEntity.badRequest().body("sendTime is required in HH:mm:ss format");
+            }
+            log.info("Updating email scheduler time to {}", request.getSendTime());
+            return ResponseEntity.ok(emailSchedulerConfigService.updateSendTime(request.getSendTime()));
+        } catch (Exception e) {
+            log.error("Error updating scheduler config", e);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Error updating scheduler config");
+        }
     }
 
     @PostMapping("/send-to-all")
