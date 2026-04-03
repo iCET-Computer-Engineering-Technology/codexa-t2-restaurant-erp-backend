@@ -4,6 +4,7 @@ public enum Role {
     ROLE_ADMIN,
     ROLE_USER,
     ROLE_CASHIER,
+    ROLE_MANAGER,
     ROLE_WAITER,
     ROLE_CHEF;
 
