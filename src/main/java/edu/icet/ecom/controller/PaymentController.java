@@ -9,7 +9,7 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 
 @RestController
-@RequestMapping({"/payments" ,"/api/payments"})
+@RequestMapping("/api/payments")
 @RequiredArgsConstructor
 @CrossOrigin
 public class PaymentController {
@@ -27,6 +27,8 @@ public class PaymentController {
             return ResponseEntity.badRequest().body("payment Failed");
 
         } catch (IllegalArgumentException e){
+            return ResponseEntity.badRequest().body(e.getMessage());
+        } catch (RuntimeException e) {
             return ResponseEntity.badRequest().body(e.getMessage());
         } catch (Exception e) {
             return ResponseEntity
@@ -47,7 +49,7 @@ public class PaymentController {
         }
     }
 
-    @GetMapping("/order/{orderid}")
+    @GetMapping("/order/{orderId}")
     public ResponseEntity<?> getPaymentByOrderId(@PathVariable Integer orderId){
         try{
             PaymentDto payment = paymentService.getPaymentByOrderId(orderId);

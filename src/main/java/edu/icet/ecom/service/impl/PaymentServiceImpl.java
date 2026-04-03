@@ -4,13 +4,9 @@ import edu.icet.ecom.dto.PaymentDto;
 import edu.icet.ecom.repository.PaymentRepository;
 import edu.icet.ecom.service.PaymentService;
 import lombok.RequiredArgsConstructor;
-import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.stereotype.Service;
 
 import java.sql.Timestamp;
-import java.time.LocalDate;
-import java.time.format.DateTimeFormatter;
-import java.util.Collections;
 import java.util.List;
 import java.util.UUID;
 
@@ -22,7 +18,23 @@ public class PaymentServiceImpl implements PaymentService {
 
     @Override
     public boolean addPayment(PaymentDto paymentDto) {
-        paymentDto.setReferenceNumber(generateReferenceNumber());
+        boolean orderExists = paymentRepository
+                .checkOrderExists(paymentDto.getOrderId());
+        if (!orderExists) {
+            throw new IllegalArgumentException(
+                    "Order ID " + paymentDto.getOrderId() + " does not exist"
+            );
+        }
+
+        PaymentDto existing = paymentRepository
+                .getPaymentByOrderId(paymentDto.getOrderId());
+        if(existing != null){
+            throw new RuntimeException(
+                    "Payment already exists for Order ID :" +
+                            paymentDto.getOrderId()
+            );
+        }
+        paymentDto.setReferenceNumber(generateReferenceNumber(paymentDto.getPaymentMethod()));
         paymentDto.setProcessedAt(
                 new Timestamp(System.currentTimeMillis())
         );
@@ -47,16 +59,12 @@ public class PaymentServiceImpl implements PaymentService {
         return paymentRepository.getPaymentByOrderId(orderId);
     }
 
-    private String generateReferenceNumber() {
-        String date = LocalDate.now()
-                .format(DateTimeFormatter.ofPattern("yyyyMMdd"));
-
-        String uniqueRef = UUID.randomUUID()
-                .toString()
-                .substring(0, 8)
+    private String generateReferenceNumber(String paymentMethod) {
+        String methodCode = paymentMethod.equalsIgnoreCase("card") ? "CC" : "CS";
+        String unique = UUID.randomUUID().toString()
+                .substring(0, 4)
                 .toUpperCase();
-
-        return "REF-" + date + "-" + uniqueRef;
+        return "TXN-" + methodCode + "-" + unique;
     }
 
 }

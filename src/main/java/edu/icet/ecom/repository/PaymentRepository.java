@@ -9,4 +9,5 @@ public interface PaymentRepository {
     List<PaymentDto> getAllPayment();
     PaymentDto getPaymentByOrderId(Integer orderId);
     boolean updateOrderStatus(Integer orderId);
+    boolean checkOrderExists(Integer orderId);
 }

@@ -38,7 +38,7 @@ public class PaymentRepositoryImpl implements PaymentRepository {
                     paymentDto.getReferenceNumber(),
                     paymentDto.getProcessedBy(),
                     paymentDto.getProcessedAt() != null
-                            ? paymentDto.getProcessedBy()
+                            ? paymentDto.getProcessedAt()
                             : new Timestamp(System.currentTimeMillis())
             );
             return rows > 0;
@@ -105,6 +105,21 @@ public class PaymentRepositoryImpl implements PaymentRepository {
         } catch (Exception e) {
             throw new RuntimeException("Failed to update order status: "
                     + e.getMessage());
+        }
+    }
+
+    @Override
+    public boolean checkOrderExists(Integer orderId) {
+        try {
+            Integer count = jdbcTemplate.queryForObject(
+                    "SELECT COUNT(*) FROM orders WHERE id = ?",
+                    Integer.class,
+                    orderId
+            );
+            return count != null && count > 0;
+
+        } catch (Exception e) {
+            return false;
         }
     }
 }
