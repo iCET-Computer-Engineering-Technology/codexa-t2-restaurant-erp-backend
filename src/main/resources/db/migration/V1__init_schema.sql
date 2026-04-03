@@ -750,22 +750,23 @@ ON DELETE SET NULL ON UPDATE CASCADE
 
 -- Table marketing_campaigns (Added to resolve missing table used in code)
 CREATE TABLE IF NOT EXISTS marketing_campaigns (
-    id INT NOT NULL AUTO_INCREMENT,
-    campaign_name VARCHAR(255) NULL,
-    segment_id INT NULL,
-    channel VARCHAR(50) NULL,
-    subject VARCHAR(255) NULL,
-    body_template TEXT NULL,
-    ab_test_enabled BOOLEAN NULL,
-    variant_b_body TEXT NULL,
-    scheduled_at DATETIME NULL,
-    sent_at DATETIME NULL,
-    status VARCHAR(50) NULL,
-    created_by INT NULL,
-    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-    updated_at DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-    PRIMARY KEY (id)
+id INT NOT NULL AUTO_INCREMENT,
+campaign_name VARCHAR(255) NULL,
+segment_id INT NULL,
+channel VARCHAR(50) NULL,
+subject VARCHAR(255) NULL,
+body_template TEXT NULL,
+ab_test_enabled BOOLEAN NULL,
+variant_b_body TEXT NULL,
+scheduled_at DATETIME NULL,
+sent_at DATETIME NULL,
+status VARCHAR(50) NULL,
+created_by INT NULL,
+created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+updated_at DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+PRIMARY KEY (id)
 ) ENGINE = InnoDB DEFAULT CHARACTER SET = utf8mb4 COLLATE = utf8mb4_0900_ai_ci;
+
 
 -- =============================================================
 SET SQL_MODE=@OLD_SQL_MODE;

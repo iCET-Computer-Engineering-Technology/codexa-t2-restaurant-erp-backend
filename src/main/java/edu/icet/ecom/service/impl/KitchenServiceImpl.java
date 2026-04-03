@@ -1,7 +1,16 @@
 package edu.icet.ecom.service.impl;
 
-import edu.icet.ecom.entity.*;
-import edu.icet.ecom.repository.*;
+import edu.icet.ecom.dto.InventoryDeductionResponse;
+import edu.icet.ecom.entity.KitchenOrder;
+import edu.icet.ecom.entity.Order;
+import edu.icet.ecom.entity.Waiter;
+import edu.icet.ecom.entity.WaiterDetails;
+import edu.icet.ecom.repository.KitchenOrderRepository;
+import edu.icet.ecom.repository.OrderAssignmentRepository;
+import edu.icet.ecom.repository.OrderItemRepository;
+import edu.icet.ecom.repository.OrderRepository;
+import edu.icet.ecom.repository.WaiterRepository;
+import edu.icet.ecom.service.InventoryService;
 import edu.icet.ecom.service.KitchenService;
 import lombok.RequiredArgsConstructor;
 import org.slf4j.Logger;
@@ -23,12 +32,14 @@ public class KitchenServiceImpl implements KitchenService {
     private static final String ORDER_TYPE_BOOKING = "booking";
 
     private static final Set<String> VALID_ORDER_TYPES = Set.of(ORDER_TYPE_DINE_IN, ORDER_TYPE_TAKEOUT, ORDER_TYPE_BOOKING);
+    private static final Set<String> VALID_ORDER_ITEM_STATUSES = Set.of("pending", "in_progress", "preparing", "fired", "ready", "served", "voided");
 
     private final OrderRepository orderRepository;
     private final WaiterRepository waiterRepository;
     private final OrderAssignmentRepository orderAssignmentRepository;
     private final KitchenOrderRepository kitchenOrderRepository;
     private final OrderItemRepository orderItemRepository;
+    private final InventoryService inventoryService;
 
     @Override
     public List<KitchenOrder> getKitchenOrders() {
@@ -52,7 +63,6 @@ public class KitchenServiceImpl implements KitchenService {
         }
 
         boolean assigned = orderAssignmentRepository.existsByKitchenOrderId(kitchenOrderId);
-
         if (assigned) {
             throw new IllegalArgumentException("Order already assigned to a waiter");
         }
@@ -68,11 +78,7 @@ public class KitchenServiceImpl implements KitchenService {
     @Override
     public List<Order> getOpenOrders() {
         List<Order> orders = orderRepository.findByStatus("open");
-        orders.forEach(order ->
-                order.setItems(
-                        orderItemRepository.findByOrderId(order.getId())
-                )
-        );
+        orders.forEach(order -> order.setItems(orderItemRepository.findByOrderId(order.getId())));
         return orders;
     }
 
@@ -87,7 +93,7 @@ public class KitchenServiceImpl implements KitchenService {
         if (!VALID_ORDER_TYPES.contains(normalizedType)) {
             throw new IllegalArgumentException("Unsupported order type for kitchen routing: " + order.getOrderType());
         }
-        
+
         boolean exists = kitchenOrderRepository.existsByOrderId(orderId);
         if (exists) {
             throw new IllegalArgumentException("Order already sent to kitchen");
@@ -95,7 +101,6 @@ public class KitchenServiceImpl implements KitchenService {
 
         orderRepository.updateStatus(orderId.intValue(), "sent_to_kitchen");
         kitchenOrderRepository.createKitchenOrder(orderId);
-
         log.info("{}", buildLabel(order, "KITCHEN_RECEIVED", normalizedType));
     }
 
@@ -117,6 +122,37 @@ public class KitchenServiceImpl implements KitchenService {
         if (order != null) {
             log.info("{}", buildLabel(order, "READY_FOR_FULFILLMENT", normalize(order.getOrderType())));
         }
+    }
+
+    @Override
+    public InventoryDeductionResponse updateOrderItemStatus(Integer orderItemId, String status) {
+        if (orderItemId == null || orderItemId <= 0) {
+            throw new IllegalArgumentException("Invalid orderItemId");
+        }
+
+        String normalizedStatus = normalize(status);
+        if (!VALID_ORDER_ITEM_STATUSES.contains(normalizedStatus)) {
+            throw new IllegalArgumentException("Unsupported order item status: " + status);
+        }
+
+        if (isDeductionTriggerStatus(normalizedStatus)) {
+            boolean updated = orderItemRepository.updateStatus(orderItemId, "fired");
+            if (!updated) {
+                throw new IllegalArgumentException("Order item not found");
+            }
+            return inventoryService.handleFiredStatus(orderItemId);
+        }
+
+        boolean updated = orderItemRepository.updateStatus(orderItemId, normalizedStatus);
+        if (!updated) {
+            throw new IllegalArgumentException("Order item not found");
+        }
+
+        return new InventoryDeductionResponse(false, "Order item status updated");
+    }
+
+    private boolean isDeductionTriggerStatus(String status) {
+        return "fired".equals(status) || "preparing".equals(status) || "in_progress".equals(status);
     }
 
     private String normalize(String value) {
