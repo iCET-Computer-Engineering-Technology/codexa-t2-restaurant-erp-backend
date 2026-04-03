@@ -13,6 +13,7 @@ import edu.icet.ecom.service.EmailTemplateService;
 import edu.icet.ecom.service.ReservationService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
@@ -158,8 +159,8 @@ public class ReservationServiceImpl implements ReservationService {
 
         // Check for conflicts if table or time changed
         if (!existing.getTableId().equals(targetTableId) ||
-            !existing.getReservationDate().equals(bookingRequest.getReservationDate()) ||
-            !existing.getReservationTime().equals(bookingRequest.getReservationTime())) {
+                !existing.getReservationDate().equals(bookingRequest.getReservationDate()) ||
+                !existing.getReservationTime().equals(bookingRequest.getReservationTime())) {
 
             if (reservationRepository.existsConflict(targetTableId,
                     bookingRequest.getReservationDate(), bookingRequest.getReservationTime())) {
@@ -313,14 +314,14 @@ public class ReservationServiceImpl implements ReservationService {
         placeholders.put("customerName", safe(reservation.getCustomerName()));
         placeholders.put("confirmationCode", safe(reservation.getConfirmationCode()));
         placeholders.put("reservationDate", reservation.getReservationDate() != null ?
-            reservation.getReservationDate().format(DateTimeFormatter.ofPattern("MMMM d, yyyy")) : "N/A");
+                reservation.getReservationDate().format(DateTimeFormatter.ofPattern("MMMM d, yyyy")) : "N/A");
         placeholders.put("reservationTime", reservation.getReservationTime() != null ?
-            reservation.getReservationTime().format(DateTimeFormatter.ofPattern("h:mm a")) : "N/A");
+                reservation.getReservationTime().format(DateTimeFormatter.ofPattern("h:mm a")) : "N/A");
         placeholders.put("tableNumber", tableNumber);
         placeholders.put("partySize", reservation.getPartySize() != null ?
-            reservation.getPartySize().toString() : "N/A");
+                reservation.getPartySize().toString() : "N/A");
         placeholders.put("partyLabel", (reservation.getPartySize() != null && reservation.getPartySize() > 1) ?
-            "people" : "person");
+                "people" : "person");
         placeholders.put("status", safe(reservation.getStatus()).toUpperCase());
         placeholders.put("customerEmail", safe(reservation.getEmail()));
         placeholders.put("customerPhone", safe(reservation.getPhone()));
@@ -328,12 +329,12 @@ public class ReservationServiceImpl implements ReservationService {
         // Add notes section if available
         if (reservation.getNotes() != null && !reservation.getNotes().trim().isEmpty()) {
             placeholders.put("notesSection",
-                "<div class=\"details-section\">\n" +
-                "    <div class=\"section-title\">📝 Special Requests</div>\n" +
-                "    <div class=\"detail-row\">\n" +
-                "        <span class=\"detail-value\">" + reservation.getNotes() + "</span>\n" +
-                "    </div>\n" +
-                "</div>");
+                    "<div class=\"details-section\">\n" +
+                            "    <div class=\"section-title\">📝 Special Requests</div>\n" +
+                            "    <div class=\"detail-row\">\n" +
+                            "        <span class=\"detail-value\">" + reservation.getNotes() + "</span>\n" +
+                            "    </div>\n" +
+                            "</div>");
         } else {
             placeholders.put("notesSection", "");
         }
@@ -456,9 +457,9 @@ public class ReservationServiceImpl implements ReservationService {
             try {
                 // Send email
                 emailService.sendEmailToCustomer(
-                    reservation.getEmail(),
-                    "Reservation Confirmation - " + reservation.getConfirmationCode(),
-                    emailBody
+                        reservation.getEmail(),
+                        "Reservation Confirmation - " + reservation.getConfirmationCode(),
+                        emailBody
                 );
                 return; // Success
             } catch (Exception e) {
@@ -478,6 +479,30 @@ public class ReservationServiceImpl implements ReservationService {
                     log.error("Reservation: {}, Email: {}", reservation.getId(), reservation.getEmail());
                     log.error("The email will be retried automatically by the background service.");
                 }
+            }
+        }
+    }
+
+    @Scheduled(cron = "0 3 9 * * *")
+    public void send24hReminders() {
+        send24hReminders(null);
+    }
+
+    // Remove @Scheduled from this method, as it does not exist in the interface
+    public void send24hReminders(LocalDate date) {
+        LocalDate reminderDate = (date != null) ? date : LocalDate.now().plusDays(1);
+        List<Reservation> reservations = reservationRepository.findFor24hReminder(reminderDate);
+        for (Reservation reservation : reservations) {
+            try {
+                if (reservation.getEmail() != null && !reservation.getEmail().isBlank()) {
+                    String subject = "Reservation Reminder - " + reservation.getReservationDate();
+                    String body = buildReservationEmailBody(reservation, emailTemplateService.getReservationReminderEmailTemplate());
+                    emailService.sendEmailToCustomer(reservation.getEmail(), subject, body);
+                    reservationRepository.mark24hReminderSent(reservation.getId());
+                    log.info("24h reminder sent for reservation {} to {}", reservation.getId(), reservation.getEmail());
+                }
+            } catch (Exception e) {
+                log.error("Failed to send 24h reminder for reservation {}: {}", reservation.getId(), e.getMessage());
             }
         }
     }
