@@ -62,7 +62,8 @@ public class SecurityConfig {
             "/api/kitchen/**",
             "/customers/**",
             "/api/waiter/**",
-            "/api/supplier/**"
+            "/api/supplier/**",
+            "/api/receipts/**"
     };
 
     // Staff screens need read access to menu master data, while writes remain admin-only.
