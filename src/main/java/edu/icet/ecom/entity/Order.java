@@ -26,6 +26,8 @@ public class Order {
     private BigDecimal serviceCharge;
     private BigDecimal totalAmount;
     private String notes;
+    private String source;
+    private String idempotencyKey;
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
     private List<OrderItem> items;

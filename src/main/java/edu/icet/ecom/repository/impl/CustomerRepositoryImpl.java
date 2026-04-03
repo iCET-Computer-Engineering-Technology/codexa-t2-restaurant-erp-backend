@@ -178,11 +178,12 @@ public class CustomerRepositoryImpl implements CustomerRepository {
             cv.spend_amount,
             cv.notes,
             o.order_number,
-            o.order_type,
+            ot.type_name AS order_type,
             o.total_amount,
             o.status
         FROM customer_visits cv
         LEFT JOIN orders o ON cv.order_id = o.id
+        LEFT JOIN order_types ot ON o.order_type_id = ot.id
         WHERE cv.customer_id = ?
         ORDER BY cv.visit_date DESC
         LIMIT 10

@@ -60,14 +60,28 @@ public class WaiterRepositoryImpl implements WaiterRepository {
 
     @Override
     public List<Waiter> findActiveWaiters() {
-        String sql = "SELECT * FROM waiter WHERE status = 'active'";
+        String sql = """
+                SELECT w.id, w.waiter_name, w.status,
+                       (SELECT COUNT(*) FROM order_assignment oa
+                        INNER JOIN kitchen_order ko ON oa.kitchen_order_id = ko.id
+                        LEFT JOIN order_status_updates osu ON ko.order_id = osu.order_id AND osu.waiter_id = oa.waiter_id
+                        WHERE oa.waiter_id = w.id AND (osu.status IS NULL OR osu.status = 'unserved')) AS active_count
+                FROM waiter w 
+                WHERE w.status = 'active'
+                """;
         return jdbcTemplate.query(sql, (rs, rowNum) -> {
             Waiter waiter = new Waiter();
             waiter.setId(rs.getLong("id"));
             waiter.setName(rs.getString("waiter_name"));
             waiter.setStatus(rs.getString("status"));
+            waiter.setActiveOrdersCount(rs.getInt("active_count"));
             return waiter;
         });
     }
-}
 
+    @Override
+    public void updateWaiterStatus(Long waiterId, String status) {
+        String sql = "UPDATE waiter SET status = ? WHERE id = ?";
+        jdbcTemplate.update(sql, status, waiterId);
+    }
+}

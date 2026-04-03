@@ -11,4 +11,6 @@ public interface WaiterRepository {
     List<OrderAssignment> getUnservedOrders(Long waiterId);
 
     List<Waiter> findActiveWaiters();
+    
+    void updateWaiterStatus(Long waiterId, String status);
 }
