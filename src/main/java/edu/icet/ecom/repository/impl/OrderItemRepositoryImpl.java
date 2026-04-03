@@ -10,9 +10,7 @@ import org.springframework.stereotype.Repository;
 
 
 import java.sql.PreparedStatement;
-import java.sql.Statement;
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
 
 @Repository
 @RequiredArgsConstructor
@@ -63,5 +61,74 @@ public class OrderItemRepositoryImpl implements OrderItemRepository {
             return ps;
         }, keyHolder);
         return Optional.ofNullable(keyHolder.getKey()).map(Number::intValue).orElseThrow(() -> new RuntimeException("Order item insert failed - no generated key returned"));
+    }
+
+    @Override
+    public List<Map<String, Object>> findItemsWithNamesByOrderId(Integer orderId) {
+        String sql = """
+            SELECT 
+                oi.id,
+                mi.name as item_name,
+                p.portion_name as portion_name,
+                oi.quantity,
+                oi.price,
+                (oi.quantity * oi.price) as line_total,
+                oi.notes
+            FROM order_items oi
+            LEFT JOIN menu_items mi ON oi.menu_item_id = mi.id
+            LEFT JOIN portions p ON oi.portion_id = p.id
+            WHERE oi.order_id = ?
+            ORDER BY oi.id
+            """;
+        
+        return jdbcTemplate.query(sql, (rs, rowNum) -> {
+            Map<String, Object> result = new HashMap<>();
+            result.put("id", rs.getInt("id"));
+            result.put("item_name", rs.getString("item_name"));
+            result.put("portion_name", rs.getString("portion_name"));
+            result.put("quantity", rs.getInt("quantity"));
+            result.put("price", rs.getBigDecimal("price"));
+            result.put("line_total", rs.getBigDecimal("line_total"));
+            result.put("notes", rs.getString("notes"));
+            return result;
+        }, orderId);
+    }
+
+    @Override
+    public List<Map<String, Object>> findItemsWithNamesByOrderIds(List<Integer> orderIds) {
+        if (orderIds == null || orderIds.isEmpty()) {
+            return Collections.emptyList();
+        }
+        
+        String placeholders = String.join(",", Collections.nCopies(orderIds.size(), "?"));
+        String sql = String.format("""
+            SELECT 
+                oi.id,
+                oi.order_id,
+                mi.name as item_name,
+                p.portion_name as portion_name,
+                oi.quantity,
+                oi.price,
+                (oi.quantity * oi.price) as line_total,
+                oi.notes
+            FROM order_items oi
+            LEFT JOIN menu_items mi ON oi.menu_item_id = mi.id
+            LEFT JOIN portions p ON oi.portion_id = p.id
+            WHERE oi.order_id IN (%s)
+            ORDER BY oi.order_id, oi.id
+            """, placeholders);
+        
+        return jdbcTemplate.query(sql, orderIds.toArray(), (rs, rowNum) -> {
+            Map<String, Object> result = new HashMap<>();
+            result.put("id", rs.getInt("id"));
+            result.put("order_id", rs.getInt("order_id"));
+            result.put("item_name", rs.getString("item_name"));
+            result.put("portion_name", rs.getString("portion_name"));
+            result.put("quantity", rs.getInt("quantity"));
+            result.put("price", rs.getBigDecimal("price"));
+            result.put("line_total", rs.getBigDecimal("line_total"));
+            result.put("notes", rs.getString("notes"));
+            return result;
+        });
     }
 }
