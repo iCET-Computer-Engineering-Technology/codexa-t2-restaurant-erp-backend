@@ -27,4 +27,22 @@ public class AuthController {
     ResponseEntity<AuthResponse> login(@Valid @RequestBody LoginRequestDto request){
         return ResponseEntity.status(200).body(service.login(request));
     }
+
+    @PostMapping("/logout")
+    public ResponseEntity<String> logout(java.security.Principal principal){
+        if (principal != null && principal.getName() != null) {
+            service.logout(principal.getName());
+            return ResponseEntity.ok("Logged out successfully");
+        }
+        return ResponseEntity.badRequest().body("No user logged in context");
+    }
+
+    @PostMapping("/heartbeat")
+    public ResponseEntity<String> heartbeat(java.security.Principal principal) {
+        if (principal != null && principal.getName() != null) {
+            service.heartbeat(principal.getName());
+            return ResponseEntity.ok().build();
+        }
+        return ResponseEntity.badRequest().build();
+    }
 }

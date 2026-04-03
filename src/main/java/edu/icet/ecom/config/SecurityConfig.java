@@ -40,7 +40,8 @@ public class SecurityConfig {
             "/v3/api-docs/**",
             "/swagger-ui/**",
             "/swagger-ui.html",
-            "/error"
+            "/error",
+            "/ws/**"
     };
 
     private static final String[] ADMIN_ENDPOINTS = {
@@ -74,11 +75,14 @@ public class SecurityConfig {
             "/api/kitchen/**",
             "/customers/**",
             "/api/waiter/**",
-            "/api/supplier/**"
+            "/api/supplier/**",
+            "/api/auth/logout",
+            "/api/auth/heartbeat"
     };
 
     // Staff screens need read access to menu master data, while writes remain admin-only.
     private static final String[] STAFF_READONLY_ENDPOINTS = {
+            "/api/categories/**",
             "/api/menu-items/**",
             "/api/menu-item-price/**",
             "/api/portions/**",

@@ -6,6 +6,9 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
+import edu.icet.ecom.entity.OrderAssignment;
+
 @RestController
 @RequestMapping("/api/waiter")
 @RequiredArgsConstructor
@@ -20,5 +23,10 @@ public class WaiterController {
                 request.getStatus()
         );
         return ResponseEntity.ok("Status updated to: " + request.getStatus());
+    }
+
+    @GetMapping("/assignments/{waiterId}")
+    public ResponseEntity<List<OrderAssignment>> getAssignedOrders(@PathVariable Long waiterId) {
+        return ResponseEntity.ok(waiterServcie.getAssignedOrders(waiterId));
     }
 }
