@@ -46,4 +46,18 @@ public class PaymentController {
                     .body("Failed to fetch payments: " + e.getMessage());
         }
     }
+
+    @GetMapping("/order/{orderid}")
+    public ResponseEntity<?> getPaymentByOrderId(@PathVariable Integer orderId){
+        try{
+            PaymentDto payment = paymentService.getPaymentByOrderId(orderId);
+            if (payment == null){
+                return ResponseEntity.notFound().build();
+            }
+            return ResponseEntity.ok(payment);
+        } catch (Exception e) {
+           return ResponseEntity.internalServerError()
+                   .body("Something went wrong : " + e.getMessage());
+        }
+    }
 }

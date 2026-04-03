@@ -50,7 +50,7 @@ public class PaymentServiceImpl implements PaymentService {
 
     @Override
     public PaymentDto getPaymentByOrderId(Integer orderId) {
-        return null;
+        return paymentRepository.getPaymentByOrderId(orderId);
     }
 
     private String generateReferenceNumber() {
