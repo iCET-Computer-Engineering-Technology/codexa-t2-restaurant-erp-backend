@@ -1,5 +1,5 @@
 -- Table employee
-CREATE TABLE employee (
+CREATE TABLE IF NOT EXISTS employee (
 id INT NOT NULL AUTO_INCREMENT PRIMARY KEY,
 user_id INT NULL UNIQUE,
 first_name VARCHAR(100) NOT NULL,
@@ -24,7 +24,7 @@ COLLATE = utf8mb4_0900_ai_ci;
 
 -- Table payroll
 
-CREATE TABLE payroll (
+CREATE TABLE IF NOT EXISTS payroll (
 id INT AUTO_INCREMENT PRIMARY KEY,
 employee_id INT NOT NULL,
 basic_salary DOUBLE NOT NULL,
@@ -47,7 +47,7 @@ FOREIGN KEY (employee_id) REFERENCES employee(id)
 
 -- Table deduction
 
-CREATE TABLE deduction (
+CREATE TABLE IF NOT EXISTS deduction (
 id INT AUTO_INCREMENT PRIMARY KEY,
 employee_id INT NOT NULL,
 type VARCHAR(50), -- EPF / TAX / LOAN / DONATION
@@ -58,7 +58,7 @@ FOREIGN KEY (employee_id) REFERENCES employee(id)
 
 -- Table allowance
 
-CREATE TABLE allowance (
+CREATE TABLE IF NOT EXISTS allowance (
 id INT AUTO_INCREMENT PRIMARY KEY,
 employee_id INT NOT NULL,
 type VARCHAR(50), -- Transport / Meal / Other
@@ -69,7 +69,7 @@ FOREIGN KEY (employee_id) REFERENCES employee(id)
 
 -- Table employee leave
 
-CREATE TABLE employee_leave (
+CREATE TABLE IF NOT EXISTS employee_leave (
 id INT AUTO_INCREMENT PRIMARY KEY,
 employee_id INT NOT NULL,
 leave_type VARCHAR(50), -- ANNUAL / CASUAL / SICK
@@ -84,7 +84,7 @@ FOREIGN KEY (employee_id) REFERENCES employee(id)
 
 -- Table overtime
 
-CREATE TABLE overtime (
+CREATE TABLE IF NOT EXISTS overtime (
 id INT AUTO_INCREMENT PRIMARY KEY,
 employee_id INT NOT NULL,
 date DATE NOT NULL,
@@ -97,7 +97,7 @@ FOREIGN KEY (employee_id) REFERENCES employee(id)
 
 -- Table payroll config
 
-CREATE TABLE payroll_config (
+CREATE TABLE IF NOT EXISTS payroll_config (
 id INT AUTO_INCREMENT PRIMARY KEY,
 epf_employee_rate DOUBLE DEFAULT 0.08,
 epf_employer_rate DOUBLE DEFAULT 0.12,
@@ -107,7 +107,7 @@ created_at DATETIME NULL DEFAULT CURRENT_TIMESTAMP
 
 -- Table basic salary
 
-CREATE TABLE basic_salary (
+CREATE TABLE IF NOT EXISTS basic_salary (
 id INT AUTO_INCREMENT PRIMARY KEY,
 role VARCHAR(100) NOT NULL,
 amount DOUBLE DEFAULT 0,
@@ -116,7 +116,7 @@ created_at DATETIME NULL DEFAULT CURRENT_TIMESTAMP
 
 -- Table salary request
 
-CREATE TABLE salary_request (
+CREATE TABLE IF NOT EXISTS salary_request (
 id INT AUTO_INCREMENT PRIMARY KEY,
 employee_id INT,
 basic_salary DOUBLE,
@@ -142,14 +142,10 @@ created_at DATETIME NULL DEFAULT CURRENT_TIMESTAMP
 
 -- Table bonus
 
-CREATE TABLE bonus (
+CREATE TABLE IF NOT EXISTS bonus (
 id INT AUTO_INCREMENT PRIMARY KEY,
 employee_id INT NOT NULL,
 amount DOUBLE DEFAULT 0,
 created_at DATETIME NULL DEFAULT CURRENT_TIMESTAMP,
 FOREIGN KEY (employee_id) REFERENCES employee(id)
 );
-
-
-
-

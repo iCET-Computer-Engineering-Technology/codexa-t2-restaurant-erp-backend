@@ -18,11 +18,18 @@ public class EmployeeRepositoryImpl implements EmployeeRepository {
 
     //user
     public List<UserEntity> getAllUser() {
-        String sql = "SELECT id, username, role FROM users";
+        String sql = "SELECT id, username, email, password, role, enabled, is_online, last_active_at, created_at FROM users";
         return jdbcTemplate.query(sql, (rs, rowNum) -> new UserEntity(
-                rs.getLong(1),
-                rs.getString(2),
-                Role.valueOf(rs.getString(3).toUpperCase())        ));
+                rs.getLong("id"),
+                rs.getString("username"),
+                rs.getString("email"),
+                rs.getString("password"),
+                rs.getString("role") != null ? Role.valueOf(rs.getString("role").toUpperCase()) : null,
+                rs.getBoolean("enabled"),
+                rs.getBoolean("is_online"),
+                rs.getTimestamp("last_active_at") != null ? rs.getTimestamp("last_active_at").toLocalDateTime() : null,
+                rs.getTimestamp("created_at") != null ? rs.getTimestamp("created_at").toLocalDateTime() : null
+        ));
     }
 
     @Override
