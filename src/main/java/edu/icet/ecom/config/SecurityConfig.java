@@ -54,15 +54,16 @@ public class SecurityConfig {
             "/api/menu-items/**",
             "/api/portions/**",
             "/api/portions/**",
-            "/api/menu-item-price/**",
-            "/api/payments/**"
+            "/api/menu-item-price/**"
+
     };
 
     private static final String[] STAFF_ENDPOINTS = {
             "/api/order/**",
             "/api/kitchen/**",
             "/customers/**",
-            "/api/waiter/**"
+            "/api/waiter/**",
+            "/api/payments/**"
     };
 
     // Staff screens need read access to menu master data, while writes remain admin-only.
@@ -73,6 +74,7 @@ public class SecurityConfig {
             "/api/portions/**",
             "/tables/**",
             "/api/tables/**"
+
     };
 
     @Bean

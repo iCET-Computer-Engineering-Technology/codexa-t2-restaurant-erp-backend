@@ -6,6 +6,6 @@ import java.util.List;
 
 public interface PaymentService {
     boolean addPayment(PaymentDto paymentDto);
-    List<PaymentDto> getAllPayment();
+    List<PaymentDto> getAllPayments();
     PaymentDto getPaymentByOrderId(Integer orderId);
 }

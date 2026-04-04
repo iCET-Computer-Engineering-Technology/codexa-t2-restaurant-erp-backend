@@ -16,17 +16,10 @@ public class PaymentRepositoryImpl implements PaymentRepository {
 
     private final JdbcTemplate jdbcTemplate;
 
+
     @Override
     public boolean addPayment(PaymentDto paymentDto) {
         try {
-            if (paymentDto.getOrderId() == null ||
-                    paymentDto.getPaymentMethod() == null ||
-                    paymentDto.getAmount() == null) {
-                throw new IllegalArgumentException(
-                        "Order ID, payment method and amount are required"
-                );
-            }
-
             int rows = jdbcTemplate.update(
                     "INSERT INTO payments (order_id , payment_method , amount , " +
                             " tip_amount , reference_number , processed_by , processed_at) " +
@@ -50,7 +43,7 @@ public class PaymentRepositoryImpl implements PaymentRepository {
     }
 
     @Override
-    public List<PaymentDto> getAllPayment() {
+    public List<PaymentDto> getAllPayments() {
         try {
             return jdbcTemplate.query(
                     "SELECT * FROM payments",
@@ -119,7 +112,9 @@ public class PaymentRepositoryImpl implements PaymentRepository {
             return count != null && count > 0;
 
         } catch (Exception e) {
-            return false;
+            throw new RuntimeException(
+                    "Failed to check order existence: " + e.getMessage()
+            );
         }
     }
 }

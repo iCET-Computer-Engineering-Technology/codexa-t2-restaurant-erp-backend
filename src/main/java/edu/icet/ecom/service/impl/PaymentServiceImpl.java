@@ -5,6 +5,7 @@ import edu.icet.ecom.repository.PaymentRepository;
 import edu.icet.ecom.service.PaymentService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.sql.Timestamp;
 import java.util.List;
@@ -16,8 +17,18 @@ public class PaymentServiceImpl implements PaymentService {
 
     private final PaymentRepository paymentRepository;
 
+    @Transactional
     @Override
     public boolean addPayment(PaymentDto paymentDto) {
+        if (paymentDto.getOrderId() == null ||
+                paymentDto.getPaymentMethod() == null ||
+                paymentDto.getPaymentMethod().isBlank() ||
+                paymentDto.getAmount() == null) {
+            throw new IllegalArgumentException(
+                    "Order ID, payment method and amount are required"
+            );
+        }
+
         boolean orderExists = paymentRepository
                 .checkOrderExists(paymentDto.getOrderId());
         if (!orderExists) {
@@ -46,12 +57,8 @@ public class PaymentServiceImpl implements PaymentService {
     }
 
     @Override
-    public List<PaymentDto> getAllPayment() {
-        List<PaymentDto> payments = paymentRepository.getAllPayment();
-        if (payments.isEmpty()) {
-            throw new RuntimeException("No payments found");
-        }
-        return payments;
+    public List<PaymentDto> getAllPayments() {
+        return paymentRepository.getAllPayments();
     }
 
     @Override

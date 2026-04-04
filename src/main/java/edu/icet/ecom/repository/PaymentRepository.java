@@ -6,7 +6,7 @@ import java.util.List;
 
 public interface PaymentRepository {
     boolean addPayment(PaymentDto paymentDto);
-    List<PaymentDto> getAllPayment();
+    List<PaymentDto> getAllPayments();
     PaymentDto getPaymentByOrderId(Integer orderId);
     boolean updateOrderStatus(Integer orderId);
     boolean checkOrderExists(Integer orderId);

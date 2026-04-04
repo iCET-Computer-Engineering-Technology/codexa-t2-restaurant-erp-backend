@@ -11,7 +11,6 @@ import java.util.List;
 @RestController
 @RequestMapping("/api/payments")
 @RequiredArgsConstructor
-@CrossOrigin
 public class PaymentController {
 
     private final PaymentService paymentService;
@@ -37,17 +36,22 @@ public class PaymentController {
         }
     }
 
-    @GetMapping
-    public ResponseEntity<?> getAll(){
-        try{
-            List<PaymentDto> payments = paymentService.getAllPayment();
-            return ResponseEntity.ok(payments);
-        } catch (Exception e) {
-            return ResponseEntity
-                    .internalServerError()
-                    .body("Failed to fetch payments: " + e.getMessage());
+        @GetMapping
+        public ResponseEntity<?> getAll() {
+            try {
+                List<PaymentDto> payments = paymentService.getAllPayments();
+
+                if (payments.isEmpty()) {
+                    return ResponseEntity.noContent().build();
+                }
+
+                return ResponseEntity.ok(payments);
+
+            } catch (Exception e) {
+                return ResponseEntity.internalServerError()
+                        .body("Failed to fetch payments: " + e.getMessage());
+            }
         }
-    }
 
     @GetMapping("/order/{orderId}")
     public ResponseEntity<?> getPaymentByOrderId(@PathVariable Integer orderId){
