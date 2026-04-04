@@ -7,6 +7,7 @@ import edu.icet.ecom.entity.Waiter;
 import edu.icet.ecom.entity.WaiterDetails;
 import edu.icet.ecom.service.KitchenService;
 import jakarta.validation.Valid;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -47,8 +48,27 @@ public class KitchenController {
         kitchenService.markOrderReady(orderId);
     }
 
+    @PostMapping("/assign-chef")
+    @org.springframework.security.access.prepost.PreAuthorize("hasAuthority('ROLE_CASHIER')")
+    public void assignChef(@Valid @RequestBody edu.icet.ecom.dto.AssignChefRequest request) {
+        kitchenService.assignChef(request.getKitchenOrderId(), request.getChefId());
+    }
+
+    @GetMapping("/chefs")
+    @PreAuthorize("hasAnyAuthority('ROLE_CASHIER', 'ROLE_CHEF')")
+    public List<edu.icet.ecom.dto.AvailableChefDto> getAvailableChefs() {
+        return kitchenService.getAvailableChefs();
+    }
+
+    @GetMapping("/available-waiters")
+    @PreAuthorize("hasAnyAuthority('ROLE_CASHIER', 'ROLE_CHEF')")
+    public List<edu.icet.ecom.dto.AvailableWaiterDto> getAvailableWaiters() {
+        return kitchenService.getAvailableWaiters();
+    }
+
 
     @PostMapping("/assign")
+    @PreAuthorize("hasAuthority('ROLE_CHEF')")
     public void assignWaiter(@Valid @RequestBody AssignWaiterRequest request) {
         if (request.getKitchenOrderId() == null || request.getWaiterId() == null) {
             throw new IllegalArgumentException("kitchenOrderId and waiterId are required");

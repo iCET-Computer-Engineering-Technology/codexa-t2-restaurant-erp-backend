@@ -21,4 +21,6 @@ public interface ReservationService {
     boolean cancelReservation(Integer id);
     boolean isTableAvailable(Integer tableId, LocalDate date, String time, Integer partySize);
     List<Integer> getAvailableTablesForDateTime(LocalDate date, String time, Integer partySize);
+
+    void send24hReminders(LocalDate date);
 }
