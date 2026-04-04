@@ -56,6 +56,7 @@ public class SecurityConfig {
             "/api/portions/**",
             "/api/portions/**",
             "/api/menu-item-price/**"
+
     };
     private static final String[] MANAGER_ENDPOINTS = {
             "/allowance/**",
@@ -75,6 +76,7 @@ public class SecurityConfig {
             "/api/kitchen/**",
             "/customers/**",
             "/api/waiter/**",
+            "/api/payments/**"
             "/api/supplier/**",
             "/api/auth/logout",
             "/api/auth/heartbeat"
@@ -89,6 +91,7 @@ public class SecurityConfig {
             "/api/portions/**",
             "/tables/**",
             "/api/tables/**"
+
     };
 
     @Bean
