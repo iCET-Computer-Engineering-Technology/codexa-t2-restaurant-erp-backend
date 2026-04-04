@@ -1,5 +1,6 @@
 package edu.icet.ecom.config;
 
+import org.jspecify.annotations.NonNull;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.web.servlet.config.annotation.CorsRegistry;
@@ -12,7 +13,7 @@ public class CorsConfig {
     public WebMvcConfigurer corsConfigurer() {
         return new WebMvcConfigurer() {
             @Override
-            public void addCorsMappings(CorsRegistry registry) {
+            public void addCorsMappings(@NonNull CorsRegistry registry) {
                 registry.addMapping("/**")
                         .allowedOriginPatterns("http://localhost:*", "http://127.0.0.1:*") // Allow localhost with any port
                         .allowedMethods("GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH")
@@ -24,4 +25,3 @@ public class CorsConfig {
         };
     }
 }
-

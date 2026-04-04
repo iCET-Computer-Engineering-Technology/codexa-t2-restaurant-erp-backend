@@ -31,6 +31,8 @@ public class UserRepositoryImpl implements UserRepository {
                             rs.getString("password"),
                             parseRole(rs.getString("role")),
                             rs.getBoolean("enabled"),
+                            rs.getBoolean("is_online"),
+                            rs.getTimestamp("last_active_at") != null ? rs.getTimestamp("last_active_at").toLocalDateTime() : null,
                             rs.getTimestamp("created_at") != null ? rs.getTimestamp("created_at").toLocalDateTime() : null
                     ), username);
         } catch (EmptyResultDataAccessException e) {
@@ -49,6 +51,8 @@ public class UserRepositoryImpl implements UserRepository {
                             rs.getString("password"),
                             parseRole(rs.getString("role")),
                             rs.getBoolean("enabled"),
+                            rs.getBoolean("is_online"),
+                            rs.getTimestamp("last_active_at") != null ? rs.getTimestamp("last_active_at").toLocalDateTime() : null,
                             rs.getTimestamp("created_at") != null ? rs.getTimestamp("created_at").toLocalDateTime() : null
                     ), email);
         } catch (EmptyResultDataAccessException e) {
@@ -68,13 +72,46 @@ public class UserRepositoryImpl implements UserRepository {
 
     @Override
     public UserEntity save(UserEntity userEntity) {
-        template.update("INSERT INTO users (username, email, password, role, enabled, created_at) VALUES (?,?,?,?,?,?)",
+        template.update("INSERT INTO users (username, email, password, role, enabled, is_online, created_at) VALUES (?,?,?,?,?,?,?)",
                 userEntity.getUsername(),
                 userEntity.getEmail(),
                 userEntity.getPassword(),
                 userEntity.getRole() != null ? userEntity.getRole().name() : null,
                 userEntity.getEnabled(),
+                userEntity.getIsOnline() != null ? userEntity.getIsOnline() : false, 
                 userEntity.getCreatedAt());
         return findByUsername(userEntity.getUsername());
+    }
+
+    @Override
+    public void updateIsOnline(Long userId, boolean isOnline) {
+        template.update("UPDATE users SET is_online = ? WHERE id = ?", isOnline, userId);
+    }
+
+    @Override
+    public void updateLastActiveAt(Long userId, java.time.LocalDateTime lastActiveAt) {
+        template.update("UPDATE users SET last_active_at = ? WHERE id = ?", lastActiveAt, userId);
+    }
+
+    @Override
+    public void markOfflineIfInactive(java.time.LocalDateTime threshold) {
+        template.update("UPDATE users SET is_online = false WHERE is_online = true AND last_active_at < ?", threshold);
+    }
+
+    @Override
+    public java.util.List<UserEntity> findByRole(String role) {
+        String sql = "SELECT * FROM users WHERE role = ?";
+        return template.query(sql, (rs, rowNum) -> 
+                new UserEntity(
+                        rs.getLong("id"),
+                        rs.getString("username"),
+                        rs.getString("email"),
+                        rs.getString("password"),
+                        parseRole(rs.getString("role")),
+                        rs.getBoolean("enabled"),
+                        rs.getBoolean("is_online"),
+                        rs.getTimestamp("last_active_at") != null ? rs.getTimestamp("last_active_at").toLocalDateTime() : null,
+                        rs.getTimestamp("created_at") != null ? rs.getTimestamp("created_at").toLocalDateTime() : null
+                ), role);
     }
 }

@@ -1,6 +1,8 @@
 package edu.icet.ecom.repository.impl;
 
 import edu.icet.ecom.dto.CustomerDto;
+import edu.icet.ecom.dto.CustomerProfileDto;
+import edu.icet.ecom.dto.VisitHistoryDto;
 import edu.icet.ecom.repository.CustomerRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -47,9 +49,9 @@ public class CustomerRepositoryImpl implements CustomerRepository {
     public boolean saveCustomer(CustomerDto dto) {
         String sql = "INSERT INTO customers (first_name, last_name, email, phone, preferred_language, dietary_notes, communication_email, communication_sms, birthday, loyalty_points) VALUES (?,?,?,?,?,?,?,?,?,?)";
         int result = jdbcTemplate.update(sql,
-                dto.getFirstName(), 
-                dto.getLastName(), 
-                dto.getEmail(), 
+                dto.getFirstName(),
+                dto.getLastName(),
+                dto.getEmail(),
                 dto.getPhone(),
                 dto.getPreferredLanguage() != null ? dto.getPreferredLanguage() : "en",
                 dto.getDietaryNotes(),
@@ -84,13 +86,13 @@ public class CustomerRepositoryImpl implements CustomerRepository {
     public boolean updateCustomer(CustomerDto dto) {
         String sql = "UPDATE customers SET first_name=?, last_name=?, email=?, phone=?, preferred_language=?, dietary_notes=?, communication_email=?, communication_sms=?, birthday=?, loyalty_points=? WHERE id = ?";
         int result = jdbcTemplate.update(sql,
-                dto.getFirstName(), 
-                dto.getLastName(), 
+                dto.getFirstName(),
+                dto.getLastName(),
                 dto.getEmail(),
                 dto.getPhone(),
                 dto.getPreferredLanguage(), 
                 dto.getDietaryNotes(),
-                dto.getCommunicationEmail(), 
+                dto.getCommunicationEmail(),
                 dto.getCommunicationSms(),
                 dto.getBirthday(),
                 dto.getLoyaltyPoints(),
@@ -112,6 +114,9 @@ public class CustomerRepositoryImpl implements CustomerRepository {
                 targetDate.getDayOfMonth());
     }
 
+    /// ////////////////////////////////////////////////////////////////////////
+    /// ////////////////////////////////////////////////////////////////////////
+
     @Override
     public List<CustomerDto> findCustomersWithAnniversaryOn(LocalDate targetDate) {
         String sql = "SELECT * FROM customers " +
@@ -124,5 +129,87 @@ public class CustomerRepositoryImpl implements CustomerRepository {
         return jdbcTemplate.query(sql, rowMapper,
                 targetDate.getMonthValue(),
                 targetDate.getDayOfMonth());
+    }
+
+    @Override
+    public CustomerProfileDto getCustomerProfile(Integer customerId) {
+        log.info("Fetching profile for customer ID: {}", customerId);
+
+        // 1. Customer Profile + Lifetime Spend
+        String profileSql = """
+        SELECT 
+            c.id,
+            c.first_name,
+            c.last_name,
+            c.email,
+            c.phone,
+            c.dietary_notes,
+            c.loyalty_points,
+            COALESCE(SUM(o.total_amount), 0) AS lifetime_spend
+        FROM customers c
+        LEFT JOIN orders o ON c.id = o.customer_id
+        WHERE c.id = ? 
+          AND c.gdpr_deleted = 0
+        GROUP BY c.id, c.first_name, c.last_name, c.email, c.phone, 
+                 c.dietary_notes, c.loyalty_points
+        """;
+
+        CustomerProfileDto profile = jdbcTemplate.queryForObject(
+                profileSql,
+                (rs, rowNum) -> {
+                    CustomerProfileDto dto = new CustomerProfileDto();
+                    dto.setCustomerId(rs.getInt("id"));
+                    dto.setFirstName(rs.getString("first_name"));
+                    dto.setLastName(rs.getString("last_name"));
+                    dto.setEmail(rs.getString("email"));
+                    dto.setPhone(rs.getString("phone"));
+                    dto.setDietaryNotes(rs.getString("dietary_notes"));
+                    dto.setLoyaltyPoints(rs.getInt("loyalty_points"));
+                    dto.setLifetimeSpend(rs.getDouble("lifetime_spend"));
+                    return dto;
+                },
+                customerId
+        );
+
+        String visitsSql = """
+        SELECT 
+            cv.id AS visit_id,
+            cv.visit_date,
+            cv.spend_amount,
+            cv.notes,
+            o.order_number,
+            ot.type_name AS order_type,
+            o.total_amount,
+            o.status
+        FROM customer_visits cv
+        LEFT JOIN orders o ON cv.order_id = o.id
+        LEFT JOIN order_types ot ON o.order_type_id = ot.id
+        WHERE cv.customer_id = ?
+        ORDER BY cv.visit_date DESC
+        LIMIT 10
+        """;
+
+        RowMapper<VisitHistoryDto> visitRowMapper = (rs, rowNum) -> {
+            VisitHistoryDto visit = new VisitHistoryDto();
+            visit.setVisitDate(rs.getTimestamp("visit_date").toLocalDateTime());
+            visit.setSpendAmount(rs.getBigDecimal("spend_amount"));
+            visit.setNotes(rs.getString("notes"));
+            visit.setOrderNumber(rs.getString("order_number"));
+            visit.setOrderType(rs.getString("order_type"));
+            return visit;
+        };
+
+        List<VisitHistoryDto> recentVisits = jdbcTemplate.query(
+                visitsSql,
+                visitRowMapper,
+                customerId
+        );
+
+        profile.setRecentVisits(recentVisits);
+
+        log.info("Customer profile fetched successfully for ID: {}. Recent visits: {}",
+                customerId, recentVisits.size());
+
+        return profile;
     }
 }

@@ -1,6 +1,7 @@
 package edu.icet.ecom.service.impl;
 
 import edu.icet.ecom.dto.CustomerDto;
+import edu.icet.ecom.dto.CustomerProfileDto;
 import edu.icet.ecom.repository.CustomerRepository;
 import edu.icet.ecom.service.CustomerService;
 import lombok.RequiredArgsConstructor;
@@ -41,5 +42,10 @@ public class CustomerServiceImpl implements CustomerService {
     @Override
     public boolean updateCustomer(CustomerDto customerDto) {
         return customerRepository.updateCustomer(customerDto);
+    }
+
+    @Override
+    public CustomerProfileDto getCustomerProfile(Integer customerId) {
+        return customerRepository.getCustomerProfile(customerId);
     }
 }

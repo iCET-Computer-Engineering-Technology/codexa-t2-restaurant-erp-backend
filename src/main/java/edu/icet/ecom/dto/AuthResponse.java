@@ -13,11 +13,20 @@ public class AuthResponse {
     private String tokenType;
     private String username;
     private Role role;
+    private Long id;
 
     public AuthResponse(String token, String username, Role role) {
         this.token = token;
         this.tokenType = "Bearer";
         this.username = username;
         this.role = role;
+    }
+
+    public AuthResponse(String token, String username, Role role, Long id) {
+        this.token = token;
+        this.tokenType = "Bearer";
+        this.username = username;
+        this.role = role;
+        this.id = id;
     }
 }
