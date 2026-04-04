@@ -78,19 +78,6 @@ public class SecurityConfig {
             "/bonus/**"
     };
 
-    private static final String[] MANAGER_ENDPOINTS = {
-            "/allowance/**",
-            "/besic-salary/**",
-            "/deduction/**",
-            "/employee/**",
-            "/employee-leave/**",
-            "/overtime/**",
-            "/payroll-config/**",
-            "/payroll/**",
-            "/salary-request/**",
-            "/salary-response/**",
-            "/bonus/**"
-    };
     private static final String[] STAFF_ENDPOINTS = {
             "/api/order/**",
             "/api/kitchen/**",
@@ -125,9 +112,6 @@ public class SecurityConfig {
                                 .hasAnyAuthority(ROLE_ADMIN, ROLE_USER, ROLE_CASHIER, ROLE_WAITER, ROLE_CHEF, ROLE_MANAGER);
                         authConfig.requestMatchers(ADMIN_ENDPOINTS).hasAuthority(ROLE_ADMIN);
                         authConfig.requestMatchers(MANAGER_ENDPOINTS).hasAnyAuthority(ROLE_MANAGER, ROLE_ADMIN);
-                                .hasAnyAuthority("ROLE_ADMIN", "ROLE_USER", "ROLE_CASHIER", "ROLE_WAITER", "ROLE_CHEF","ROLE_MANAGER");
-                        authConfig.requestMatchers(ADMIN_ENDPOINTS).hasAuthority("ROLE_ADMIN");
-                        authConfig.requestMatchers(MANAGER_ENDPOINTS).hasAnyAuthority("ROLE_MANAGER","ROLE_ADMIN");
                         authConfig.requestMatchers(STAFF_ENDPOINTS)
                                 .hasAnyAuthority(ROLE_ADMIN, ROLE_USER, ROLE_CASHIER, ROLE_WAITER, ROLE_CHEF);
                         authConfig.requestMatchers("/user/**").hasAuthority(ROLE_USER);
