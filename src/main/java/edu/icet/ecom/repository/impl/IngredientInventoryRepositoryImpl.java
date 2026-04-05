@@ -49,5 +49,27 @@ public class IngredientInventoryRepositoryImpl implements IngredientInventoryRep
         BigDecimal stock = jdbcTemplate.queryForObject(sql, BigDecimal.class, ingredientId);
         return stock == null ? BigDecimal.ZERO : stock;
     }
-}
 
+    @Override
+    public Ingredient findById(Integer ingredientId) {
+        String sql = "SELECT id, name, unit, current_stock, low_stock_threshold, cost_per_unit FROM ingredients WHERE id = ?";
+        List<Ingredient> ingredients = jdbcTemplate.query(sql, (rs, rowNum) -> {
+            Ingredient ingredient = new Ingredient();
+            ingredient.setId(rs.getInt("id"));
+            ingredient.setName(rs.getString("name"));
+            ingredient.setUnit(rs.getString("unit"));
+            ingredient.setCurrentStock(rs.getBigDecimal("current_stock"));
+            ingredient.setLowStockThreshold(rs.getBigDecimal("low_stock_threshold"));
+            ingredient.setCostPerUnit(rs.getBigDecimal("cost_per_unit"));
+            return ingredient;
+        }, ingredientId);
+
+        return ingredients.isEmpty() ? null : ingredients.get(0);
+    }
+
+    @Override
+    public boolean updateLowStockThreshold(Integer ingredientId, BigDecimal threshold) {
+        String sql = "UPDATE ingredients SET low_stock_threshold = ?, updated_at = NOW() WHERE id = ?";
+        return jdbcTemplate.update(sql, threshold, ingredientId) > 0;
+    }
+}

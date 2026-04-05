@@ -435,8 +435,16 @@ VALUES (2, 1, 0.3500, 'kg'), -- Chicken Curry v2 — chicken
        (5, 8, 0.0800, 'kg'), -- Lava Cake — butter
        (6, 7, 0.0500, 'kg'), -- Garlic Bread — flour
        (6, 8, 0.0200, 'kg'), -- Garlic Bread — butter
-       (6, 9, 0.0100, 'kg');
--- Garlic Bread — garlic
+       (6, 9, 0.0100, 'kg'), -- Garlic Bread — garlic
+       (7, 7, 0.0600, 'kg'), -- Spring Rolls — flour/wrapper
+       (7, 9, 0.0100, 'kg'), -- Spring Rolls — garlic
+       (7, 4, 0.0060, 'kg'), -- Spring Rolls — chilli powder
+       (8, 7, 0.0700, 'kg'), -- Garlic Naan — flour
+       (8, 8, 0.0200, 'kg'), -- Garlic Naan — butter
+       (8, 9, 0.0080, 'kg'), -- Garlic Naan — garlic
+       (9, 2, 0.1200, 'kg'), -- Steamed Rice — basmati rice
+       (10, 7, 0.1100, 'kg'), -- Fish & Chips — coating flour
+       (10, 5, 0.0200, 'L'); -- Fish & Chips — frying oil
 
 -- ---------------------------------------------------------------
 -- 33. expenses
