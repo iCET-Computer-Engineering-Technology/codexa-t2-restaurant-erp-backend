@@ -4,6 +4,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Service;
 
+import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.HashMap;
 import java.util.List;
@@ -97,12 +98,29 @@ public class WebSocketNotificationService {
     /**
      * Broadcast inventory stock change to connected clients
      */
-    public void notifyInventoryStockUpdate(Integer ingredientId, java.math.BigDecimal newStock, String unit) {
+    public void notifyInventoryStockUpdate(Integer ingredientId, BigDecimal newStock, String unit) {
         Map<String, Object> payload = new HashMap<>();
         payload.put("event", "INVENTORY_DEDUCTED");
         payload.put("ingredientId", ingredientId);
         payload.put("newStock", newStock);
         payload.put("unit", unit);
+        payload.put("timestamp", LocalDateTime.now());
+        messagingTemplate.convertAndSend(INVENTORY_UPDATES_TOPIC, (Object) payload);
+    }
+    public void notifyLowStockAlert(Integer ingredientId,
+                                    String ingredientName,
+                                    BigDecimal currentStock,
+                                    String unit,
+                                    BigDecimal threshold,
+                                    String reorderLink) {
+        Map<String, Object> payload = new HashMap<>();
+        payload.put("event", "LOW_STOCK_ALERT");
+        payload.put("ingredientId", ingredientId);
+        payload.put("ingredientName", ingredientName);
+        payload.put("currentStock", currentStock);
+        payload.put("unit", unit);
+        payload.put("threshold", threshold);
+        payload.put("reorderLink", reorderLink);
         payload.put("timestamp", LocalDateTime.now());
         messagingTemplate.convertAndSend(INVENTORY_UPDATES_TOPIC, (Object) payload);
     }
