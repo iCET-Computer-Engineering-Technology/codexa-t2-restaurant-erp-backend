@@ -1,0 +1,13 @@
+package edu.icet.ecom.repository;
+
+import edu.icet.ecom.dto.PaymentDto;
+
+import java.util.List;
+
+public interface PaymentRepository {
+    boolean addPayment(PaymentDto paymentDto);
+    List<PaymentDto> getAllPayments();
+    PaymentDto getPaymentByOrderId(Integer orderId);
+    boolean updateOrderStatus(Integer orderId);
+    boolean checkOrderExists(Integer orderId);
+}
