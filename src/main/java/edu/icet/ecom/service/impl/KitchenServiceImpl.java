@@ -1,7 +1,9 @@
 package edu.icet.ecom.service.impl;
 
+import edu.icet.ecom.dto.InventoryDeductionResponse;
 import edu.icet.ecom.entity.*;
 import edu.icet.ecom.repository.*;
+import edu.icet.ecom.service.InventoryService;
 import edu.icet.ecom.service.KitchenService;
 import edu.icet.ecom.service.WebSocketNotificationService;
 import lombok.RequiredArgsConstructor;
@@ -26,12 +28,14 @@ public class KitchenServiceImpl implements KitchenService {
     private static final String ORDER_TYPE_BOOKING = "booking";
 
     private static final Set<String> VALID_ORDER_TYPES = Set.of(ORDER_TYPE_DINE_IN, ORDER_TYPE_TAKEOUT, ORDER_TYPE_BOOKING);
+    private static final Set<String> VALID_ORDER_ITEM_STATUSES = Set.of("pending", "in_progress", "preparing", "fired", "ready", "served", "voided");
 
     private final OrderRepository orderRepository;
     private final WaiterRepository waiterRepository;
     private final OrderAssignmentRepository orderAssignmentRepository;
     private final KitchenOrderRepository kitchenOrderRepository;
     private final OrderItemRepository orderItemRepository;
+    private final InventoryService inventoryService;
     private final UserRepository userRepository;
     private final WebSocketNotificationService webSocketNotificationService;
 
@@ -39,7 +43,7 @@ public class KitchenServiceImpl implements KitchenService {
     public List<KitchenOrder> getKitchenOrders() {
         List<KitchenOrder> allOrders = kitchenOrderRepository.getKitchenOrders();
         org.springframework.security.core.Authentication auth = org.springframework.security.core.context.SecurityContextHolder.getContext().getAuthentication();
-        
+
         if (auth != null && auth.getAuthorities().stream().anyMatch(a -> a.getAuthority().equals("ROLE_CHEF"))) {
             UserEntity chef = userRepository.findByUsername(auth.getName());
             if (chef != null) {
@@ -75,7 +79,7 @@ public class KitchenServiceImpl implements KitchenService {
 
         orderAssignmentRepository.assignWaiter(kitchenOrderId, waiterId);
         waiterRepository.updateWaiterStatus(waiterId, "busy");
-        
+
         broadcastSnapshot();
     }
 
@@ -108,7 +112,7 @@ public class KitchenServiceImpl implements KitchenService {
         if (!VALID_ORDER_TYPES.contains(normalizedType)) {
             throw new IllegalArgumentException("Unsupported order type for kitchen routing: " + order.getOrderType());
         }
-        
+
         boolean exists = kitchenOrderRepository.existsByOrderId(orderId);
         if (exists) {
             throw new IllegalArgumentException("Order already sent to kitchen");
@@ -118,7 +122,7 @@ public class KitchenServiceImpl implements KitchenService {
         kitchenOrderRepository.createKitchenOrder(orderId);
 
         log.info("{}", buildLabel(order, "KITCHEN_RECEIVED", normalizedType));
-        
+
         broadcastSnapshot();
     }
 
@@ -140,8 +144,37 @@ public class KitchenServiceImpl implements KitchenService {
         if (order != null) {
             log.info("{}", buildLabel(order, "READY_FOR_FULFILLMENT", normalize(order.getOrderType())));
         }
-        
-        broadcastSnapshot();
+    }
+
+    @Override
+    public InventoryDeductionResponse updateOrderItemStatus(Integer orderItemId, String status) {
+        if (orderItemId == null || orderItemId <= 0) {
+            throw new IllegalArgumentException("Invalid orderItemId");
+        }
+
+        String normalizedStatus = normalize(status);
+        if (!VALID_ORDER_ITEM_STATUSES.contains(normalizedStatus)) {
+            throw new IllegalArgumentException("Unsupported order item status: " + status);
+        }
+
+        if (isDeductionTriggerStatus(normalizedStatus)) {
+            boolean updated = orderItemRepository.updateStatus(orderItemId, "fired");
+            if (!updated) {
+                throw new IllegalArgumentException("Order item not found");
+            }
+            return inventoryService.handleFiredStatus(orderItemId);
+        }
+
+        boolean updated = orderItemRepository.updateStatus(orderItemId, normalizedStatus);
+        if (!updated) {
+            throw new IllegalArgumentException("Order item not found");
+        }
+
+        return new InventoryDeductionResponse(false, "Order item status updated");
+    }
+
+    private boolean isDeductionTriggerStatus(String status) {
+        return "fired".equals(status) || "preparing".equals(status) || "in_progress".equals(status);
     }
 
     private String normalize(String value) {
@@ -151,7 +184,7 @@ public class KitchenServiceImpl implements KitchenService {
     private String buildLabel(Order order, String status, String type) {
         return String.format("[%s][%s] Order #%s", status, type.toUpperCase(Locale.ROOT), order.getOrderNumber());
     }
-    
+
     private void broadcastSnapshot() {
         try {
             webSocketNotificationService.notifyKDSOrdersSnapshot(getOpenOrders());
@@ -166,12 +199,12 @@ public class KitchenServiceImpl implements KitchenService {
         if (ko == null) {
             throw new IllegalArgumentException("Kitchen Order not found");
         }
-        
+
         int activeCount = kitchenOrderRepository.countActiveOrdersByChefId(chefId);
         if (activeCount >= 5) {
             throw new IllegalStateException("Chef cannot be assigned to more than 5 active orders");
         }
-        
+
         kitchenOrderRepository.assignChef(kitchenOrderId, chefId);
         broadcastSnapshot();
     }
