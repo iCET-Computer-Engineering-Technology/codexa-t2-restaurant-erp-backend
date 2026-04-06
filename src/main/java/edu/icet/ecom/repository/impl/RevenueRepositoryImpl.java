@@ -5,11 +5,15 @@ import edu.icet.ecom.repository.RevenueRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Repository;
+import org.springframework.web.bind.annotation.CrossOrigin;
+import org.springframework.web.bind.annotation.RequestMapping;
 import java.time.LocalDate;
 import java.util.List;
 
 @Repository
 @RequiredArgsConstructor
+@CrossOrigin
+@RequestMapping("/revenue")
 public class RevenueRepositoryImpl implements RevenueRepository {
 
     private final JdbcTemplate jdbcTemplate;
