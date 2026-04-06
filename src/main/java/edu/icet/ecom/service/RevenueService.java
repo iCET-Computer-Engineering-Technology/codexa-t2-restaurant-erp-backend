@@ -1,12 +1,9 @@
 package edu.icet.ecom.service;
 
-import edu.icet.ecom.dto.ReconciliationReportDto;
-import edu.icet.ecom.dto.RevenueSummaryDto;
-
+import edu.icet.ecom.dto.RevenueResponseDto;
 import java.time.LocalDate;
 import java.util.List;
 
 public interface RevenueService {
-    List<RevenueSummaryDto> getChannelPerformance(LocalDate date);
-    List<ReconciliationReportDto> getDailyReconciliation(LocalDate date);
+    List<RevenueResponseDto> getDailyChannelRevenue(LocalDate date);
 }
