@@ -31,6 +31,13 @@ import java.util.List;
 @EnableMethodSecurity
 @RequiredArgsConstructor
 public class SecurityConfig {
+    private static final String ROLE_ADMIN = "ROLE_ADMIN";
+    private static final String ROLE_USER = "ROLE_USER";
+    private static final String ROLE_CASHIER = "ROLE_CASHIER";
+    private static final String ROLE_MANAGER = "ROLE_MANAGER";
+    private static final String ROLE_WAITER = "ROLE_WAITER";
+    private static final String ROLE_CHEF = "ROLE_CHEF";
+
     private final JwtAuthFilter jwtAuthFilter;
     private final CustomUserDetailsService service;
 
@@ -40,7 +47,8 @@ public class SecurityConfig {
             "/v3/api-docs/**",
             "/swagger-ui/**",
             "/swagger-ui.html",
-            "/error"
+            "/error",
+            "/ws/**"
     };
 
     private static final String[] ADMIN_ENDPOINTS = {
@@ -53,8 +61,22 @@ public class SecurityConfig {
             "/api/categories/**",
             "/api/menu-items/**",
             "/api/portions/**",
-            "/api/portions/**",
             "/api/menu-item-price/**"
+
+    };
+
+    private static final String[] MANAGER_ENDPOINTS = {
+            "/allowance/**",
+            "/besic-salary/**",
+            "/deduction/**",
+            "/employee/**",
+            "/employee-leave/**",
+            "/overtime/**",
+            "/payroll-config/**",
+            "/payroll/**",
+            "/salary-request/**",
+            "/salary-response/**",
+            "/bonus/**"
     };
 
     private static final String[] STAFF_ENDPOINTS = {
@@ -62,17 +84,21 @@ public class SecurityConfig {
             "/api/kitchen/**",
             "/customers/**",
             "/api/waiter/**",
-            "/api/supplier/**"
+            "/api/payments/**",
+            "/api/supplier/**",
+            "/api/auth/logout",
+            "/api/auth/heartbeat"
     };
 
     // Staff screens need read access to menu master data, while writes remain admin-only.
     private static final String[] STAFF_READONLY_ENDPOINTS = {
+            "/api/categories/**",
             "/api/menu-items/**",
             "/api/menu-item-price/**",
             "/api/portions/**",
-            "/api/portions/**",
             "/tables/**",
             "/api/tables/**"
+
     };
 
     @Bean
@@ -86,11 +112,12 @@ public class SecurityConfig {
                         authConfig.requestMatchers(HttpMethod.OPTIONS, "/**").permitAll();
                         authConfig.requestMatchers(PUBLIC_ENDPOINTS).permitAll();
                         authConfig.requestMatchers(HttpMethod.GET, STAFF_READONLY_ENDPOINTS)
-                                .hasAnyAuthority("ROLE_ADMIN", "ROLE_USER", "ROLE_CASHIER", "ROLE_WAITER", "ROLE_CHEF");
-                        authConfig.requestMatchers(ADMIN_ENDPOINTS).hasAuthority("ROLE_ADMIN");
+                                .hasAnyAuthority(ROLE_ADMIN, ROLE_USER, ROLE_CASHIER, ROLE_WAITER, ROLE_CHEF, ROLE_MANAGER);
+                        authConfig.requestMatchers(ADMIN_ENDPOINTS).hasAuthority(ROLE_ADMIN);
+                        authConfig.requestMatchers(MANAGER_ENDPOINTS).hasAnyAuthority(ROLE_MANAGER, ROLE_ADMIN);
                         authConfig.requestMatchers(STAFF_ENDPOINTS)
-                                .hasAnyAuthority("ROLE_ADMIN", "ROLE_USER", "ROLE_CASHIER", "ROLE_WAITER", "ROLE_CHEF");
-                        authConfig.requestMatchers("/user/**").hasAuthority("ROLE_USER");
+                                .hasAnyAuthority(ROLE_ADMIN, ROLE_USER, ROLE_CASHIER, ROLE_WAITER, ROLE_CHEF);
+                        authConfig.requestMatchers("/user/**").hasAuthority(ROLE_USER);
                         authConfig.anyRequest().authenticated();
                     })
                     .authenticationProvider(authenticationProvider())

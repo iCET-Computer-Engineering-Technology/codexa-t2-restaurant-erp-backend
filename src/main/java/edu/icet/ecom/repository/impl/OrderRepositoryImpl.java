@@ -26,9 +26,9 @@ public class OrderRepositoryImpl implements OrderRepository {
 
     @Override
     public Integer saveAndGetId(Order order) {
-        String sql ="INSERT INTO orders (order_type_id, order_number, order_type, table_id, customer_id, server_id, status, subtotal, discount_amount, " +
+        String sql ="INSERT INTO orders (order_type_id, order_number, table_id, customer_id, server_id, status, subtotal, discount_amount, " +
                 "tax_amount, service_charge, total_amount, notes) " +
-                "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
+                "VALUES (COALESCE(?, (SELECT id FROM order_types WHERE type_name = ?)), ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
         KeyHolder keyHolder = new GeneratedKeyHolder();
         jdbcTemplate.update(connection ->{
             PreparedStatement ps = connection.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS);
@@ -37,8 +37,8 @@ public class OrderRepositoryImpl implements OrderRepository {
             }else{
                 ps.setNull(1, Types.INTEGER);
             }
-            ps.setString(2, order.getOrderNumber());
-            ps.setString(3, order.getOrderType());
+            ps.setString(2, order.getOrderType());
+            ps.setString(3, order.getOrderNumber());
             if(order.getTableId() != null){
                 ps.setInt(4, order.getTableId());
             }else{
@@ -91,7 +91,7 @@ public class OrderRepositoryImpl implements OrderRepository {
             throw new IllegalArgumentException("Type cannot be null or empty");
         }
         int rowsUpdated = jdbcTemplate.update(
-                "UPDATE orders SET order_type = ?, table_id = CASE WHEN ? = 'takeout' THEN NULL ELSE table_id END, updated_at = NOW() WHERE id = ?",
+                "UPDATE orders SET order_type_id = (SELECT id FROM order_types WHERE type_name = ?), table_id = CASE WHEN ? = 'takeout' THEN NULL ELSE table_id END, updated_at = NOW() WHERE id = ?",
                 type, type, orderId
         );
         return rowsUpdated > 0;
@@ -104,10 +104,10 @@ public class OrderRepositoryImpl implements OrderRepository {
         }
         try {
             return jdbcTemplate.queryForObject(
-                    "SELECT id, order_type_id, order_number, order_type, table_id, customer_id, server_id, " +
-                            "status, subtotal, discount_amount, tax_amount, service_charge, " +
-                            "total_amount, notes, created_at, updated_at " +
-                            "FROM orders WHERE id = ?",
+                    "SELECT o.id, o.order_type_id, o.order_number, ot.type_name AS order_type, o.table_id, o.customer_id, o.server_id, " +
+                            "o.status, o.subtotal, o.discount_amount, o.tax_amount, o.service_charge, " +
+                            "o.total_amount, o.notes, o.created_at, o.updated_at " +
+                            "FROM orders o LEFT JOIN order_types ot ON o.order_type_id = ot.id WHERE o.id = ?",
                     (rs, row) -> mapRow(rs), id
             );
         } catch (org.springframework.dao.EmptyResultDataAccessException e) {
@@ -118,10 +118,10 @@ public class OrderRepositoryImpl implements OrderRepository {
     @Override
     public List<Order> findAll() {
         return jdbcTemplate.query(
-                "SELECT id, order_type_id, order_number, order_type, table_id, customer_id, server_id, " +
-                        "status, subtotal, discount_amount, tax_amount, service_charge, " +
-                        "total_amount, notes, created_at, updated_at " +
-                        "FROM orders ORDER BY created_at DESC",
+                "SELECT o.id, o.order_type_id, o.order_number, ot.type_name AS order_type, o.table_id, o.customer_id, o.server_id, " +
+                        "o.status, o.subtotal, o.discount_amount, o.tax_amount, o.service_charge, " +
+                        "o.total_amount, o.notes, o.created_at, o.updated_at " +
+                        "FROM orders o LEFT JOIN order_types ot ON o.order_type_id = ot.id ORDER BY o.created_at DESC",
                 (rs, row) -> mapRow(rs)
         );
     }
@@ -129,10 +129,10 @@ public class OrderRepositoryImpl implements OrderRepository {
     @Override
     public List<Order> findByStatus(String status) {
         return jdbcTemplate.query(
-                "SELECT id, order_type_id, order_number, order_type, table_id, customer_id, server_id, " +
-                        "status, subtotal, discount_amount, tax_amount, service_charge, " +
-                        "total_amount, notes, created_at, updated_at " +
-                        "FROM orders WHERE status = ? ORDER BY created_at DESC",
+                "SELECT o.id, o.order_type_id, o.order_number, ot.type_name AS order_type, o.table_id, o.customer_id, o.server_id, " +
+                        "o.status, o.subtotal, o.discount_amount, o.tax_amount, o.service_charge, " +
+                        "o.total_amount, o.notes, o.created_at, o.updated_at " +
+                        "FROM orders o LEFT JOIN order_types ot ON o.order_type_id = ot.id WHERE o.status = ? ORDER BY o.created_at DESC",
                 (rs, row) -> mapRow(rs), status
         );
     }
@@ -157,7 +157,7 @@ public class OrderRepositoryImpl implements OrderRepository {
     @Override
     public List<OrderWithItemNameResponse> findAllOrdersWithItemNames() {
         String sql = "SELECT " +
-                "o.id, o.order_type_id, o.order_number, o.order_type, o.table_id, " +
+                "o.id, o.order_type_id, o.order_number, ot.type_name AS order_type, o.table_id, " +
                 "o.customer_id, o.server_id, o.status, o.subtotal, o.discount_amount, " +
                 "o.tax_amount, o.service_charge, o.total_amount, o.notes, " +
                 "o.created_at, o.updated_at, " +
@@ -165,6 +165,7 @@ public class OrderRepositoryImpl implements OrderRepository {
                 "oi.portion_id, oi.quantity, oi.price, oi.status as item_status, " +
                 "oi.notes as item_notes, oi.created_at as item_created_at " +
                 "FROM orders o " +
+                "LEFT JOIN order_types ot ON o.order_type_id = ot.id " +
                 "LEFT JOIN order_items oi ON o.id = oi.order_id " +
                 "LEFT JOIN menu_items mi ON oi.menu_item_id = mi.id " +
                 "ORDER BY o.created_at DESC, oi.id";
@@ -179,7 +180,7 @@ public class OrderRepositoryImpl implements OrderRepository {
             return null;
         }
         String sql = "SELECT " +
-                "o.id, o.order_type_id, o.order_number, o.order_type, o.table_id, " +
+                "o.id, o.order_type_id, o.order_number, ot.type_name AS order_type, o.table_id, " +
                 "o.customer_id, o.server_id, o.status, o.subtotal, o.discount_amount, " +
                 "o.tax_amount, o.service_charge, o.total_amount, o.notes, " +
                 "o.created_at, o.updated_at, " +
@@ -187,6 +188,7 @@ public class OrderRepositoryImpl implements OrderRepository {
                 "oi.portion_id, oi.quantity, oi.price, oi.status as item_status, " +
                 "oi.notes as item_notes, oi.created_at as item_created_at " +
                 "FROM orders o " +
+                "LEFT JOIN order_types ot ON o.order_type_id = ot.id " +
                 "LEFT JOIN order_items oi ON o.id = oi.order_id " +
                 "LEFT JOIN menu_items mi ON oi.menu_item_id = mi.id " +
                 "WHERE o.id = ? " +
