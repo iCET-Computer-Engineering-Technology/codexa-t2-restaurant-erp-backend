@@ -78,7 +78,7 @@ public class SecurityConfig {
             "/api/kitchen/**",
             "/customers/**",
             "/api/waiter/**",
-            "/api/receipts/**"
+            "/api/receipts/**",
             "/api/payments/**",
             "/api/supplier/**",
             "/api/auth/logout",
