@@ -2,6 +2,8 @@ package edu.icet.ecom.controller;
 
 import edu.icet.ecom.dto.OrderCreateRequest;
 import edu.icet.ecom.dto.OrderResponse;
+import edu.icet.ecom.dto.TabletOrderRequest;
+import edu.icet.ecom.dto.TabletOrderResponse;
 import edu.icet.ecom.dto.OrderStatusUpdateRequest;
 import edu.icet.ecom.dto.OrderWithItemNameResponse;
 import edu.icet.ecom.service.OrderService;
@@ -24,6 +26,13 @@ public class OrderController {
     @PostMapping("/create")
     public ResponseEntity<OrderResponse> createOrder(@Valid @RequestBody OrderCreateRequest request) {
         return ResponseEntity.status(HttpStatus.CREATED).body(orderService.createOrder(request));
+    }
+
+    @PostMapping("/create-tablet")
+    public ResponseEntity<TabletOrderResponse> createTabletOrder(@Valid @RequestBody TabletOrderRequest request) {
+        TabletOrderResponse response = orderService.createTabletOrder(request);
+        HttpStatus status = response.getSuccess() ? HttpStatus.CREATED : HttpStatus.BAD_REQUEST;
+        return ResponseEntity.status(status).body(response);
     }
 
     @GetMapping("/find-all")

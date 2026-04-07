@@ -24,6 +24,7 @@ public class OrderResponse {
     private BigDecimal serviceCharge;
     private BigDecimal totalAmount;
     private String notes;
+    private String source;
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
     private List<OrderItemResponse> items;
