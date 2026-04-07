@@ -18,6 +18,7 @@ public class WebSocketNotificationService {
     private static final String KDS_UPDATES_TOPIC = "/topic/kds-updates";
     private static final String TABLET_RESPONSE_TOPIC = "/topic/tablet-response";
     private static final String INVENTORY_UPDATES_TOPIC = "/topic/inventory-updates";
+    private static final String TABLE_UPDATES_TOPIC = "/topic/table-updates";
 
     private final SimpMessagingTemplate messagingTemplate;
 
@@ -134,6 +135,21 @@ public class WebSocketNotificationService {
         payload.put("orders", orders);
         payload.put("timestamp", LocalDateTime.now());
         messagingTemplate.convertAndSend(KDS_UPDATES_TOPIC, (Object) payload);
+    }
+
+    /**
+     * Broadcast table status update to connected clients
+     */
+    public void notifyTableStatusUpdate(Integer tableId, String tableNumber, Integer capacity, String status, String eventType) {
+        Map<String, Object> payload = new HashMap<>();
+        payload.put("event", "TABLE_STATUS_UPDATE");
+        payload.put("tableId", tableId);
+        payload.put("tableNumber", tableNumber);
+        payload.put("capacity", capacity);
+        payload.put("status", status);
+        payload.put("eventType", eventType);
+        payload.put("timestamp", LocalDateTime.now());
+        messagingTemplate.convertAndSend(TABLE_UPDATES_TOPIC, (Object) payload);
     }
 }
 
