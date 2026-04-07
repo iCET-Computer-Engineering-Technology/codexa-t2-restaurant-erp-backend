@@ -8,4 +8,6 @@ import java.util.Optional;
 public interface TableRepository {
     List<TableDto> findAll();
     Optional<TableDto> findById(Integer id);
+    void updateStatus(Integer tableId, String status);
+    boolean existsById(Integer id);
 }

@@ -35,4 +35,17 @@ public class TableRepositoryImpl implements TableRepository {
                 rs.getString("status")
         ), id).stream().findFirst();
     }
+
+    @Override
+    public void updateStatus(Integer tableId, String status) {
+        String sql = "UPDATE `tables` SET status = ?, updated_at = CURRENT_TIMESTAMP WHERE id = ?";
+        jdbcTemplate.update(sql, status, tableId);
+    }
+
+    @Override
+    public boolean existsById(Integer id) {
+        String sql = "SELECT COUNT(*) FROM `tables` WHERE id = ?";
+        Integer count = jdbcTemplate.queryForObject(sql, Integer.class, id);
+        return count != null && count > 0;
+    }
 }
