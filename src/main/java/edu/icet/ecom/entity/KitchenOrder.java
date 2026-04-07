@@ -10,6 +10,7 @@ import java.time.LocalDateTime;
 public class KitchenOrder {
     private Long id;
     private Long orderId;
+    private Long chefId;
     private String status;
     private LocalDateTime getTime;
     private LocalDateTime endTime;

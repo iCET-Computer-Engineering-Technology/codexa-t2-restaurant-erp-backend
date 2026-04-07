@@ -3,10 +3,12 @@ package edu.icet.ecom.service.impl;
 import edu.icet.ecom.dto.*;
 import edu.icet.ecom.entity.Order;
 import edu.icet.ecom.entity.OrderItem;
+import edu.icet.ecom.entity.KdsOrder;
 import edu.icet.ecom.exception.ResourceNotFoundException;
-import edu.icet.ecom.repository.OrderItemRepository;
-import edu.icet.ecom.repository.OrderRepository;
+import edu.icet.ecom.repository.*;
 import edu.icet.ecom.service.OrderService;
+import edu.icet.ecom.service.WebSocketNotificationService;
+import edu.icet.ecom.service.IngredientService;
 import lombok.RequiredArgsConstructor;
 import org.jspecify.annotations.NonNull;
 import org.springframework.stereotype.Service;
@@ -27,6 +29,10 @@ public class OrderServiceImpl implements OrderService {
 
     private final OrderRepository orderRepository;
     private final OrderItemRepository orderItemRepository;
+    private final OrderTypeRepository orderTypeRepository;
+    private final KdsRepository kdsRepository;
+    private final WebSocketNotificationService webSocketNotificationService;
+    private final IngredientService ingredientService;
 
     // Valid order types matching the DB ENUM
     private static final Set<String> VALID_ORDER_TYPES = Set.of("dine_in", "takeout", "booking");
@@ -42,6 +48,7 @@ public class OrderServiceImpl implements OrderService {
             Map.entry("takeout", ORDER_TYPE_TAKEOUT),
             Map.entry("take_out", ORDER_TYPE_TAKEOUT),
             Map.entry("booking", ORDER_TYPE_BOOKING),
+            Map.entry("table_order", ORDER_TYPE_DINE_IN),
             Map.entry("online", ORDER_TYPE_BOOKING),
             Map.entry("call", ORDER_TYPE_BOOKING)
     );
@@ -49,7 +56,7 @@ public class OrderServiceImpl implements OrderService {
     // Valid statuses matching the DB ENUM
     private static final Set<String> VALID_STATUSES = Set.of("open", "sent_to_kitchen", "partially_ready", "ready", "paid", "voided");
 
-    private static final BigDecimal TAX_RATE     = new BigDecimal("0.00");
+    private static final BigDecimal TAX_RATE     = new BigDecimal("0.10");
     private static final BigDecimal SERVICE_RATE = new BigDecimal("0.00");
 
     @Override
@@ -68,7 +75,7 @@ public class OrderServiceImpl implements OrderService {
         BigDecimal totalAmount = subtotal.add(taxAmount).add(serviceCharge).subtract(discountAmount);
 
         Order order = new Order();
-        order.setOrderTypeId(request.getOrderTypeId());
+        order.setOrderTypeId(null);
         order.setOrderNumber(generateOrderNumber());
         order.setOrderType(normalizedOrderType);
         order.setTableId(ORDER_TYPE_TAKEOUT.equals(normalizedOrderType) ? null : request.getTableId());
@@ -101,8 +108,173 @@ public class OrderServiceImpl implements OrderService {
             item.setId(orderItemRepository.saveAndGetId(item));
             savedItems.add(item);
         }
+
+        // Deduct inventory for these items based on recipe
+        ingredientService.deductInventoryForOrderItems(savedItems);
+
         return mapToResponse(order, savedItems);
     }
+
+    @Override
+    @Transactional
+    public TabletOrderResponse createTabletOrder(TabletOrderRequest request) {
+        if (request == null) {
+            throw new IllegalArgumentException("Request body is required");
+        }
+
+        // Check idempotency first
+        Order existingOrder = findOrderByIdempotencyKey(request.getIdempotencyKey());
+        if (existingOrder != null) {
+            List<OrderItem> items = orderItemRepository.findByOrderId(existingOrder.getId());
+            TabletOrderResponse response = new TabletOrderResponse();
+            response.setSuccess(false);
+            response.setMessage("Order already exists with this idempotency key");
+            response.setOrder(mapToResponse(existingOrder, items));
+            return response;
+        }
+
+        // Validate request
+        String normalizedOrderType = normalizeOrderType(request.getOrderType());
+        validateTabletOrderRequest(request);
+
+        // Create order with TABLET source and dine_in type
+        BigDecimal subtotal = request.getItems().stream()
+                .map(i -> i.getPrice().multiply(BigDecimal.valueOf(i.getQuantity())))
+                .reduce(BigDecimal.ZERO, BigDecimal::add);
+
+        BigDecimal discountAmount = BigDecimal.ZERO;
+        BigDecimal taxAmount = subtotal.multiply(TAX_RATE);
+        BigDecimal serviceCharge = subtotal.multiply(SERVICE_RATE);
+        BigDecimal totalAmount = subtotal.add(taxAmount).add(serviceCharge).subtract(discountAmount);
+
+        Order order = new Order();
+        order.setOrderTypeId(null);
+        order.setOrderNumber(generateOrderNumber());
+        order.setOrderType(normalizedOrderType);
+        order.setTableId(ORDER_TYPE_TAKEOUT.equals(normalizedOrderType) ? null : request.getTableId());
+        order.setCustomerId(request.getCustomerId());
+        order.setServerId(request.getServerId());
+        order.setStatus("open");
+        order.setSubTotal(subtotal);
+        order.setDiscountAmount(discountAmount);
+        order.setTaxAmount(taxAmount);
+        order.setServiceCharge(serviceCharge);
+        order.setTotalAmount(totalAmount);
+        order.setNotes(request.getNotes());
+        order.setSource("TABLET");
+        order.setIdempotencyKey(request.getIdempotencyKey());
+        order.setCreatedAt(LocalDateTime.now());
+        order.setUpdatedAt(LocalDateTime.now());
+
+        Integer orderId = orderRepository.saveAndGetId(order);
+        order.setId(orderId);
+
+        // Create KDS order
+        Integer kdsOrderId = kdsRepository.saveAndGetId(new KdsOrder(
+                null, orderId, LocalDateTime.now(), null, null, false, false, "green"
+        ));
+
+        // Create order items and KDS items
+        List<OrderItem> savedItems = new ArrayList<>();
+        for (OrderItemCreateRequest itemReq : request.getItems()) {
+            OrderItem item = new OrderItem();
+            item.setOrderId(orderId);
+            item.setMenuItemId(itemReq.getMenuItemId());
+            item.setPortionId(itemReq.getPortionId());
+            item.setQuantity(itemReq.getQuantity());
+            item.setPrice(itemReq.getPrice());
+            item.setStatus("pending");
+            item.setNotes(itemReq.getNotes());
+            item.setCreatedAt(LocalDateTime.now());
+            Integer orderItemId = orderItemRepository.saveAndGetId(item);
+            item.setId(orderItemId);
+            savedItems.add(item);
+
+            // Add to KDS
+            kdsRepository.saveKdsOrderItem(kdsOrderId, orderItemId);
+        }
+        
+        // Deduct inventory for these items based on recipe
+        ingredientService.deductInventoryForOrderItems(savedItems);
+
+        // Build response
+        TabletOrderResponse response = new TabletOrderResponse();
+        response.setSuccess(true);
+        response.setMessage("Order placed successfully");
+        response.setOrder(mapToResponse(order, savedItems));
+        response.setKdsOrderId(kdsOrderId);
+
+        // Broadcast to WebSocket topics (non-blocking)
+        try {
+            broadcastToPOS(response.getOrder());
+        } catch (Exception e) {
+            // Non-critical: broadcast failure doesn't block order
+            System.err.println("Failed to broadcast to POS: " + e.getMessage());
+        }
+
+        try {
+            broadcastToKDS(kdsOrderId, order.getOrderNumber(), savedItems.size());
+        } catch (Exception e) {
+            // Non-critical: broadcast failure doesn't block order
+            System.err.println("Failed to broadcast to KDS: " + e.getMessage());
+        }
+
+        return response;
+    }
+
+    /**
+     * Broadcast tablet order to POS system
+     */
+    private void broadcastToPOS(OrderResponse order) {
+        try {
+            webSocketNotificationService.notifyPOSNewOrder(order);
+        } catch (Exception e) {
+            // Non-critical: broadcast failure doesn't block order
+            System.err.println("WebSocket broadcast to POS failed: " + e.getMessage());
+        }
+    }
+
+    /**
+     * Broadcast tablet order to Kitchen Display System
+     */
+    private void broadcastToKDS(Integer kdsOrderId, String orderNumber, int itemCount) {
+        try {
+            webSocketNotificationService.notifyKDSNewOrder(kdsOrderId, orderNumber, itemCount);
+        } catch (Exception e) {
+            // Non-critical: broadcast failure doesn't block order
+            System.err.println("WebSocket broadcast to KDS failed: " + e.getMessage());
+        }
+    }
+
+    private Order findOrderByIdempotencyKey(String idempotencyKey) {
+        if (idempotencyKey == null || idempotencyKey.trim().isEmpty()) {
+            return null;
+        }
+        // TODO: Implement idempotency key lookup when OrderRepository provides method
+        // For now, idempotency is handled at database level with UNIQUE constraint
+        return null;
+    }
+
+    private void validateTabletOrderRequest(TabletOrderRequest request) {
+        if (request.getTableId() == null || request.getTableId() <= 0) {
+            throw new IllegalArgumentException("tableId is required for tablet orders");
+        }
+        if (request.getItems() == null || request.getItems().isEmpty()) {
+            throw new IllegalArgumentException("Order must have at least one item");
+        }
+        for (OrderItemCreateRequest item : request.getItems()) {
+            if (item == null || item.getMenuItemId() == null) {
+                throw new IllegalArgumentException("items must not contain null elements");
+            }
+            if (item.getQuantity() == null || item.getQuantity() <= 0) {
+                throw new IllegalArgumentException("quantity must be >= 1");
+            }
+            if (item.getPrice() == null || item.getPrice().compareTo(BigDecimal.ZERO) <= 0) {
+                throw new IllegalArgumentException("price must be > 0");
+            }
+        }
+    }
+
 
     @Override
     public OrderResponse findById(Integer id) {
@@ -184,7 +356,7 @@ public class OrderServiceImpl implements OrderService {
         }
 
         String normalizedType = normalizeOrderType(type);
-        validateOrderTypeRequirements(normalizedType, existing.getTableId(), existing.getCustomerId(), existing.getServerId());
+        validateOrderTypeRequirements(normalizedType, existing.getTableId(), existing.getCustomerId());
 
         boolean updated = orderRepository.updateType(orderId, normalizedType);
         if (!updated) {
@@ -198,7 +370,7 @@ public class OrderServiceImpl implements OrderService {
             throw new IllegalArgumentException("Request body is required");
         }
 
-        validateOrderTypeRequirements(normalizedOrderType, request.getTableId(), request.getCustomerId(), request.getServerId());
+        validateOrderTypeRequirements(normalizedOrderType, request.getTableId(), request.getCustomerId());
 
         if (request.getItems() == null || request.getItems().isEmpty()) {
             throw new IllegalArgumentException("Order must have at least one item");
@@ -212,7 +384,7 @@ public class OrderServiceImpl implements OrderService {
         }
     }
 
-    private void validateOrderTypeRequirements(String normalizedOrderType, Integer tableId, Integer customerId, Integer serverId) {
+    private void validateOrderTypeRequirements(String normalizedOrderType, Integer tableId, Integer customerId) {
         if (!VALID_ORDER_TYPES.contains(normalizedOrderType)) {
             throw new IllegalArgumentException("Invalid orderType. Must be one of: " + VALID_ORDER_TYPES);
         }
@@ -286,6 +458,7 @@ public class OrderServiceImpl implements OrderService {
         response.setServiceCharge(order.getServiceCharge());
         response.setTotalAmount(order.getTotalAmount());
         response.setNotes(order.getNotes());
+        response.setSource(order.getSource());
         response.setCreatedAt(order.getCreatedAt());
         response.setUpdatedAt(order.getUpdatedAt());
         response.setItems(itemResponses);
