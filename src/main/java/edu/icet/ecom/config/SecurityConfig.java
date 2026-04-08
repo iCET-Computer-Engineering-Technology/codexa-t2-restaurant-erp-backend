@@ -58,7 +58,8 @@ public class SecurityConfig {
             "/api/menu-item-price/**",
             "/api/reconciliation/**",
             "/api/revenue/**",
-            "/api/payments/**"
+            "/api/payments/**",
+            "/api/floor-sections/**"
 
     };
     private static final String[] MANAGER_ENDPOINTS = {
@@ -73,6 +74,7 @@ public class SecurityConfig {
             "/salary-request/**",
             "/salary-response/**",
             "/api/payments/**",
+            "/api/supplier/**",
             "/bonus/**"
     };
     private static final String[] STAFF_ENDPOINTS = {
