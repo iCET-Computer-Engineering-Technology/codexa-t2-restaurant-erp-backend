@@ -11,6 +11,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 
+import java.util.Comparator;
 import java.util.List;
 import java.util.Locale;
 import java.util.Set;
@@ -118,8 +119,20 @@ public class KitchenServiceImpl implements KitchenService {
             throw new IllegalArgumentException("Order already sent to kitchen");
         }
 
+        // AUTO ASSIGN CHEF
+        Long assignedChefId = autoAssignChef();
+        
+        if (assignedChefId != null) {
+            // Chef available - assign and start immediately
+            kitchenOrderRepository.createKitchenOrderWithChef(orderId, assignedChefId, "in_progress");
+            log.info("✅ Order #{} auto-assigned to chef ID: {}", orderId, assignedChefId);
+        } else {
+            // No chef available - queue for manual assignment
+            kitchenOrderRepository.createKitchenOrderWithChef(orderId, null, "pending");
+            log.warn("⏳ Order #{} queued - no chef available for auto-assignment", orderId);
+        }
+
         orderRepository.updateStatus(orderId.intValue(), "sent_to_kitchen");
-        kitchenOrderRepository.createKitchenOrder(orderId);
 
         log.info("{}", buildLabel(order, "KITCHEN_RECEIVED", normalizedType));
 
@@ -225,5 +238,31 @@ public class KitchenServiceImpl implements KitchenService {
                 .map(waiter -> new edu.icet.ecom.dto.AvailableWaiterDto(waiter, orderAssignmentRepository.countActiveOrdersByWaiterId(waiter.getId())))
                 .filter(dto -> dto.getActiveOrdersCount() < 5)  // Assuming max 5 active orders similar to chefs
                 .collect(toList());
+    }
+
+
+     //Auto-assigns order to the least busy available chef
+     //@return Chef ID if available, null if no chef available
+    private Long autoAssignChef() {
+        List<edu.icet.ecom.dto.AvailableChefDto> availableChefs = getAvailableChefs();
+        
+        if (availableChefs.isEmpty()) {
+            log.warn("No chefs available for auto-assignment");
+            return null;
+        }
+        
+        //Assign to chef with LEAST active orders (load balancing)
+        edu.icet.ecom.dto.AvailableChefDto selectedChef = availableChefs.stream()
+                .min(Comparator.comparingInt(edu.icet.ecom.dto.AvailableChefDto::getActiveOrdersCount))
+                .orElse(null);
+        
+        if (selectedChef != null && selectedChef.getChef() != null) {
+            log.info("Auto-assigned to chef ID: {} (current load: {} orders)", 
+                     selectedChef.getChef().getId(), 
+                     selectedChef.getActiveOrdersCount());
+            return selectedChef.getChef().getId();
+        }
+        
+        return null;
     }
 }

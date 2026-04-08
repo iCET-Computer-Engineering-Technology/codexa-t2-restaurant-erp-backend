@@ -8,6 +8,7 @@ public interface KitchenOrderRepository {
     void markAsDone(Integer orderId);
 
     void createKitchenOrder(Long orderId);
+    void createKitchenOrderWithChef(Long orderId, Long chefId, String status);
     List<KitchenOrder> getKitchenOrders();
     void markAsDone(Long orderId);
     boolean existsByOrderId(Long orderId);
