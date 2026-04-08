@@ -133,6 +133,7 @@ public class TableManagementServiceImpl implements TableManagementService {
                 .id(tableDto.getId())
                 .tableNumber(tableDto.getTableNumber())
                 .capacity(tableDto.getCapacity())
+                .sectionId(tableDto.getSectionId())
                 .status(tableDto.getStatus())
                 .build();
     }

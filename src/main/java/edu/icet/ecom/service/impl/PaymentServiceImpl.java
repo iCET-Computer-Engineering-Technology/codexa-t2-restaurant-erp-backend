@@ -1,9 +1,13 @@
 package edu.icet.ecom.service.impl;
 
 import edu.icet.ecom.dto.PaymentDto;
+import edu.icet.ecom.entity.Order;
+import edu.icet.ecom.repository.OrderRepository;
 import edu.icet.ecom.repository.PaymentRepository;
 import edu.icet.ecom.service.PaymentService;
+import edu.icet.ecom.service.TableManagementService;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -13,9 +17,12 @@ import java.util.UUID;
 
 @Service
 @RequiredArgsConstructor
+@Slf4j
 public class PaymentServiceImpl implements PaymentService {
 
     private final PaymentRepository paymentRepository;
+    private final OrderRepository orderRepository;
+    private final TableManagementService tableManagementService;
 
     @Transactional
     @Override
@@ -52,6 +59,24 @@ public class PaymentServiceImpl implements PaymentService {
         boolean saved = paymentRepository.addPayment(paymentDto);
         if(saved){
             paymentRepository.updateOrderStatus(paymentDto.getOrderId());
+            
+            // Update table status to available after payment completion
+            try {
+                Order order = orderRepository.findById(paymentDto.getOrderId());
+                if (order != null && order.getTableId() != null) {
+                    tableManagementService.updateTableStatusAutomatic(
+                            order.getTableId(), 
+                            "available", 
+                            "PAYMENT_COMPLETED"
+                    );
+                    log.info("Table {} set to available after payment for order {}", 
+                            order.getTableId(), paymentDto.getOrderId());
+                }
+            } catch (Exception e) {
+                // Non-blocking: payment succeeds even if table update fails
+                log.error("Failed to update table status after payment for order {}: {}", 
+                        paymentDto.getOrderId(), e.getMessage());
+            }
         }
         return saved;
     }
