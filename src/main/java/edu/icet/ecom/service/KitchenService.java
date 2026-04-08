@@ -1,5 +1,6 @@
 package edu.icet.ecom.service;
 
+import edu.icet.ecom.dto.InventoryDeductionResponse;
 import edu.icet.ecom.dto.AvailableChefDto;
 import edu.icet.ecom.dto.AvailableWaiterDto;
 import edu.icet.ecom.entity.KitchenOrder;
@@ -20,4 +21,5 @@ public interface KitchenService {
     void assignChef(Long kitchenOrderId, Long chefId);
     List<AvailableChefDto> getAvailableChefs();
     List<AvailableWaiterDto> getAvailableWaiters();
+    InventoryDeductionResponse updateOrderItemStatus(Integer orderItemId, String status);
 }
