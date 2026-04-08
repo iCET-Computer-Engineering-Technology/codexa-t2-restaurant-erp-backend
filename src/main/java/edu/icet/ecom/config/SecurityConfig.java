@@ -72,6 +72,7 @@ public class SecurityConfig {
             "/payroll/**",
             "/salary-request/**",
             "/salary-response/**",
+            "/api/supplier/**",
             "/bonus/**"
     };
     private static final String[] STAFF_ENDPOINTS = {
