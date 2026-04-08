@@ -1,19 +1,23 @@
 package edu.icet.ecom.dto;
 
 import lombok.AllArgsConstructor;
-import lombok.Getter;
+import lombok.Builder;
+import lombok.Data;
 import lombok.NoArgsConstructor;
-import lombok.Setter;
 
-@Getter
-@Setter
+import java.time.LocalDateTime;
+
+@Data
 @NoArgsConstructor
 @AllArgsConstructor
-public class TableDto {
+@Builder
+public class TablePositionDto {
     private Integer id;
     private String tableNumber;
     private Integer capacity;
     private Integer sectionId;
+    private Integer posX;
+    private Integer posY;
     private String status;
+    private LocalDateTime updatedAt;
 }
-

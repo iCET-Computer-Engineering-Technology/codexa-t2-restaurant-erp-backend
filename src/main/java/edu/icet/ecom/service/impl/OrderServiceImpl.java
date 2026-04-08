@@ -9,6 +9,7 @@ import edu.icet.ecom.repository.*;
 import edu.icet.ecom.service.OrderService;
 import edu.icet.ecom.service.WebSocketNotificationService;
 import edu.icet.ecom.service.IngredientService;
+import edu.icet.ecom.service.TableManagementService;
 import lombok.RequiredArgsConstructor;
 import org.jspecify.annotations.NonNull;
 import org.springframework.stereotype.Service;
@@ -33,6 +34,7 @@ public class OrderServiceImpl implements OrderService {
     private final KdsRepository kdsRepository;
     private final WebSocketNotificationService webSocketNotificationService;
     private final IngredientService ingredientService;
+    private final TableManagementService tableManagementService;
 
     // Valid order types matching the DB ENUM
     private static final Set<String> VALID_ORDER_TYPES = Set.of("dine_in", "takeout", "booking");
@@ -111,6 +113,15 @@ public class OrderServiceImpl implements OrderService {
 
         // Deduct inventory for these items based on recipe
         ingredientService.deductInventoryForOrderItems(savedItems);
+
+        // Update table status to occupied if dine_in order with table
+        if (ORDER_TYPE_DINE_IN.equals(normalizedOrderType) && order.getTableId() != null) {
+            try {
+                tableManagementService.updateTableStatusAutomatic(order.getTableId(), "occupied", "ORDER_CREATED");
+            } catch (Exception e) {
+                // Non-blocking: order creation succeeds even if table update fails
+            }
+        }
 
         return mapToResponse(order, savedItems);
     }
@@ -196,6 +207,15 @@ public class OrderServiceImpl implements OrderService {
         
         // Deduct inventory for these items based on recipe
         ingredientService.deductInventoryForOrderItems(savedItems);
+
+        // Update table status to occupied if dine_in order with table
+        if (ORDER_TYPE_DINE_IN.equals(normalizedOrderType) && order.getTableId() != null) {
+            try {
+                tableManagementService.updateTableStatusAutomatic(order.getTableId(), "occupied", "ORDER_CREATED");
+            } catch (Exception e) {
+                // Non-blocking: order creation succeeds even if table update fails
+            }
+        }
 
         // Build response
         TabletOrderResponse response = new TabletOrderResponse();
