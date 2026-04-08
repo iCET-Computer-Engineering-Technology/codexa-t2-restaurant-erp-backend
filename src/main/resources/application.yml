@@ -2,13 +2,13 @@ spring:
   datasource:
     url: jdbc:mysql://localhost:3306/restaurant_erp?createDatabaseIfNotExist=true
     username: root
-    password: admin@123
+    password: PasinduDev678
 
   mail:
     host: smtp.gmail.com
     port: 587
-    username: geesarasahan0123@gmail.com
-    password: vkct iocz xhel pnfz
+    username: pasinduogdev@gmail.com
+    password: tvgh qrth laol glba
     properties:
       mail:
         smtp:
