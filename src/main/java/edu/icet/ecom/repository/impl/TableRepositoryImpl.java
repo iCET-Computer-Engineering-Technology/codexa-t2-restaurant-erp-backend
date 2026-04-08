@@ -20,8 +20,9 @@ public class TableRepositoryImpl implements TableRepository {
         String sql = "SELECT id, table_number, capacity, status FROM `tables` ORDER BY id";
         return jdbcTemplate.query(sql, (rs, rowNum) ->{
                 TableDto tableDto = new TableDto();
+                tableDto.setId(rs.getInt("id"));
                 tableDto.setTableNumber(rs.getString("table_number"));
-               tableDto.setCapacity( rs.getInt("capacity"));
+                tableDto.setCapacity( rs.getInt("capacity"));
                 tableDto.setStatus(rs.getString("status"));
                 return tableDto;
         });
@@ -32,6 +33,7 @@ public class TableRepositoryImpl implements TableRepository {
         String sql = "SELECT id, table_number, capacity, status FROM `tables` WHERE id = ?";
         return jdbcTemplate.query(sql, (rs, rowNum) ->{
             TableDto tableDto = new TableDto();
+            tableDto.setId(rs.getInt("id"));
             tableDto.setTableNumber(rs.getString("table_number"));
             tableDto.setCapacity( rs.getInt("capacity"));
             tableDto.setStatus(rs.getString("status"));
