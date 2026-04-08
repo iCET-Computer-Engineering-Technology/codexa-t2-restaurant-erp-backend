@@ -18,23 +18,25 @@ public class TableRepositoryImpl implements TableRepository {
     @Override
     public List<TableDto> findAll() {
         String sql = "SELECT id, table_number, capacity, status FROM `tables` ORDER BY id";
-        return jdbcTemplate.query(sql, (rs, rowNum) -> new TableDto(
-                rs.getInt("id"),
-                rs.getString("table_number"),
-                rs.getInt("capacity"),
-                rs.getString("status")
-        ));
+        return jdbcTemplate.query(sql, (rs, rowNum) ->{
+                TableDto tableDto = new TableDto();
+                tableDto.setTableNumber(rs.getString("table_number"));
+               tableDto.setCapacity( rs.getInt("capacity"));
+                tableDto.setStatus(rs.getString("status"));
+                return tableDto;
+        });
     }
 
     @Override
     public Optional<TableDto> findById(Integer id) {
         String sql = "SELECT id, table_number, capacity, status FROM `tables` WHERE id = ?";
-        return jdbcTemplate.query(sql, (rs, rowNum) -> new TableDto(
-                rs.getInt("id"),
-                rs.getString("table_number"),
-                rs.getInt("capacity"),
-                rs.getString("status")
-        ), id).stream().findFirst();
+        return jdbcTemplate.query(sql, (rs, rowNum) ->{
+            TableDto tableDto = new TableDto();
+            tableDto.setTableNumber(rs.getString("table_number"));
+            tableDto.setCapacity( rs.getInt("capacity"));
+            tableDto.setStatus(rs.getString("status"));
+            return tableDto;
+        }, id).stream().findFirst();
     }
 
     @Override

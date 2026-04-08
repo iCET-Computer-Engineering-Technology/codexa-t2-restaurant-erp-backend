@@ -36,6 +36,15 @@ public class KitchenOrderRepositoryImpl implements KitchenOrderRepository {
     }
 
     @Override
+    public void createKitchenOrderWithChef(Long orderId, Long chefId, String status) {
+        String sql = """
+            INSERT INTO kitchen_order(id, order_id, chef_id, status, get_time)
+            VALUES (?, ?, ?, ?, NOW())
+        """;
+        jdbcTemplate.update(sql, orderId, orderId, chefId, status);
+    }
+
+    @Override
     public List<KitchenOrder> getKitchenOrders() {
         String sql = "SELECT * FROM kitchen_order WHERE status != 'done'";
 
