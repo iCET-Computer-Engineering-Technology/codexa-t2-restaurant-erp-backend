@@ -2,6 +2,8 @@ package edu.icet.ecom.service;
 
 import edu.icet.ecom.dto.CustomerDto;
 import edu.icet.ecom.dto.CustomerProfileDto;
+import edu.icet.ecom.dto.PaymentDto;
+import org.springframework.data.relational.core.sql.In;
 
 import java.util.List;
 
@@ -19,4 +21,6 @@ public interface CustomerService {
     boolean deleteCustomerByPhone(String phone);
     boolean updateCustomer(CustomerDto customerDTO);
     CustomerProfileDto getCustomerProfile(Integer customerId);
+    void processLoyaltyPoints(PaymentDto paymentDto, Integer customerId);
+
 }

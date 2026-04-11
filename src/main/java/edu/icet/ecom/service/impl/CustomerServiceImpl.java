@@ -2,6 +2,7 @@ package edu.icet.ecom.service.impl;
 
 import edu.icet.ecom.dto.CustomerDto;
 import edu.icet.ecom.dto.CustomerProfileDto;
+import edu.icet.ecom.dto.PaymentDto;
 import edu.icet.ecom.repository.CustomerRepository;
 import edu.icet.ecom.service.CustomerService;
 import lombok.RequiredArgsConstructor;
@@ -13,6 +14,7 @@ import java.util.List;
 public class CustomerServiceImpl implements CustomerService {
 
     private final CustomerRepository customerRepository;
+    private static final double POINTS_RATE = 2500.0;
 
     @Override
     public List<CustomerDto> getAllCustomers() {
@@ -47,5 +49,13 @@ public class CustomerServiceImpl implements CustomerService {
     @Override
     public CustomerProfileDto getCustomerProfile(Integer customerId) {
         return customerRepository.getCustomerProfile(customerId);
+    }
+
+    @Override
+    public void processLoyaltyPoints(PaymentDto paymentDto, Integer customerId) {
+        if (paymentDto.getAmount() != null && paymentDto.getAmount() > 0) {
+            Double earnedPoints = paymentDto.getAmount() / POINTS_RATE;
+            customerRepository.updateLoyaltyPoints(customerId, earnedPoints);
+        }
     }
 }

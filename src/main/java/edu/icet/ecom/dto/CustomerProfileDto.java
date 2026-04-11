@@ -16,7 +16,7 @@ public class CustomerProfileDto {
     private String email;
     private String phone;
     private String dietaryNotes;
-    private Integer loyaltyPoints;
+    private Double loyaltyPoints;
     private Double lifetimeSpend;
     private List<VisitHistoryDto> favoriteItems;
     private List<FavoriteItemDto> last10Visits;
