@@ -2,6 +2,8 @@ package edu.icet.ecom.controller;
 
 import edu.icet.ecom.dto.CustomerDto;
 import edu.icet.ecom.dto.CustomerProfileDto;
+import edu.icet.ecom.dto.PaymentDto;
+import edu.icet.ecom.repository.CustomerRepository;
 import edu.icet.ecom.service.CustomerService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -16,6 +18,7 @@ import java.util.List;
 public class CustomerController {
 
     private final CustomerService customerService;
+    private final CustomerRepository customerRepository;
 
     @GetMapping
     public List<CustomerDto> getAllCustomer(){
@@ -47,8 +50,13 @@ public class CustomerController {
         return customerService.updateCustomer(customerDto);
     }
 
-    @GetMapping("/{id}/profile")
-    public CustomerProfileDto getCustomerProfile(@PathVariable Integer id) {
-        return customerService.getCustomerProfile(id);
+    @PostMapping("/loyalty/update/{customerId}/{points}")
+    public void addManualPoints(@PathVariable Integer customerId, @PathVariable Double points) {
+        customerRepository.updateLoyaltyPoints(customerId, points);
+    }
+
+    @PostMapping("/loyalty/process-payment/{customerId}")
+    public void processPaymentPoints(@RequestBody PaymentDto paymentDto, @PathVariable Integer customerId) {
+        customerService.processLoyaltyPoints(paymentDto, customerId);
     }
 }

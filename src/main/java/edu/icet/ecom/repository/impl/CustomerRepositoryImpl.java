@@ -34,7 +34,7 @@ public class CustomerRepositoryImpl implements CustomerRepository {
         customer.setCommunicationSms(rs.getInt("communication_sms"));
         customer.setGdprDeleted(rs.getInt("gdpr_deleted"));
         customer.setBirthday(rs.getDate("birthday") != null ? rs.getDate("birthday").toLocalDate() : null);
-        customer.setLoyaltyPoints(rs.getInt("loyalty_points"));
+        customer.setLoyaltyPoints(rs.getDouble("loyalty_points"));
         customer.setCreatedAt(rs.getDate("created_at") != null ? rs.getDate("created_at").toLocalDate() : null);
         return customer;
     };
@@ -133,9 +133,6 @@ public class CustomerRepositoryImpl implements CustomerRepository {
 
     @Override
     public CustomerProfileDto getCustomerProfile(Integer customerId) {
-        log.info("Fetching profile for customer ID: {}", customerId);
-
-        // 1. Customer Profile + Lifetime Spend
         String profileSql = """
         SELECT 
             c.id,
@@ -164,7 +161,7 @@ public class CustomerRepositoryImpl implements CustomerRepository {
                     dto.setEmail(rs.getString("email"));
                     dto.setPhone(rs.getString("phone"));
                     dto.setDietaryNotes(rs.getString("dietary_notes"));
-                    dto.setLoyaltyPoints(rs.getInt("loyalty_points"));
+                    dto.setLoyaltyPoints(rs.getDouble("loyalty_points"));
                     dto.setLifetimeSpend(rs.getDouble("lifetime_spend"));
                     return dto;
                 },
@@ -211,5 +208,11 @@ public class CustomerRepositoryImpl implements CustomerRepository {
                 customerId, recentVisits.size());
 
         return profile;
+    }
+
+    @Override
+    public void updateLoyaltyPoints(Integer customerId, Double points) {
+        String sql = "UPDATE customers SET loyalty_points = loyalty_points + ? WHERE id = ?";
+        jdbcTemplate.update((sql), points, customerId);
     }
 }

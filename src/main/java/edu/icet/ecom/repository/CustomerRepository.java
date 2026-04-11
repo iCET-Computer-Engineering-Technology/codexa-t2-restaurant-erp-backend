@@ -16,5 +16,6 @@ public interface CustomerRepository {
     boolean updateCustomer(CustomerDto customerDTO);
     List<CustomerDto> findCustomersWithAnniversaryOn(LocalDate targetDate);
     CustomerProfileDto getCustomerProfile(Integer customerId);
+    void updateLoyaltyPoints(Integer customerId, Double points);
 
 }

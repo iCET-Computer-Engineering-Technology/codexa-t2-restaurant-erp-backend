@@ -30,6 +30,6 @@ public class CustomerDto {
     @Past(message = "Birthday must be a past date")
     private LocalDate birthday;
     @Min(value = 0, message = "Loyalty points cannot be negative")
-    private Integer loyaltyPoints;
+    private Double loyaltyPoints;
     private LocalDate createdAt;
 }
