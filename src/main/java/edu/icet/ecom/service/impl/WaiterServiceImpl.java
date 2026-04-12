@@ -24,7 +24,7 @@ public class WaiterServiceImpl implements WaiterServcie {
         }
         orderStatusRepository.updateOrderStatus(orderId, waiterId, status);
         if (status.equals("served")) {
-            kitchenOrderRepository.markAsDone(orderId);
+            kitchenOrderRepository.markAsDone(Long.valueOf(orderId));
         }
     }
 

@@ -9,7 +9,9 @@ import edu.icet.ecom.service.WebSocketNotificationService;
 import lombok.RequiredArgsConstructor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
+import org.springframework.web.server.ResponseStatusException;
 
 import java.util.List;
 import java.util.Locale;
@@ -67,7 +69,7 @@ public class KitchenServiceImpl implements KitchenService {
             throw new IllegalArgumentException("Kitchen order not found");
         }
 
-        if (!"done".equals(ko.getStatus())) {
+        if (!"ready".equalsIgnoreCase(ko.getStatus())) {
             throw new IllegalArgumentException("Order not ready for assignment");
         }
 
@@ -130,20 +132,17 @@ public class KitchenServiceImpl implements KitchenService {
     public void markOrderReady(Long orderId) {
         KitchenOrder ko = kitchenOrderRepository.findByOrderId(orderId);
         if (ko == null) {
-            throw new IllegalArgumentException("Kitchen order not found");
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Kitchen order not found for orderId=" + orderId);
         }
 
-        if ("done".equals(ko.getStatus())) {
-            throw new IllegalArgumentException("Order already marked as ready");
+        String current = ko.getStatus() == null ? "" : ko.getStatus().trim().toLowerCase();
+        if ("ready".equals(current) || "done".equals(current)) {
+            return;
         }
 
-        kitchenOrderRepository.markAsDone(orderId);
+        kitchenOrderRepository.markAsReady(orderId);
         orderRepository.updateStatus(Math.toIntExact(orderId), "partially_ready");
-
-        Order order = orderRepository.findById(orderId.intValue());
-        if (order != null) {
-            log.info("{}", buildLabel(order, "READY_FOR_FULFILLMENT", normalize(order.getOrderType())));
-        }
+        broadcastSnapshot();
     }
 
     @Override
@@ -162,7 +161,9 @@ public class KitchenServiceImpl implements KitchenService {
             if (!updated) {
                 throw new IllegalArgumentException("Order item not found");
             }
-            return inventoryService.handleFiredStatus(orderItemId);
+            InventoryDeductionResponse response = inventoryService.handleFiredStatus(orderItemId);
+            broadcastSnapshot();
+            return response;
         }
 
         boolean updated = orderItemRepository.updateStatus(orderItemId, normalizedStatus);
@@ -170,6 +171,7 @@ public class KitchenServiceImpl implements KitchenService {
             throw new IllegalArgumentException("Order item not found");
         }
 
+        broadcastSnapshot();
         return new InventoryDeductionResponse(false, "Order item status updated");
     }
 
