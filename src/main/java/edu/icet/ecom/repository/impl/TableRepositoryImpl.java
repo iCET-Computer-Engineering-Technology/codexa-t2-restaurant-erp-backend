@@ -17,26 +17,28 @@ public class TableRepositoryImpl implements TableRepository {
 
     @Override
     public List<TableDto> findAll() {
-        String sql = "SELECT id, table_number, capacity, section_id, status FROM `tables` ORDER BY id";
-        return jdbcTemplate.query(sql, (rs, rowNum) -> new TableDto(
-                rs.getInt("id"),
-                rs.getString("table_number"),
-                rs.getInt("capacity"),
-                (Integer) rs.getObject("section_id"),
-                rs.getString("status")
-        ));
+        String sql = "SELECT id, table_number, capacity, status FROM `tables` ORDER BY id";
+        return jdbcTemplate.query(sql, (rs, rowNum) ->{
+                TableDto tableDto = new TableDto();
+                tableDto.setId(rs.getInt("id"));
+                tableDto.setTableNumber(rs.getString("table_number"));
+                tableDto.setCapacity( rs.getInt("capacity"));
+                tableDto.setStatus(rs.getString("status"));
+                return tableDto;
+        });
     }
 
     @Override
     public Optional<TableDto> findById(Integer id) {
-        String sql = "SELECT id, table_number, capacity, section_id, status FROM `tables` WHERE id = ?";
-        return jdbcTemplate.query(sql, (rs, rowNum) -> new TableDto(
-                rs.getInt("id"),
-                rs.getString("table_number"),
-                rs.getInt("capacity"),
-                (Integer) rs.getObject("section_id"),
-                rs.getString("status")
-        ), id).stream().findFirst();
+        String sql = "SELECT id, table_number, capacity, status FROM `tables` WHERE id = ?";
+        return jdbcTemplate.query(sql, (rs, rowNum) ->{
+            TableDto tableDto = new TableDto();
+            tableDto.setId(rs.getInt("id"));
+            tableDto.setTableNumber(rs.getString("table_number"));
+            tableDto.setCapacity( rs.getInt("capacity"));
+            tableDto.setStatus(rs.getString("status"));
+            return tableDto;
+        }, id).stream().findFirst();
     }
 
     @Override

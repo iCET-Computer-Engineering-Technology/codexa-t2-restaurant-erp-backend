@@ -124,6 +124,23 @@ public class ReservationServiceImpl implements ReservationService {
             // Non-blocking: reservation creation succeeds even if table update fails
         }
 
+        // Send confirmation email (non-blocking for reservation flow)
+        try {
+            if (savedReservation.getEmail() != null && !savedReservation.getEmail().trim().isEmpty()) {
+                log.info("Preparing confirmation email for reservation {} to {}", savedReservation.getId(), savedReservation.getEmail());
+                // Reuse reservation reminder template for confirmation until a dedicated confirmation template is added
+                String template = emailTemplateService.getReservationReminderEmailTemplate();
+                String body = buildReservationEmailBody(savedReservation, template);
+                sendEmailWithRetry(savedReservation, body);
+                log.info("Confirmation email triggered for reservation {}", savedReservation.getId());
+            } else {
+                log.warn("Skipping confirmation email - no customer email for reservation {}", savedReservation.getId());
+            }
+        } catch (Exception e) {
+            // Do not fail reservation if email sending fails
+            log.error("Failed to send reservation confirmation email for reservation {}: {}", savedReservation.getId(), e.getMessage(), e);
+        }
+
         log.info("Reservation created successfully with confirmation code: {}", savedReservation.getConfirmationCode());
 
         return savedReservation;
