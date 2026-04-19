@@ -11,6 +11,9 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+import org.springframework.transaction.support.TransactionSynchronization;
+import org.springframework.transaction.support.TransactionSynchronizationManager;
 import org.springframework.web.server.ResponseStatusException;
 
 import java.util.List;
@@ -63,26 +66,27 @@ public class KitchenServiceImpl implements KitchenService {
     }
 
     @Override
+    @Transactional
     public void assignWaiter(Long kitchenOrderId, Long waiterId) {
         KitchenOrder ko = kitchenOrderRepository.findById(kitchenOrderId);
         if (ko == null) {
-            throw new IllegalArgumentException("Kitchen order not found");
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Kitchen order not found");
         }
 
         if (!"ready".equalsIgnoreCase(ko.getStatus())) {
-            throw new IllegalArgumentException("Order not ready for assignment");
+            throw new ResponseStatusException(HttpStatus.CONFLICT, "Order not ready for assignment");
         }
 
         boolean assigned = orderAssignmentRepository.existsByKitchenOrderId(kitchenOrderId);
 
         if (assigned) {
-            throw new IllegalArgumentException("Order already assigned to a waiter");
+            throw new ResponseStatusException(HttpStatus.CONFLICT, "Order already assigned to a waiter");
         }
 
         orderAssignmentRepository.assignWaiter(kitchenOrderId, waiterId);
         waiterRepository.updateWaiterStatus(waiterId, "busy");
 
-        broadcastSnapshot();
+        publishSnapshotAfterCommit();
     }
 
     @Override
@@ -104,6 +108,7 @@ public class KitchenServiceImpl implements KitchenService {
     }
 
     @Override
+    @Transactional
     public void sendToKitchen(Long orderId) {
         Order order = orderRepository.findById(orderId.intValue());
         if (order == null) {
@@ -117,7 +122,7 @@ public class KitchenServiceImpl implements KitchenService {
 
         boolean exists = kitchenOrderRepository.existsByOrderId(orderId);
         if (exists) {
-            throw new IllegalArgumentException("Order already sent to kitchen");
+            throw new ResponseStatusException(HttpStatus.CONFLICT, "Order already sent to kitchen");
         }
 
         orderRepository.updateStatus(orderId.intValue(), "sent_to_kitchen");
@@ -125,10 +130,11 @@ public class KitchenServiceImpl implements KitchenService {
 
         log.info("{}", buildLabel(order, "KITCHEN_RECEIVED", normalizedType));
 
-        broadcastSnapshot();
+        publishSnapshotAfterCommit();
     }
 
     @Override
+    @Transactional
     public void markOrderReady(Long orderId) {
         KitchenOrder ko = kitchenOrderRepository.findByOrderId(orderId);
         if (ko == null) {
@@ -142,10 +148,11 @@ public class KitchenServiceImpl implements KitchenService {
 
         kitchenOrderRepository.markAsReady(orderId);
         orderRepository.updateStatus(Math.toIntExact(orderId), "partially_ready");
-        broadcastSnapshot();
+        publishSnapshotAfterCommit();
     }
 
     @Override
+    @Transactional
     public InventoryDeductionResponse updateOrderItemStatus(Integer orderItemId, String status) {
         if (orderItemId == null || orderItemId <= 0) {
             throw new IllegalArgumentException("Invalid orderItemId");
@@ -162,7 +169,7 @@ public class KitchenServiceImpl implements KitchenService {
                 throw new IllegalArgumentException("Order item not found");
             }
             InventoryDeductionResponse response = inventoryService.handleFiredStatus(orderItemId);
-            broadcastSnapshot();
+            publishSnapshotAfterCommit();
             return response;
         }
 
@@ -171,7 +178,7 @@ public class KitchenServiceImpl implements KitchenService {
             throw new IllegalArgumentException("Order item not found");
         }
 
-        broadcastSnapshot();
+        publishSnapshotAfterCommit();
         return new InventoryDeductionResponse(false, "Order item status updated");
     }
 
@@ -187,28 +194,43 @@ public class KitchenServiceImpl implements KitchenService {
         return String.format("[%s][%s] Order #%s", status, type.toUpperCase(Locale.ROOT), order.getOrderNumber());
     }
 
-    private void broadcastSnapshot() {
-        try {
-            webSocketNotificationService.notifyKDSOrdersSnapshot(getOpenOrders());
-        } catch (Exception e) {
-            log.error("Failed to broadcast KDS snapshot", e);
+    private void publishSnapshotAfterCommit() {
+        Runnable publishAction = () -> {
+            try {
+                webSocketNotificationService.notifyKDSOrdersSnapshot(getOpenOrders());
+            } catch (Exception e) {
+                log.error("Failed to broadcast KDS snapshot", e);
+            }
+        };
+
+        if (TransactionSynchronizationManager.isActualTransactionActive()) {
+            TransactionSynchronizationManager.registerSynchronization(new TransactionSynchronization() {
+                @Override
+                public void afterCommit() {
+                    publishAction.run();
+                }
+            });
+            return;
         }
+
+        publishAction.run();
     }
 
     @Override
+    @Transactional
     public void assignChef(Long kitchenOrderId, Long chefId) {
         KitchenOrder ko = kitchenOrderRepository.findById(kitchenOrderId);
         if (ko == null) {
-            throw new IllegalArgumentException("Kitchen Order not found");
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Kitchen Order not found");
         }
 
         int activeCount = kitchenOrderRepository.countActiveOrdersByChefId(chefId);
         if (activeCount >= 5) {
-            throw new IllegalStateException("Chef cannot be assigned to more than 5 active orders");
+            throw new ResponseStatusException(HttpStatus.CONFLICT, "Chef cannot be assigned to more than 5 active orders");
         }
 
         kitchenOrderRepository.assignChef(kitchenOrderId, chefId);
-        broadcastSnapshot();
+        publishSnapshotAfterCommit();
     }
 
     @Override

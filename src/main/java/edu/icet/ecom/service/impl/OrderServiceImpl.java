@@ -6,13 +6,18 @@ import edu.icet.ecom.entity.OrderItem;
 import edu.icet.ecom.entity.KdsOrder;
 import edu.icet.ecom.exception.ResourceNotFoundException;
 import edu.icet.ecom.repository.*;
+import edu.icet.ecom.service.KitchenService;
 import edu.icet.ecom.service.OrderService;
 import edu.icet.ecom.service.WebSocketNotificationService;
 import edu.icet.ecom.service.IngredientService;
 import lombok.RequiredArgsConstructor;
 import org.jspecify.annotations.NonNull;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.transaction.support.TransactionSynchronization;
+import org.springframework.transaction.support.TransactionSynchronizationManager;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -27,12 +32,15 @@ import java.util.Set;
 @RequiredArgsConstructor
 public class OrderServiceImpl implements OrderService {
 
+    private static final Logger log = LoggerFactory.getLogger(OrderServiceImpl.class);
+
     private final OrderRepository orderRepository;
     private final OrderItemRepository orderItemRepository;
     private final OrderTypeRepository orderTypeRepository;
     private final KdsRepository kdsRepository;
     private final WebSocketNotificationService webSocketNotificationService;
     private final IngredientService ingredientService;
+    private final KitchenService kitchenService;
 
     // Valid order types matching the DB ENUM
     private static final Set<String> VALID_ORDER_TYPES = Set.of("dine_in", "takeout", "booking");
@@ -204,20 +212,13 @@ public class OrderServiceImpl implements OrderService {
         response.setOrder(mapToResponse(order, savedItems));
         response.setKdsOrderId(kdsOrderId);
 
-        // Broadcast to WebSocket topics (non-blocking)
-        try {
+        publishAfterCommit(() -> {
             broadcastToPOS(response.getOrder());
-        } catch (Exception e) {
-            // Non-critical: broadcast failure doesn't block order
-            System.err.println("Failed to broadcast to POS: " + e.getMessage());
-        }
-
-        try {
             broadcastToKDS(kdsOrderId, order.getOrderNumber(), savedItems.size());
-        } catch (Exception e) {
-            // Non-critical: broadcast failure doesn't block order
-            System.err.println("Failed to broadcast to KDS: " + e.getMessage());
-        }
+            webSocketNotificationService.notifyKDSOrdersSnapshot(kitchenService.getOpenOrders());
+            log.info("Published KDS events after commit: event=NEW_KDS_ORDER orderNumber={} itemCount={}",
+                    order.getOrderNumber(), savedItems.size());
+        });
 
         return response;
     }
@@ -230,7 +231,7 @@ public class OrderServiceImpl implements OrderService {
             webSocketNotificationService.notifyPOSNewOrder(order);
         } catch (Exception e) {
             // Non-critical: broadcast failure doesn't block order
-            System.err.println("WebSocket broadcast to POS failed: " + e.getMessage());
+            log.error("WebSocket broadcast to POS failed", e);
         }
     }
 
@@ -242,8 +243,22 @@ public class OrderServiceImpl implements OrderService {
             webSocketNotificationService.notifyKDSNewOrder(kdsOrderId, orderNumber, itemCount);
         } catch (Exception e) {
             // Non-critical: broadcast failure doesn't block order
-            System.err.println("WebSocket broadcast to KDS failed: " + e.getMessage());
+            log.error("WebSocket broadcast to KDS failed", e);
         }
+    }
+
+    private void publishAfterCommit(Runnable action) {
+        if (TransactionSynchronizationManager.isActualTransactionActive()) {
+            TransactionSynchronizationManager.registerSynchronization(new TransactionSynchronization() {
+                @Override
+                public void afterCommit() {
+                    action.run();
+                }
+            });
+            return;
+        }
+
+        action.run();
     }
 
     private Order findOrderByIdempotencyKey(String idempotencyKey) {

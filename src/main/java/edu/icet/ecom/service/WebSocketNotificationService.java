@@ -1,6 +1,8 @@
 package edu.icet.ecom.service;
 
 import lombok.RequiredArgsConstructor;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Service;
 
@@ -13,6 +15,8 @@ import java.util.Map;
 @Service
 @RequiredArgsConstructor
 public class WebSocketNotificationService {
+
+    private static final Logger log = LoggerFactory.getLogger(WebSocketNotificationService.class);
 
     private static final String POS_UPDATES_TOPIC = "/topic/pos-updates";
     private static final String KDS_UPDATES_TOPIC = "/topic/kds-updates";
@@ -43,6 +47,8 @@ public class WebSocketNotificationService {
         payload.put("itemCount", itemCount);
         payload.put("timestamp", LocalDateTime.now());
         messagingTemplate.convertAndSend(KDS_UPDATES_TOPIC, (Object) payload);
+        log.info("Published NEW_KDS_ORDER to {} with kdsOrderId={}, orderNumber={}, itemCount={}",
+                KDS_UPDATES_TOPIC, kdsOrderId, orderNumber, itemCount);
     }
 
     /**
@@ -134,6 +140,7 @@ public class WebSocketNotificationService {
         payload.put("orders", orders);
         payload.put("timestamp", LocalDateTime.now());
         messagingTemplate.convertAndSend(KDS_UPDATES_TOPIC, (Object) payload);
+        log.info("Published KDS_ORDERS_SNAPSHOT to {} with {} orders", KDS_UPDATES_TOPIC, orders == null ? 0 : orders.size());
     }
 }
 
