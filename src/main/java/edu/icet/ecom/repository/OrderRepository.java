@@ -16,5 +16,6 @@ public interface OrderRepository {
     int upsertAndGetSequence(LocalDate date);
     List<OrderWithItemNameResponse> findAllOrdersWithItemNames();
     OrderWithItemNameResponse findOrderWithItemNamesById(Integer id);
+    void assignChef(Integer orderId, Integer chefId);
 }
 

@@ -5,8 +5,6 @@ import edu.icet.ecom.entity.KitchenOrder;
 import java.util.List;
 
 public interface KitchenOrderRepository {
-    void markAsDone(Integer orderId);
-
     void createKitchenOrder(Long orderId);
     void createKitchenOrderWithChef(Long orderId, Long chefId, String status);
     List<KitchenOrder> getKitchenOrders();
@@ -16,4 +14,5 @@ public interface KitchenOrderRepository {
     KitchenOrder findById(Long id);
     void assignChef(Long kitchenOrderId, Long chefId);
     int countActiveOrdersByChefId(Long chefId);
+    void markAsReady(Long orderId);
 }

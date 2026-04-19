@@ -19,6 +19,7 @@ public class Order {
     private Integer tableId;
     private Integer customerId;
     private Integer serverId;
+    private Integer chefId;
     private String status;
     private BigDecimal subTotal;
     private BigDecimal discountAmount;
@@ -31,5 +32,4 @@ public class Order {
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
     private List<OrderItem> items;
-
 }

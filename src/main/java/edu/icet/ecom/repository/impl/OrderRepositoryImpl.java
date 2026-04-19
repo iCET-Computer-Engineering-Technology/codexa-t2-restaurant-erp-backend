@@ -199,6 +199,11 @@ public class OrderRepositoryImpl implements OrderRepository {
         return results.isEmpty() ? null : results.get(0);
     }
 
+    @Override
+    public void assignChef(Integer orderId, Integer chefId) {
+
+    }
+
     private List<OrderWithItemNameResponse> mapOrdersWithItems(List<Map<String, Object>> rows) {
         if (rows.isEmpty()) {
             return List.of();

@@ -15,24 +15,13 @@ public class KitchenOrderRepositoryImpl implements KitchenOrderRepository {
     private final JdbcTemplate jdbcTemplate;
     private static final String COL_GET_TIME = "get_time";
 
-
-    @Override
-    public void markAsDone(Integer orderId) {
-        String sql = """
-            UPDATE kitchen_order
-            SET status='done', end_time=NOW()
-            WHERE order_id=?
-        """;
-        jdbcTemplate.update(sql, orderId);
-    }
-
     @Override
     public void createKitchenOrder(Long orderId) {
         String sql = """
-            INSERT INTO kitchen_order(id, order_id, status, get_time)
-            VALUES (?, ?, 'in_progress', NOW())
+            INSERT INTO kitchen_order(order_id, status, get_time)
+            VALUES (?, 'in_progress', NOW())
         """;
-        jdbcTemplate.update(sql, orderId, orderId);
+        jdbcTemplate.update(sql, orderId);
     }
 
     @Override
@@ -139,5 +128,15 @@ public class KitchenOrderRepositoryImpl implements KitchenOrderRepository {
         String sql = "SELECT COUNT(*) FROM kitchen_order WHERE chef_id = ? AND status IN ('pending', 'in_progress')";
         Integer count = jdbcTemplate.queryForObject(sql, Integer.class, chefId);
         return count != null ? count : 0;
+    }
+
+    @Override
+    public void markAsReady(Long orderId) {
+        String sql = """
+        UPDATE kitchen_order
+        SET status='ready', end_time=NOW()
+        WHERE order_id=?
+    """;
+        jdbcTemplate.update(sql, orderId);
     }
 }
