@@ -11,6 +11,7 @@ import edu.icet.ecom.repository.TableRepository;
 import edu.icet.ecom.service.EmailService;
 import edu.icet.ecom.service.EmailTemplateService;
 import edu.icet.ecom.service.ReservationService;
+import edu.icet.ecom.service.TableManagementService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.scheduling.annotation.Scheduled;
@@ -32,6 +33,7 @@ public class ReservationServiceImpl implements ReservationService {
     private final TableRepository tableRepository;
     private final EmailService emailService;
     private final EmailTemplateService emailTemplateService;
+    private final TableManagementService tableManagementService;
 
     private static final int BUSINESS_HOURS_START = 11; // 11:00 AM
     private static final int BUSINESS_HOURS_END = 22;   // 10:00 PM
@@ -113,6 +115,31 @@ public class ReservationServiceImpl implements ReservationService {
         reservation.setNotes(bookingRequest.getNotes());
 
         Reservation savedReservation = reservationRepository.save(reservation);
+
+        // Update table status to reserved
+        try {
+            tableManagementService.updateTableStatusAutomatic(selectedTableId, "reserved", "RESERVATION_MADE");
+        } catch (Exception e) {
+            log.error("Failed to update table status to reserved: {}", e.getMessage());
+            // Non-blocking: reservation creation succeeds even if table update fails
+        }
+
+        // Send confirmation email (non-blocking for reservation flow)
+        try {
+            if (savedReservation.getEmail() != null && !savedReservation.getEmail().trim().isEmpty()) {
+                log.info("Preparing confirmation email for reservation {} to {}", savedReservation.getId(), savedReservation.getEmail());
+                // Reuse reservation reminder template for confirmation until a dedicated confirmation template is added
+                String template = emailTemplateService.getReservationReminderEmailTemplate();
+                String body = buildReservationEmailBody(savedReservation, template);
+                sendEmailWithRetry(savedReservation, body);
+                log.info("Confirmation email triggered for reservation {}", savedReservation.getId());
+            } else {
+                log.warn("Skipping confirmation email - no customer email for reservation {}", savedReservation.getId());
+            }
+        } catch (Exception e) {
+            // Do not fail reservation if email sending fails
+            log.error("Failed to send reservation confirmation email for reservation {}: {}", savedReservation.getId(), e.getMessage(), e);
+        }
 
         log.info("Reservation created successfully with confirmation code: {}", savedReservation.getConfirmationCode());
 

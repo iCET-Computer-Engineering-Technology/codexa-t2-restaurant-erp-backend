@@ -6,7 +6,9 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 @RestController
 @RequestMapping("/api/payments")
@@ -21,18 +23,33 @@ public class PaymentController {
             boolean result = paymentService.addPayment(paymentDto);
 
             if (result) {
-                return ResponseEntity.ok("Payment Processed Successfully");
+                Map<String, Object> response = new HashMap<>();
+                response.put("success", true);
+                response.put("message", "Payment Processed Successfully");
+                response.put("orderId", paymentDto.getOrderId());
+                return ResponseEntity.ok(response);
             }
-            return ResponseEntity.badRequest().body("payment Failed");
+            
+            Map<String, Object> errorResponse = new HashMap<>();
+            errorResponse.put("success", false);
+            errorResponse.put("message", "Payment Failed");
+            return ResponseEntity.badRequest().body(errorResponse);
 
         } catch (IllegalArgumentException e){
-            return ResponseEntity.badRequest().body(e.getMessage());
+            Map<String, Object> errorResponse = new HashMap<>();
+            errorResponse.put("success", false);
+            errorResponse.put("message", e.getMessage());
+            return ResponseEntity.badRequest().body(errorResponse);
         } catch (RuntimeException e) {
-            return ResponseEntity.badRequest().body(e.getMessage());
+            Map<String, Object> errorResponse = new HashMap<>();
+            errorResponse.put("success", false);
+            errorResponse.put("message", e.getMessage());
+            return ResponseEntity.badRequest().body(errorResponse);
         } catch (Exception e) {
-            return ResponseEntity
-                    .internalServerError()
-                    .body("Something Went Wrong :" + e.getMessage());
+            Map<String, Object> errorResponse = new HashMap<>();
+            errorResponse.put("success", false);
+            errorResponse.put("message", "Something Went Wrong: " + e.getMessage());
+            return ResponseEntity.internalServerError().body(errorResponse);
         }
     }
 
@@ -48,8 +65,10 @@ public class PaymentController {
                 return ResponseEntity.ok(payments);
 
             } catch (Exception e) {
-                return ResponseEntity.internalServerError()
-                        .body("Failed to fetch payments: " + e.getMessage());
+                Map<String, Object> errorResponse = new HashMap<>();
+                errorResponse.put("success", false);
+                errorResponse.put("message", "Failed to fetch payments: " + e.getMessage());
+                return ResponseEntity.internalServerError().body(errorResponse);
             }
         }
 
@@ -62,8 +81,10 @@ public class PaymentController {
             }
             return ResponseEntity.ok(payment);
         } catch (Exception e) {
-           return ResponseEntity.internalServerError()
-                   .body("Something went wrong : " + e.getMessage());
+            Map<String, Object> errorResponse = new HashMap<>();
+            errorResponse.put("success", false);
+            errorResponse.put("message", "Something went wrong: " + e.getMessage());
+            return ResponseEntity.internalServerError().body(errorResponse);
         }
     }
 }

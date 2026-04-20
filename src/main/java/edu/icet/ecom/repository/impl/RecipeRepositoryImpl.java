@@ -2,6 +2,7 @@ package edu.icet.ecom.repository.impl;
 
 import edu.icet.ecom.dto.RecipeDto;
 import edu.icet.ecom.dto.RecipeIngredientDto;
+import edu.icet.ecom.entity.RecipeIngredient;
 import edu.icet.ecom.repository.RecipeRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.jdbc.core.JdbcTemplate;
@@ -23,7 +24,7 @@ public class RecipeRepositoryImpl implements RecipeRepository {
     @Override
     public Integer createRecipe(RecipeDto recipeDto) {
         KeyHolder keyHolder = new GeneratedKeyHolder();
-        
+
         jdbcTemplate.update(connection -> {
             PreparedStatement ps = connection.prepareStatement(
                     "INSERT INTO recipes(menu_item_id, version_number, is_current, notes) VALUES (?, 1, 1, ?)",
@@ -41,13 +42,13 @@ public class RecipeRepositoryImpl implements RecipeRepository {
     public RecipeDto getRecipeByMenuItemId(Integer menuItemId) {
         String recipeSql = "SELECT id, menu_item_id, version_number, is_current, notes FROM recipes " +
                            "WHERE menu_item_id = ? AND is_current = 1 ORDER BY id DESC LIMIT 1";
-                           
+
         List<Map<String, Object>> recipes = jdbcTemplate.queryForList(recipeSql, menuItemId);
-        
+
         if (recipes.isEmpty()) {
             return null;
         }
-        
+
         Map<String, Object> recipeRow = recipes.get(0);
         RecipeDto recipe = new RecipeDto();
         recipe.setId((Integer) recipeRow.get("id"));
@@ -55,12 +56,12 @@ public class RecipeRepositoryImpl implements RecipeRepository {
         recipe.setVersionNumber((Integer) recipeRow.get("version_number"));
         recipe.setIsCurrent(((Number) recipeRow.get("is_current")).intValue() == 1);
         recipe.setNotes((String) recipeRow.get("notes"));
-        
+
         String ingredientsSql = "SELECT ri.id, ri.ingredient_id, i.name as ingredient_name, ri.quantity, ri.unit " +
                                 "FROM recipe_ingredients ri " +
                                 "JOIN ingredients i ON ri.ingredient_id = i.id " +
                                 "WHERE ri.recipe_id = ?";
-                                
+
         List<RecipeIngredientDto> ingredients = jdbcTemplate.query(ingredientsSql, (rs, rowNum) -> {
             RecipeIngredientDto dto = new RecipeIngredientDto();
             dto.setId(rs.getInt("id"));
@@ -70,7 +71,7 @@ public class RecipeRepositoryImpl implements RecipeRepository {
             dto.setUnit(rs.getString("unit"));
             return dto;
         }, recipe.getId());
-        
+
         recipe.setIngredients(ingredients);
         return recipe;
     }
@@ -101,8 +102,33 @@ public class RecipeRepositoryImpl implements RecipeRepository {
     @Override
     public void deleteIngredientFromRecipe(Integer recipeId, Integer ingredientId) {
         jdbcTemplate.update(
-                "DELETE FROM recipe_ingredients WHERE recipe_id = ? AND ingredient_id = ?", 
+                "DELETE FROM recipe_ingredients WHERE recipe_id = ? AND ingredient_id = ?",
                 recipeId, ingredientId);
+    }
+
+    @Override
+    public List<RecipeIngredient> findCurrentRecipeIngredientsByMenuItemId(Integer menuItemId) {
+        String sql = """
+                SELECT ri.id, ri.recipe_id, ri.ingredient_id, ri.quantity, ri.unit
+                FROM recipe_ingredients ri
+                WHERE ri.recipe_id = (
+                    SELECT r.id
+                    FROM recipes r
+                    WHERE r.menu_item_id = ?
+                    ORDER BY r.is_current DESC, r.version_number DESC, r.created_at DESC, r.id DESC
+                    LIMIT 1
+                )
+                """;
+
+        return jdbcTemplate.query(sql, (rs, rowNum) -> {
+            RecipeIngredient recipeIngredient = new RecipeIngredient();
+            recipeIngredient.setId(rs.getInt("id"));
+            recipeIngredient.setRecipeId(rs.getInt("recipe_id"));
+            recipeIngredient.setIngredientId(rs.getInt("ingredient_id"));
+            recipeIngredient.setQuantity(rs.getBigDecimal("quantity"));
+            recipeIngredient.setUnit(rs.getString("unit"));
+            return recipeIngredient;
+        }, menuItemId);
     }
 
     @Override
@@ -112,4 +138,3 @@ public class RecipeRepositoryImpl implements RecipeRepository {
                 recipeId, ing.getIngredientId(), ing.getQuantity(), ing.getUnit());
     }
 }
-

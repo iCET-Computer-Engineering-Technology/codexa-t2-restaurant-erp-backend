@@ -4,6 +4,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Service;
 
+import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.HashMap;
 import java.util.List;
@@ -17,6 +18,7 @@ public class WebSocketNotificationService {
     private static final String KDS_UPDATES_TOPIC = "/topic/kds-updates";
     private static final String TABLET_RESPONSE_TOPIC = "/topic/tablet-response";
     private static final String INVENTORY_UPDATES_TOPIC = "/topic/inventory-updates";
+    private static final String TABLE_UPDATES_TOPIC = "/topic/table-updates";
 
     private final SimpMessagingTemplate messagingTemplate;
 
@@ -97,12 +99,29 @@ public class WebSocketNotificationService {
     /**
      * Broadcast inventory stock change to connected clients
      */
-    public void notifyInventoryStockUpdate(Integer ingredientId, java.math.BigDecimal newStock, String unit) {
+    public void notifyInventoryStockUpdate(Integer ingredientId, BigDecimal newStock, String unit) {
         Map<String, Object> payload = new HashMap<>();
         payload.put("event", "INVENTORY_DEDUCTED");
         payload.put("ingredientId", ingredientId);
         payload.put("newStock", newStock);
         payload.put("unit", unit);
+        payload.put("timestamp", LocalDateTime.now());
+        messagingTemplate.convertAndSend(INVENTORY_UPDATES_TOPIC, (Object) payload);
+    }
+    public void notifyLowStockAlert(Integer ingredientId,
+                                    String ingredientName,
+                                    BigDecimal currentStock,
+                                    String unit,
+                                    BigDecimal threshold,
+                                    String reorderLink) {
+        Map<String, Object> payload = new HashMap<>();
+        payload.put("event", "LOW_STOCK_ALERT");
+        payload.put("ingredientId", ingredientId);
+        payload.put("ingredientName", ingredientName);
+        payload.put("currentStock", currentStock);
+        payload.put("unit", unit);
+        payload.put("threshold", threshold);
+        payload.put("reorderLink", reorderLink);
         payload.put("timestamp", LocalDateTime.now());
         messagingTemplate.convertAndSend(INVENTORY_UPDATES_TOPIC, (Object) payload);
     }
@@ -116,6 +135,21 @@ public class WebSocketNotificationService {
         payload.put("orders", orders);
         payload.put("timestamp", LocalDateTime.now());
         messagingTemplate.convertAndSend(KDS_UPDATES_TOPIC, (Object) payload);
+    }
+
+    /**
+     * Broadcast table status update to connected clients
+     */
+    public void notifyTableStatusUpdate(Integer tableId, String tableNumber, Integer capacity, String status, String eventType) {
+        Map<String, Object> payload = new HashMap<>();
+        payload.put("event", "TABLE_STATUS_UPDATE");
+        payload.put("tableId", tableId);
+        payload.put("tableNumber", tableNumber);
+        payload.put("capacity", capacity);
+        payload.put("status", status);
+        payload.put("eventType", eventType);
+        payload.put("timestamp", LocalDateTime.now());
+        messagingTemplate.convertAndSend(TABLE_UPDATES_TOPIC, (Object) payload);
     }
 }
 

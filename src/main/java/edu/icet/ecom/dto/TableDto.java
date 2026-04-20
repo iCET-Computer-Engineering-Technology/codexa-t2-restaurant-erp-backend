@@ -7,12 +7,13 @@ import lombok.Setter;
 
 @Getter
 @Setter
-@NoArgsConstructor
 @AllArgsConstructor
+@NoArgsConstructor
 public class TableDto {
     private Integer id;
     private String tableNumber;
     private Integer capacity;
+    private Integer sectionId;
     private String status;
 }
 

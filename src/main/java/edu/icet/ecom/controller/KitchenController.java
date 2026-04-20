@@ -1,6 +1,8 @@
 package edu.icet.ecom.controller;
 
 import edu.icet.ecom.dto.AssignWaiterRequest;
+import edu.icet.ecom.dto.InventoryDeductionResponse;
+import edu.icet.ecom.dto.OrderItemStatusUpdateRequest;
 import edu.icet.ecom.entity.KitchenOrder;
 import edu.icet.ecom.entity.Order;
 import edu.icet.ecom.entity.Waiter;
@@ -8,6 +10,7 @@ import edu.icet.ecom.entity.WaiterDetails;
 import edu.icet.ecom.service.KitchenService;
 import jakarta.validation.Valid;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -66,7 +69,6 @@ public class KitchenController {
         return kitchenService.getAvailableWaiters();
     }
 
-
     @PostMapping("/assign")
     @PreAuthorize("hasAuthority('ROLE_CHEF')")
     public void assignWaiter(@Valid @RequestBody AssignWaiterRequest request) {
@@ -81,5 +83,13 @@ public class KitchenController {
     @GetMapping("/assignments")
     public List<WaiterDetails> getAssignments(){
         return kitchenService.getAssignmentsWaiter();
+    }
+
+    @PatchMapping("/order-items/{orderItemId}/status")
+    public ResponseEntity<InventoryDeductionResponse> updateOrderItemStatus(
+            @PathVariable Integer orderItemId,
+            @Valid @RequestBody OrderItemStatusUpdateRequest request
+    ) {
+        return ResponseEntity.ok(kitchenService.updateOrderItemStatus(orderItemId, request.getStatus()));
     }
 }
