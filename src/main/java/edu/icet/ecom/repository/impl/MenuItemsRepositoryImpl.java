@@ -44,7 +44,7 @@ public class MenuItemsRepositoryImpl implements MenuItemsRepository {
                 itemDto.getCategoryId(),
                 itemDto.getName(),
                 itemDto.getDescription(),
-                itemDto.getPrepTime(),
+                itemDto.getPrepTime() != null ? itemDto.getPrepTime() : 10,
                 itemDto.getIsAvailable(),
                 itemDto.getImageUrl()
         ) > 0;
@@ -56,7 +56,7 @@ public class MenuItemsRepositoryImpl implements MenuItemsRepository {
                 itemDto.getCategoryId(),
                 itemDto.getName(),
                 itemDto.getDescription(),
-                itemDto.getPrepTime(),
+                itemDto.getPrepTime() != null ? itemDto.getPrepTime() : 10,
                 itemDto.getIsAvailable(),
                 itemDto.getImageUrl(),
                 itemDto.getId()
