@@ -24,7 +24,6 @@ public class MenuItemsRepositoryImpl implements MenuItemsRepository {
                     "FROM menu_items mi " +
                     "LEFT JOIN menu_categories mc ON mi.category_id = mc.id ";
 
-
     private MenuItemsDto mapRow(java.sql.ResultSet rs) throws java.sql.SQLException {
         MenuItemsDto dto = new MenuItemsDto();
 
@@ -41,10 +40,11 @@ public class MenuItemsRepositoryImpl implements MenuItemsRepository {
 
     @Override
     public boolean addItem(MenuItemsDto itemDto) {
-        return jdbcTemplate.update("INSERT INTO menu_items  (category_id, name, description, is_available, image_url, created_at, updated_at) VALUES (?,?,?,?,?,NOW(),NOW())",
+        return jdbcTemplate.update("INSERT INTO menu_items  (category_id, name, description, prep_time_minutes, is_available, image_url, created_at, updated_at) VALUES (?,?,?,?,?,?,NOW(),NOW())",
                 itemDto.getCategoryId(),
                 itemDto.getName(),
                 itemDto.getDescription(),
+                itemDto.getPrepTime(),
                 itemDto.getIsAvailable(),
                 itemDto.getImageUrl()
         ) > 0;
@@ -52,10 +52,11 @@ public class MenuItemsRepositoryImpl implements MenuItemsRepository {
 
     @Override
     public boolean updateItem(MenuItemsDto itemDto) {
-        return jdbcTemplate.update("UPDATE menu_items SET category_id = ?, name = ?, description = ?, is_available = ?, image_url = ?, updated_at = NOW() WHERE id = ?",
+        return jdbcTemplate.update("UPDATE menu_items SET category_id = ?, name = ?, description = ?, prep_time_minutes = ?, is_available = ?, image_url = ?, updated_at = NOW() WHERE id = ?",
                 itemDto.getCategoryId(),
                 itemDto.getName(),
                 itemDto.getDescription(),
+                itemDto.getPrepTime(),
                 itemDto.getIsAvailable(),
                 itemDto.getImageUrl(),
                 itemDto.getId()
